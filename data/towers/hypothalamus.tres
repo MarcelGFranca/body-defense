@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="TowerData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/tower_data.gd" id="1_hbqtx"]
+
+[resource]
+script = ExtResource("1_hbqtx")
+id = "hypothalamus"
+display_name = "Hypothalamus"
+role = "damage over time"
+ability_description = "Fever: burns enemies for 3 damage per second during 4 s."
+damage_type = "thermal"
+cost = 70
+behavior = "dot_aura"
+range_px = 85.0
+dot_damage = 3.0
+dot_seconds = 4.0
+sound_attack = "res://assets/audio/towers/hypothalamus/attack.wav"

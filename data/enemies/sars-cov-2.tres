@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/enemy_data.gd" id="1_tht0e"]
+
+[resource]
+script = ExtResource("1_tht0e")
+id = "sars-cov-2"
+display_name = "SARS-CoV-2"
+role = "contagious"
+trait_id = "release_minions"
+trait_description = "Releases smaller viruses when defeated."
+health = 60.0
+speed = 45.0
+body_damage = 2
+amino_acid_reward = 5
+sound_hit = "res://assets/audio/enemies/sars-cov-2/hit.wav"
+sound_attack = "res://assets/audio/enemies/sars-cov-2/attack.wav"
+sound_death = "res://assets/audio/enemies/sars-cov-2/death.wav"

@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/enemy_data.gd" id="1_tr418"]
+
+[resource]
+script = ExtResource("1_tr418")
+id = "streptococcus-pyogenes"
+display_name = "Streptococcus pyogenes"
+type = "bacterium"
+role = "chained"
+trait_id = "chain"
+trait_description = "Moves as a chain of segments that die separately (turned off in the prototype)."
+health = 80.0
+speed = 40.0
+body_damage = 2
+amino_acid_reward = 6
+sprite_dir = "res://assets/enemies/streptococcus-pyogenes"
+sound_hit = "res://assets/audio/enemies/streptococcus-pyogenes/hit.wav"
+sound_attack = "res://assets/audio/enemies/streptococcus-pyogenes/attack.wav"
+sound_death = "res://assets/audio/enemies/streptococcus-pyogenes/death.wav"

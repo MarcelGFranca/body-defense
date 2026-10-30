@@ -1,0 +1,18 @@
+{
+  "frame_size": [
+    32,
+    32
+  ],
+  "animations": {
+    "idle": {
+      "frames": 8,
+      "fps": 6,
+      "loop": true
+    },
+    "attack": {
+      "frames": 8,
+      "fps": 12,
+      "loop": false
+    }
+  }
+}

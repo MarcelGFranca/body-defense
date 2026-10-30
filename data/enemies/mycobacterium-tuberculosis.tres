@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/enemy_data.gd" id="1_4jnxp"]
+
+[resource]
+script = ExtResource("1_4jnxp")
+id = "mycobacterium-tuberculosis"
+display_name = "Mycobacterium tuberculosis"
+type = "bacterium"
+role = "boss"
+trait_id = "heavy_armor"
+trait_description = "Very high health, very low speed, heavy armor."
+health = 450.0
+speed = 22.0
+body_damage = 10
+amino_acid_reward = 30
+armor_percent = 40.0
+sound_hit = "res://assets/audio/enemies/mycobacterium-tuberculosis/hit.wav"
+sound_attack = "res://assets/audio/enemies/mycobacterium-tuberculosis/attack.wav"
+sound_death = "res://assets/audio/enemies/mycobacterium-tuberculosis/death.wav"

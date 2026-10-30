@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/enemy_data.gd" id="1_wo2fj"]
+
+[resource]
+script = ExtResource("1_wo2fj")
+id = "helicobacter-pylori"
+display_name = "Helicobacter pylori"
+type = "bacterium"
+role = "slow-immune"
+trait_id = "slow_immune"
+trait_description = "Unaffected by slowing effects."
+health = 60.0
+speed = 45.0
+body_damage = 2
+amino_acid_reward = 5
+sound_hit = "res://assets/audio/enemies/helicobacter-pylori/hit.wav"
+sound_attack = "res://assets/audio/enemies/helicobacter-pylori/attack.wav"
+sound_death = "res://assets/audio/enemies/helicobacter-pylori/death.wav"

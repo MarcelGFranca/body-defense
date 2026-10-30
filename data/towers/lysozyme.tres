@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="TowerData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/tower_data.gd" id="1_17w7d"]
+
+[resource]
+script = ExtResource("1_17w7d")
+id = "lysozyme"
+display_name = "Lysozyme"
+role = "area"
+ability_description = "Dissolves bacteria. Strong against bacteria, weak against viruses."
+damage_type = "chemical"
+cost = 60
+behavior = "damage_aura"
+range_px = 85.0
+attack_damage = 6.0
+sound_attack = "res://assets/audio/towers/lysozyme/attack.wav"

@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="TowerData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/tower_data.gd" id="1_onso6"]
+
+[resource]
+script = ExtResource("1_onso6")
+id = "interferon"
+display_name = "Interferon"
+role = "area"
+ability_description = "Antiviral pulse that also slows viruses by 25%. Bacteria are immune."
+damage_type = "antiviral"
+cost = 60
+in_prototype = true
+behavior = "damage_aura"
+range_px = 85.0
+attack_damage = 6.0
+slow_percent = 25.0
+mist_color = Color(0.7, 0.95, 1, 1)
+sound_attack = "res://assets/audio/towers/interferon/attack.wav"

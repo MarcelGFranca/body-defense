@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="TowerData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/tower_data.gd" id="1_qlk34"]
+
+[resource]
+script = ExtResource("1_qlk34")
+id = "b-lymphocyte"
+display_name = "B Lymphocyte"
+role = "summoner"
+ability_description = "Releases antibodies that mark enemies: 25% more damage for 5 s. It moves."
+damage_type = "antiviral"
+cost = 80
+mobility = "mobile"
+behavior = "summon_marker"
+range_px = 100.0
+attack_damage = 4.0
+attack_interval = 4.0
+mark_bonus = 0.25
+mark_seconds = 5.0
+sound_attack = "res://assets/audio/towers/b-lymphocyte/attack.wav"

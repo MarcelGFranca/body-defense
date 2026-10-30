@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/enemy_data.gd" id="1_dvyml"]
+
+[resource]
+script = ExtResource("1_dvyml")
+id = "e-coli"
+display_name = "E. coli"
+type = "bacterium"
+role = "basic"
+trait_id = "basic"
+trait_description = "Default enemy with medium health and speed."
+health = 40.0
+speed = 55.0
+amino_acid_reward = 3
+sound_hit = "res://assets/audio/enemies/e-coli/hit.wav"
+sound_attack = "res://assets/audio/enemies/e-coli/attack.wav"
+sound_death = "res://assets/audio/enemies/e-coli/death.wav"

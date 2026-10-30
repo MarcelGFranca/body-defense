@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="TowerData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/tower_data.gd" id="1_82q5d"]
+
+[resource]
+script = ExtResource("1_82q5d")
+id = "mucus-cell"
+display_name = "Mucus Cell"
+role = "slow"
+ability_description = "Throws mucus at the first enemy. The puddle slows enemies by 40% for 6 s."
+cost = 40
+in_prototype = true
+behavior = "slow_puddle"
+range_px = 90.0
+attack_interval = 3.0
+slow_percent = 40.0
+puddle_radius = 24.0
+puddle_seconds = 6.0
+sound_attack = "res://assets/audio/towers/mucus-cell/attack.wav"

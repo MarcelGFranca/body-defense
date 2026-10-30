@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/enemy_data.gd" id="1_2e57v"]
+
+[resource]
+script = ExtResource("1_2e57v")
+id = "rhinovirus"
+display_name = "Rhinovirus"
+role = "swarm"
+trait_id = "large_groups"
+trait_description = "Appears in large groups, very low health."
+health = 20.0
+speed = 45.0
+amino_acid_reward = 2
+sprite_dir = "res://assets/enemies/rhinovirus"
+sound_hit = "res://assets/audio/enemies/rhinovirus/hit.wav"
+sound_attack = "res://assets/audio/enemies/rhinovirus/attack.wav"
+sound_death = "res://assets/audio/enemies/rhinovirus/death.wav"

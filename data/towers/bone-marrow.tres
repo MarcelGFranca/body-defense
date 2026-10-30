@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="TowerData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/tower_data.gd" id="1_up02t"]
+
+[resource]
+script = ExtResource("1_up02t")
+id = "bone-marrow"
+display_name = "Bone Marrow"
+role = "summoner"
+ability_description = "Creates up to 3 neutrophils that block enemies."
+damage_type = "physical"
+cost = 100
+behavior = "summon_units"
+range_px = 60.0
+summon_interval = 10.0
+summon_cap = 3
+unit_health = 25.0
+sound_attack = "res://assets/audio/towers/bone-marrow/attack.wav"

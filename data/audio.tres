@@ -1,0 +1,7 @@
+[gd_resource type="Resource" script_class="AudioConfig" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/audio_config.gd" id="1_pndmc"]
+
+[resource]
+script = ExtResource("1_pndmc")
+blocked_sound = "res://assets/audio/common/block.wav"

@@ -1,0 +1,803 @@
+## Runs every automated check. Exits with 1 when something fails.
+## Usage: godot --headless --path . --fixed-fps 60 res://tests/test_runner.tscn
+extends Node
+
+var _checks := 0
+var _done: Array = []
+var _failures := 0
+var _enemies: Dictionary
+var _towers: Dictionary
+var _table: DamageTable
+var _level_data: LevelData
+
+
+func _ready() -> void:
+	await get_tree().process_frame
+	_enemies = DataLoader.load_all("res://data/enemies")
+	_towers = DataLoader.load_all("res://data/towers")
+	_table = load("res://data/damage_table.tres")
+	_level_data = load("res://data/levels/level_1.tres")
+	_run()
+
+
+func _run() -> void:
+	test_enemy_roster()
+	test_tower_roster()
+	test_level_data()
+	test_validator_catches_problems()
+	test_damage_calculator()
+	test_status_effects()
+	test_wave_scheduler()
+	test_economy()
+	test_level_simulation()
+	test_scrolling()
+	await test_speed_and_pause()
+	await test_hud()
+	await test_audio()
+	for section in ["test_enemy_roster", "test_tower_roster", "test_level_data", "test_validator_catches_problems",
+			"test_damage_calculator", "test_status_effects", "test_wave_scheduler", "test_economy",
+			"test_level_simulation", "test_scrolling", "test_speed_and_pause", "test_hud", "test_audio"]:
+		if not _done.has(section):
+			_failures += 1
+			printerr("FAIL: %s stopped before its end (a script error?)" % section)
+	print("%d checks, %d failures" % [_checks, _failures])
+	get_tree().quit(1 if _failures > 0 else 0)
+
+
+## Marks that a test section ran to its last line. A script error aborts a section silently otherwise.
+func done(section: String) -> void:
+	_done.append(section)
+
+
+func check(condition: bool, message: String) -> void:
+	_checks += 1
+	if not condition:
+		_failures += 1
+		printerr("FAIL: %s" % message)
+
+
+func approx(a: float, b: float, tolerance: float = 0.01) -> bool:
+	return absf(a - b) <= tolerance
+
+
+func new_level() -> Level:
+	var level := Level.new()
+	get_tree().root.add_child(level)
+	return level
+
+
+func mouse_button(position: Vector2, pressed: bool) -> InputEventMouseButton:
+	var event := InputEventMouseButton.new()
+	event.button_index = MOUSE_BUTTON_LEFT
+	event.pressed = pressed
+	event.position = position
+	return event
+
+
+func mouse_motion(position: Vector2, relative: Vector2) -> InputEventMouseMotion:
+	var event := InputEventMouseMotion.new()
+	event.position = position
+	event.relative = relative
+	return event
+
+
+func mouse_wheel(button: MouseButton) -> InputEventMouseButton:
+	var event := InputEventMouseButton.new()
+	event.button_index = button
+	event.pressed = true
+	return event
+
+
+func free_node(node: Node) -> void:
+	get_tree().root.remove_child(node)
+	node.free()
+
+
+# --- data -------------------------------------------------------------------
+
+func test_enemy_roster() -> void:
+	check(_enemies.size() == 13, "13 enemy files load")
+	var files := 0
+	for file in DirAccess.get_files_at("res://data/enemies"):
+		if file.ends_with(".tres"):
+			files += 1
+	check(files == 13, "13 enemy files exist, ids are unique")
+	var viruses := 0
+	var bacteria := 0
+	var bosses := 0
+	for id in _enemies:
+		var e: EnemyData = _enemies[id]
+		if e.role == "boss":
+			bosses += 1
+		elif e.type == "virus":
+			viruses += 1
+		else:
+			bacteria += 1
+	check(viruses == 5 and bacteria == 5 and bosses == 3, "5 regular viruses, 5 regular bacteria, 3 bosses")
+	check(DataValidator.validate_enemies(_enemies).is_empty(), "enemy roster validates")
+	for id in ["rhinovirus", "influenza", "streptococcus-pyogenes"]:
+		check(EnemySprites.frames_for(_enemies[id]).has_animation("walk"), "%s has a walk animation" % id)
+	check(EnemySprites.frames_for(_enemies["hpv"]).has_animation("walk"), "placeholder enemy shows an image")
+	done("test_enemy_roster")
+
+
+func test_tower_roster() -> void:
+	check(_towers.size() == 10, "10 tower files load")
+	check(DataValidator.validate_towers(_towers).is_empty(), "tower roster validates")
+	var proto: Array = []
+	for id in _towers:
+		if _towers[id].in_prototype:
+			proto.append(id)
+	proto.sort()
+	check(proto == ["interferon", "macrophage", "mucus-cell"], "three prototype towers flagged")
+	check(_towers["macrophage"].mobility == "fixed" and _towers["t-lymphocyte"].mobility == "mobile", "macrophage fixed, T lymphocyte mobile")
+	check(_towers["b-lymphocyte"].mobility == "mobile", "B lymphocyte mobile")
+	check(DataValidator.damage_warnings(_towers, _enemies, _table).is_empty(), "no damage value rounds to 0")
+	for id in _towers:
+		check(_towers[id].ability_description != "", "%s has an ability description" % id)
+	var hud_texts := Hud.new(null)
+	check(hud_texts._damage_text(_towers["mucus-cell"]) == "DAMAGE: NONE", "a tower without damage says so")
+	check(hud_texts._damage_text(_towers["interferon"]) == "DAMAGE: 6/S (ANTIVIRAL)", "an area tower shows its damage per second")
+	check(hud_texts._damage_text(_towers["hypothalamus"]) == "DAMAGE: 3/S (THERMAL)", "a damage over time tower shows its damage per second")
+	hud_texts.free()
+	done("test_tower_roster")
+
+
+func test_level_data() -> void:
+	check(_level_data.display_name == "Garganta", "level 1 is called Garganta")
+	check(_level_data.slots.size() == 6, "level 1 has 6 slots")
+	check(_level_data.starting_amino_acids == 150 and _level_data.body_health == 20, "level 1 starts with 150 amino acids and 20 health")
+	check(_level_data.waves.size() == 3, "level 1 has 3 waves")
+	check(approx(_level_data.waves[0].start_time, 5.0) and approx(_level_data.waves[1].start_time, 50.0) and approx(_level_data.waves[2].start_time, 150.0), "waves start at 5, 50 and 150 s")
+	check(_level_data.tower_ids == ["macrophage", "mucus-cell", "interferon"], "level 1 offers the three prototype towers")
+	check(_level_data.map_size.y > Level.VIEW_SIZE.y - Level.SAFE_TOP - Level.SAFE_BOTTOM, "the map is taller than the visible area")
+	var longest := 0.0
+	for point in _level_data.path_points:
+		check(Rect2(Vector2.ZERO, _level_data.map_size).has_point(point), "path point %s is inside the map" % point)
+		longest = maxf(longest, point.y)
+	check(longest > Level.VIEW_SIZE.y - Level.SAFE_BOTTOM, "the path runs past the bottom of the screen")
+	check(DataValidator.validate_level(_level_data, _towers, _enemies).is_empty(), "level data validates")
+	var curve := Curve2D.new()
+	for point in _level_data.path_points:
+		curve.add_point(point)
+	for slot in _level_data.slots:
+		var distance := curve.get_closest_point(slot).distance_to(slot)
+		check(distance > 24.0 + 20.0, "slot %s is outside the path and its tap area" % slot)
+	done("test_level_data")
+
+
+func test_validator_catches_problems() -> void:
+	var broken := _enemies.duplicate()
+	var copy: EnemyData = _enemies["hpv"].duplicate()
+	copy.health = 0.0
+	broken["hpv"] = copy
+	var errors := DataValidator.validate_enemies(broken)
+	check(errors.size() == 1 and errors[0].begins_with("hpv: health"), "validation names the enemy and the missing health")
+	var weak_boss := _enemies.duplicate()
+	var boss: EnemyData = _enemies["hiv"].duplicate()
+	boss.health = 100.0
+	weak_boss["hiv"] = boss
+	check(not DataValidator.validate_enemies(weak_boss).is_empty(), "a weak boss fails validation")
+	var broken_towers := _towers.duplicate()
+	var tower: TowerData = _towers["lysozyme"].duplicate()
+	tower.cost = 0
+	broken_towers["lysozyme"] = tower
+	var tower_errors := DataValidator.validate_towers(broken_towers)
+	check(tower_errors.size() == 1 and tower_errors[0].begins_with("lysozyme: cost"), "validation names the tower and the missing cost")
+	done("test_validator_catches_problems")
+
+
+# --- damage -----------------------------------------------------------------
+
+func test_damage_calculator() -> void:
+	check(approx(_table.factor("chemical", "bacterium"), 1.5), "chemical vs bacterium is 1.5")
+	check(approx(_table.factor("antiviral", "bacterium"), 0.0), "antiviral vs bacterium is 0")
+	var resolve := func(amount: float, type: String, id: String, mark: float = 0.0) -> int:
+		return DamageCalculator.resolve(amount, type, _enemies[id], _table, mark)
+	check(resolve.call(6, "antiviral", "rhinovirus") == 9, "antiviral 6 on a virus deals 9")
+	check(resolve.call(6, "antiviral", "e-coli") == 0, "antiviral on a bacterium deals 0")
+	check(resolve.call(6, "chemical", "rhinovirus") == 3, "chemical 6 on a virus deals 3")
+	check(resolve.call(6, "chemical", "e-coli") == 9, "chemical 6 on a bacterium deals 9")
+	check(resolve.call(12, "physical", "hpv") == 8, "physical 12 on HPV (30% armor) deals 8")
+	check(resolve.call(10, "chemical", "mycobacterium-tuberculosis") == 15, "armor does not reduce chemical damage")
+	check(resolve.call(30, "immunological", "mycobacterium-tuberculosis") == 30, "immunological ignores armor")
+	check(resolve.call(12, "physical", "mycobacterium-tuberculosis") == 7, "physical 12 on tuberculosis (40% armor) deals 7")
+	check(resolve.call(4, "thermal", "clostridioides-difficile") == 2, "the spore takes half thermal damage")
+	check(resolve.call(3, "thermal", "clostridioides-difficile") == 1, "a fever tick on the spore deals 1")
+	check(resolve.call(12, "physical", "rhinovirus", 0.25) == 15, "a mark adds 25% damage")
+	done("test_damage_calculator")
+
+
+func test_status_effects() -> void:
+	var rhino := EnemyStatus.new(_enemies["rhinovirus"])
+	rhino.apply_slow("a", 40.0)
+	check(approx(rhino.speed_multiplier(), 0.6), "a mucus slow leaves 60% speed")
+	rhino.apply_slow("b", 40.0)
+	rhino.apply_slow("c", 30.0)
+	check(approx(rhino.speed_multiplier(), 0.6), "slows do not stack")
+	rhino.advance(1.4)
+	check(rhino.is_slowed(), "the slow lingers for 1.5 s")
+	rhino.advance(0.2)
+	check(not rhino.is_slowed() and approx(rhino.speed_multiplier(), 1.0), "the slow ends after the linger time")
+	var boss := EnemyStatus.new(_enemies["mycobacterium-tuberculosis"])
+	boss.apply_slow("a", 40.0)
+	check(approx(boss.speed_multiplier(), 0.8), "a boss gets half the slow")
+	var pylori := EnemyStatus.new(_enemies["helicobacter-pylori"])
+	check(not pylori.apply_slow("a", 40.0) and approx(pylori.speed_multiplier(), 1.0), "slow-immune enemies are not slowed")
+
+	var target := EnemyStatus.new(_enemies["rhinovirus"])
+	check(target.apply_root("p", 1.2, 3.0) and target.is_rooted() and target.speed_multiplier() == 0.0, "a platelet roots an enemy")
+	target.advance(1.3)
+	check(not target.is_rooted(), "the root lasts 1.2 s")
+	target.advance(2.5)
+	check(not target.apply_root("p", 1.2, 3.0), "the same platelet cannot root again within 3 s")
+	target.advance(0.6)
+	check(target.apply_root("p", 1.2, 3.0), "the platelet can root again after the cooldown")
+	var big := EnemyStatus.new(_enemies["mycobacterium-tuberculosis"])
+	big.apply_root("p", 1.2, 3.0)
+	big.advance(0.7)
+	check(not big.is_rooted(), "a boss is rooted for half the time (0.6 s)")
+	check(not EnemyStatus.new(_enemies["helicobacter-pylori"]).apply_root("p", 1.2, 3.0), "slow-immune enemies cannot be rooted")
+
+	var fever := EnemyStatus.new(_enemies["rhinovirus"])
+	fever.apply_dot(3.0, "thermal", 4.0)
+	var ticks := 0
+	var total := 0.0
+	for i in 90:
+		for tick in fever.advance(0.05):
+			ticks += 1
+			total += tick["damage"]
+	check(ticks == 4 and approx(total, 12.0), "fever deals 3 per tick for 4 ticks")
+	var refreshed := EnemyStatus.new(_enemies["rhinovirus"])
+	refreshed.apply_dot(3.0, "thermal", 4.0)
+	ticks = 0
+	for i in 160:
+		if i == 40:
+			refreshed.apply_dot(3.0, "thermal", 4.0)
+		for tick in refreshed.advance(0.05):
+			ticks += 1
+			check(approx(tick["damage"], 3.0), "a refreshed fever does not stack its damage")
+	check(ticks == 6, "reapplying fever restarts the 4 s (6 ticks in total)")
+	var marked := EnemyStatus.new(_enemies["rhinovirus"])
+	marked.apply_mark(0.25, 5.0)
+	check(approx(marked.mark_bonus(), 0.25), "a mark adds 25%")
+	marked.advance(5.1)
+	check(approx(marked.mark_bonus(), 0.0), "a mark ends after 5 s")
+	done("test_status_effects")
+
+
+# --- waves ------------------------------------------------------------------
+
+func collect_spawns(scheduler: WaveScheduler) -> Array:
+	var spawns: Array = []
+	scheduler.enemy_spawned.connect(func(id: String) -> void: spawns.append([scheduler.clock, id]))
+	return spawns
+
+
+func test_wave_scheduler() -> void:
+	var scheduler := WaveScheduler.new(_level_data.waves)
+	var spawns := collect_spawns(scheduler)
+	var starts: Array = []
+	scheduler.wave_started.connect(func(index: int) -> void: starts.append([index, scheduler.clock]))
+	for i in int(160.0 / 0.05):
+		scheduler.tick(0.05)
+	check(starts.size() == 3, "three waves start")
+	check(approx(starts[0][1], 5.0, 0.1) and approx(starts[1][1], 50.0, 0.1) and approx(starts[2][1], 150.0, 0.1), "waves start at 5, 50 and 150 s")
+	check(spawns.size() == 8 + 14 + 10, "all enemies of the three waves spawn")
+	check(approx(spawns[1][0] - spawns[0][0], 1.2, 0.1), "wave 1 enemies spawn 1.2 s apart")
+	check(spawns[8][1] == "rhinovirus" and spawns[18][1] == "influenza", "wave 2 spawns rhinoviruses then influenza")
+	check(scheduler.spawning_done() and scheduler.all_started(), "the scheduler finishes")
+
+	var early := WaveScheduler.new(_level_data.waves)
+	var early_starts: Array = []
+	early.wave_started.connect(func(index: int) -> void: early_starts.append([index, early.clock]))
+	for i in int(10.0 / 0.05):
+		early.tick(0.05)
+	check(early.call_next_wave(), "the next wave can be called")
+	for i in int(150.0 / 0.05):
+		early.tick(0.05)
+	check(early_starts.size() == 3, "calling early does not start a wave twice")
+	check(approx(early_starts[1][1], 10.0, 0.1), "calling at 10 s starts wave 2 at once")
+	check(approx(early_starts[2][1], 150.0, 0.1), "wave 3 still starts at 150 s")
+	check(not early.call_next_wave(), "no wave can be called when all have started")
+	check(early.time_to_next_wave() == -1.0, "no countdown once every wave started")
+	done("test_wave_scheduler")
+
+
+# --- economy ----------------------------------------------------------------
+
+func test_economy() -> void:
+	Economy.reset(150)
+	check(Economy.balance() == 150, "the level starts with its amino acids")
+	check(not Economy.try_spend(200) and Economy.balance() == 150, "a spend larger than the balance is refused")
+	check(Economy.try_spend(50) and Economy.balance() == 100, "an affordable spend works")
+	Economy.add(5)
+	check(Economy.balance() == 105, "adding amino acids raises the balance")
+	check(Economy.refund_for(100) == 60 and Economy.refund_for(50) == 30, "selling refunds 60%")
+	var original: float = Economy.config.refund_fraction
+	Economy.config.refund_fraction = 0.5
+	check(Economy.refund_for(100) == 50, "the refund fraction comes from data")
+	Economy.config.refund_fraction = original
+	var level_copy: LevelData = _level_data.duplicate()
+	level_copy.starting_amino_acids = 77
+	var level := Level.new(level_copy)
+	get_tree().root.add_child(level)
+	check(Economy.balance() == 77, "the starting amount comes from the level data")
+	free_node(level)
+	done("test_economy")
+
+
+# --- level simulation -------------------------------------------------------
+
+func run_level(level: Level, bot: AutoplayBot, seconds: float) -> void:
+	for i in int(seconds / 0.05):
+		level.step(0.05)
+		if bot != null:
+			bot.think()
+		if level.state != "running":
+			return
+
+
+## Spawns an enemy and places it at `progress` map units along the path.
+func spawn_at(level: Level, enemy_id: String, progress: float) -> Enemy:
+	level._spawn_enemy(enemy_id)
+	var enemy: Enemy = level.enemies[level.enemies.size() - 1]
+	enemy.progress = progress
+	enemy.step(0.0)
+	return enemy
+
+
+func test_level_simulation() -> void:
+	var level := new_level()
+	check(level.body_health == 20 and Economy.balance() == 150, "the level starts with 150 amino acids and 20 health")
+	level._spawn_enemy("rhinovirus")
+	var enemy: Enemy = level.enemies[0]
+	var balance_before: int = Economy.balance()
+	var length := level.curve.get_baked_length()
+	var expected := length / enemy.data.speed
+	var time := 0.0
+	while not enemy.finished and time < 60.0:
+		level.step(0.05)
+		time += 0.05
+	check(approx(time, expected, 0.2), "an enemy crosses the path in %.1f s" % expected)
+	check(level.body_health == 19, "an enemy at the exit lowers the body health by its damage")
+	check(Economy.balance() == balance_before, "an enemy that reaches the exit gives no amino acids")
+	check(not level.enemies.has(enemy), "the enemy is removed at the exit")
+	free_node(level)
+
+	level = new_level()
+	level._spawn_enemy("rhinovirus")
+	var dying: Enemy = level.enemies[0]
+	var before: int = Economy.balance()
+	dying.take_damage(100.0, "physical")
+	check(Economy.balance() == before + 2 and level.enemies.is_empty(), "a defeated enemy gives its amino acid reward")
+	free_node(level)
+
+	level = new_level()
+	check(level.build_tower(1, "macrophage") and Economy.balance() == 100, "building charges the cost")
+	check(not level.build_tower(1, "interferon"), "an occupied slot cannot be built on")
+	check(not level.build_tower(2, "platelet"), "towers outside the level list cannot be built")
+	Economy.reset(10)
+	check(not level.build_tower(2, "interferon") and Economy.balance() == 10, "an unaffordable tower is refused and costs nothing")
+	check(level.sell_tower(1) == 30 and Economy.balance() == 40, "selling a 50 amino acid tower returns 30")
+	free_node(level)
+
+	level = new_level()
+	run_level(level, null, 400.0)
+	check(level.state == "lost" and level.body_health == 0, "with no towers the body loses")
+	free_node(level)
+
+	level = new_level()
+	var bot := AutoplayBot.new(level, false)
+	run_level(level, bot, 400.0)
+	check(level.state == "won" and level.body_health > 0, "the bot wins level 1 (health %d, time %.0f s)" % [level.body_health, level.scheduler.clock])
+	bot.free()
+	free_node(level)
+
+	level = new_level()
+	bot = AutoplayBot.new(level, true)
+	run_level(level, bot, 400.0)
+	check(level.state == "won" and level.scheduler.clock < 120.0, "calling waves early finishes sooner (%.0f s)" % level.scheduler.clock)
+	bot.free()
+	free_node(level)
+
+	level = new_level()
+	level.build_tower(1, "mucus-cell")
+	var near := spawn_at(level, "rhinovirus", 440.0)
+	var first := spawn_at(level, "rhinovirus", 480.0)
+	var far := spawn_at(level, "rhinovirus", 10.0)
+	level.step(0.05)
+	check(level._globs.size() == 1 and not near.status.is_slowed(), "the mucus cell throws a glob instead of slowing at once")
+	for i in 10:
+		level.step(0.05)
+	check(level.puddles.size() == 1, "the glob leaves a puddle where it lands")
+	check(level.puddles[0].position.distance_to(first.position) < 30.0, "the mucus goes to the first enemy of the queue")
+	check(first.status.is_slowed(), "an enemy on the puddle is slowed")
+	check(not far.status.is_slowed(), "an enemy far from the puddle is not slowed")
+	level.sell_tower(1)
+	var walker := spawn_at(level, "rhinovirus", 400.0)
+	var slowed_later := false
+	for i in 60:
+		level.step(0.05)
+		slowed_later = slowed_later or walker.status.is_slowed()
+	check(slowed_later, "an enemy that walks onto the puddle later is slowed")
+	check(approx(level.puddles[0].remaining(), 6.0 - (3.55 - 0.35), 0.25), "the puddle stays on the ground for a few seconds")
+	for i in 140:
+		level.step(0.05)
+	check(level.puddles.is_empty(), "the puddle disappears after 6 seconds")
+	free_node(level)
+
+	level = new_level()
+	level.build_tower(2, "macrophage")
+	var target := spawn_at(level, "rhinovirus", 850.0)
+	level.step(0.05)
+	check(target.health == 8.0, "a macrophage hits an enemy in range for 12")
+	free_node(level)
+
+	level = new_level()
+	level.build_tower(2, "interferon")
+	var slowed_virus := spawn_at(level, "rhinovirus", 850.0)
+	var spared_bacterium := spawn_at(level, "e-coli", 850.0)
+	level.step(0.05)
+	check(approx(slowed_virus.status.slow_percent(), 25.0), "interferon slows viruses by 25%")
+	check(spared_bacterium.status.slow_percent() == 0.0, "interferon does not slow bacteria")
+	check(level.towers[2].data.mist_color.a > 0.0, "interferon keeps pulsing a mist")
+	free_node(level)
+
+	level = new_level()
+	level.build_tower(1, "interferon")
+	level.build_tower(0, "mucus-cell")
+	var both := spawn_at(level, "rhinovirus", 460.0)
+	for i in 14:
+		level.step(0.05)
+	check(approx(both.status.slow_percent(), 40.0), "with interferon and a mucus puddle the strongest slow counts (40%)")
+	free_node(level)
+
+	level = new_level()
+	level.build_tower(2, "interferon")
+	var virus := spawn_at(level, "rhinovirus", 850.0)
+	var bacterium := spawn_at(level, "streptococcus-pyogenes", 850.0)
+	level.step(0.05)
+	check(virus.health == 11.0, "interferon hits a virus for 9")
+	check(bacterium.health == 80.0, "interferon does not hurt a bacterium")
+	free_node(level)
+
+	for id in ["macrophage", "mucus-cell", "interferon"]:
+		var frames := TowerSprites.frames_for(id)
+		check(frames != null and frames.get_frame_count("idle") == 8 and frames.get_frame_count("attack") == 8,
+			"%s has 8-frame idle and attack animations" % id)
+		check(frames.get_animation_loop("idle") and not frames.get_animation_loop("attack"), "%s idles in a loop and attacks once" % id)
+	check(TowerSprites.frames_for("platelet") == null, "towers without art fall back to a still image")
+
+	level = new_level()
+	level.build_tower(2, "macrophage")
+	check(level.towers[2].current_animation() == "idle", "a built tower idles")
+	spawn_at(level, "rhinovirus", 850.0)
+	level.step(0.05)
+	check(level.towers[2].current_animation() == "attack", "the macrophage plays its attack animation when it hits")
+	free_node(level)
+
+	level = new_level()
+	level.build_tower(2, "interferon")
+	spawn_at(level, "rhinovirus", 850.0)
+	level.step(0.05)
+	check(level.towers[2].current_animation() == "attack", "the interferon plays its attack animation when it pulses")
+	free_node(level)
+
+	level = new_level()
+	level.build_tower(1, "mucus-cell")
+	spawn_at(level, "rhinovirus", 460.0)
+	level.step(0.05)
+	check(level.towers[1].current_animation() == "attack", "the mucus cell plays its secreting animation when it slows")
+	free_node(level)
+
+	var tower := Tower.new()
+	tower.setup(_towers["macrophage"], 0, null)
+	tower.disable()
+	check(tower.is_disabled(), "a disabled tower stops")
+	var lymphocyte := Tower.new()
+	lymphocyte.setup(_towers["t-lymphocyte"], 0, null)
+	lymphocyte.disable()
+	check(approx(lymphocyte._disabled_for, 6.0) and approx(tower._disabled_for, 3.0), "disabling lasts 3 s, or 6 s for a lymphocyte")
+	tower.free()
+	lymphocyte.free()
+	done("test_level_simulation")
+
+
+func test_scrolling() -> void:
+	var level := new_level()
+	var limits := level.scroll_limits()
+	check(approx(level.scroll.y, -Level.SAFE_TOP) and level.scroll.x == 0.0, "the view starts at the entrance")
+	level.scroll_by(Vector2(0.0, 100000.0))
+	check(approx(level.scroll.y, limits.end.y) and approx(limits.end.y, 280.0), "the view stops at the bottom of the map")
+	level.scroll_by(Vector2(0.0, -100000.0))
+	check(approx(level.scroll.y, limits.position.y), "the view stops at the top of the map")
+	level.scroll_by(Vector2(5000.0, 0.0))
+	check(level.scroll.x == 0.0, "a map as wide as the screen does not scroll sideways")
+	level.set_scroll(Vector2(0.0, 200.0))
+	var slot_screen := level.world_to_screen(_level_data.slots[3])
+	check(approx(level.screen_to_world(slot_screen).distance_to(_level_data.slots[3]), 0.0), "screen and map positions convert back and forth")
+	var tapped: Array = []
+	level.slot_tapped.connect(func(i: int) -> void: tapped.append(i))
+	level.handle_tap(slot_screen)
+	check(tapped == [3], "a tap is placed using the scrolled position")
+	level.set_scroll(Vector2(0.0, -Level.SAFE_TOP))
+	level.handle_tap(slot_screen)
+	check(tapped == [3], "the same screen spot hits nothing when the map is not scrolled there")
+	level.set_scroll(Vector2(0.0, 200.0))
+	level._spawn_enemy("rhinovirus")
+	var enemy: Enemy = level.enemies[0]
+	enemy.progress = 1200.0
+	enemy.step(0.0)
+	var tapped_enemies: Array = []
+	level.enemy_tapped.connect(func(e: Enemy) -> void: tapped_enemies.append(e))
+	level.handle_tap(level.world_to_screen(enemy.position))
+	check(tapped_enemies == [enemy], "an enemy can be tapped on a scrolled map")
+	free_node(level)
+	done("test_scrolling")
+
+
+func test_speed_and_pause() -> void:
+	var level := new_level()
+	await get_tree().process_frame
+	var start := level.scheduler.clock
+	for i in 60:
+		await get_tree().process_frame
+	var normal := level.scheduler.clock - start
+	level.toggle_speed()
+	check(Engine.time_scale == 2.0 and level.speed == 2, "the speed button switches to 2x")
+	start = level.scheduler.clock
+	for i in 60:
+		await get_tree().process_frame
+	var fast := level.scheduler.clock - start
+	check(approx(normal, 1.0, 0.15) and approx(fast, 2.0, 0.25), "at 2x the level clock runs twice as fast (%.2f s vs %.2f s)" % [fast, normal])
+	level.set_paused(true)
+	check(not level.can_process(), "the level stops while paused")
+	start = level.scheduler.clock
+	for i in 20:
+		await get_tree().process_frame
+	check(level.scheduler.clock == start, "the clock does not advance while paused")
+	level.set_paused(false)
+	free_node(level)
+	var next_level := new_level()
+	check(Engine.time_scale == 1.0 and next_level.speed == 1, "a new level starts at 1x")
+	free_node(next_level)
+	done("test_speed_and_pause")
+
+
+# --- HUD --------------------------------------------------------------------
+
+func test_hud() -> void:
+	var level := new_level()
+	var hud := Hud.new(level)
+	get_tree().root.add_child(hud)
+	await get_tree().process_frame
+	check(hud._health_label.text == "20/20" and hud._amino_label.text == "150", "the top bar shows health and amino acids")
+	check(hud._wave_label.text == "WAVE 0/3", "the top bar shows the wave progress")
+	check(hud._level_label.text == "GARGANTA", "the top bar shows the level name")
+	check(hud.find_children("*", "", true, false).filter(func(n: Node) -> bool: return String(n.name).to_lower().contains("atp")).is_empty(), "no ATP element in the HUD")
+
+	level.slot_tapped.emit(1)
+	var menu := hud._popup.get_node_or_null("BuildMenu")
+	check(menu != null and menu.get_child_count() == 3, "tapping a slot opens a menu with the three towers")
+	menu.get_node("Card_macrophage").pressed.emit()
+	check(level.towers.has(1) and Economy.balance() == 100, "choosing a tower builds it and charges the cost")
+
+	Economy.reset(10)
+	level.slot_tapped.emit(2)
+	hud._popup.get_node("BuildMenu").get_node("Card_interferon").pressed.emit()
+	check(not level.towers.has(2) and Economy.balance() == 10, "an unaffordable tower is not built")
+	check(hud._toast.text == "NOT ENOUGH AMINO ACIDS" and hud._toast.modulate.a > 0.9, "the player gets feedback when amino acids are insufficient")
+	var catcher: Control = hud._popup.get_node("PopupCatcher")
+	var click := InputEventMouseButton.new()
+	click.button_index = MOUSE_BUTTON_LEFT
+	click.pressed = true
+	catcher.gui_input.emit(click)
+	check(hud._slot_for_menu == -1 and not level.towers.has(2), "tapping outside closes the menu without building")
+
+	Economy.reset(0)
+	level.tower_tapped.emit(1)
+	var card := hud._popup.get_node("TowerCard")
+	check(card.get_node("Name").text == "MACROPHAGE", "the tower card shows the tower name")
+	check(card.get_node("Damage").text == "DAMAGE: 12/S (PHYSICAL)", "the tower card shows the damage")
+	check(card.get_node("Ability").text == _towers["macrophage"].ability_description and card.get_node("Ability").text != "", "the tower card shows the ability")
+	var ability_box: Label = card.get_node("Ability")
+	check(ability_box.size.x <= card.size.x - 32.0 + 0.5, "the ability text wraps inside the card (%.0f px wide)" % ability_box.size.x)
+	var saved_balance: int = Economy.balance()
+	Economy.reset(1000)
+	for id in ["macrophage", "mucus-cell", "interferon"]:
+		level.build_tower(3, id)
+		level.tower_tapped.emit(3)
+		var each: Label = hud._popup.get_node("TowerCard").get_node("Ability")
+		check(each.size.x <= 408.5 and each.get_line_count() <= 5, "the %s ability text fits its box (%d lines)" % [id, each.get_line_count()])
+		hud._dismiss_all()
+		level.sell_tower(3)
+	Economy.reset(saved_balance)
+	level.tower_tapped.emit(1)
+	card = hud._popup.get_node("TowerCard")
+	var sell: Button = card.get_node("SellButton")
+	check(sell.position.y > card.get_node("Ability").position.y, "the sell button is below the ability")
+	check(sell.text == "SELL +30", "the sell button shows the refund")
+	sell.pressed.emit()
+	check(not level.towers.has(1) and Economy.balance() == 30, "selling removes the tower and refunds 60%")
+
+	hud._refresh_wave_info()
+	check(hud._countdown_label.text == "NEXT WAVE IN 5S" and hud._call_button.visible, "the countdown and call button show before wave 1")
+	check(hud._preview_box.get_child_count() == 1, "the next wave preview shows its enemy")
+	hud._call_button.pressed.emit()
+	check(level.scheduler.started_count() == 1, "the call button starts the next wave")
+
+	level._spawn_enemy("streptococcus-pyogenes")
+	level.enemy_tapped.emit(level.enemies[0])
+	check(hud._enemy_card.visible and hud._card_lines.text.contains("IMMUNE: ANTIVIRAL"), "the enemy card of a bacterium lists antiviral as an immunity")
+	check(hud._card_lines.text.contains("HP 80/80"), "the enemy card shows health")
+	level.nothing_tapped.emit()
+	check(not hud._enemy_card.visible, "the enemy card closes when the player taps elsewhere")
+
+	hud._speed_button.pressed.emit()
+	check(hud._speed_button.text == "2X", "the speed button shows 2X")
+	hud._speed_button.pressed.emit()
+	check(hud._speed_button.text == "1X", "the speed button shows 1X again")
+
+	hud._pause_button.pressed.emit()
+	check(get_tree().paused and hud._overlay.get_child_count() > 0 and hud.can_process(), "pausing shows the overlay and keeps the HUD working")
+	var overlay_buttons := hud._overlay.find_children("*", "Button", true, false)
+	check(overlay_buttons.size() == 2, "the pause overlay has resume and restart")
+	overlay_buttons[0].pressed.emit()
+	check(not get_tree().paused, "resuming continues the game")
+
+	hud.level.set_scroll(Vector2(0.0, -Level.SAFE_TOP))
+	var empty_taps: Array = []
+	level.nothing_tapped.connect(func() -> void: empty_taps.append(1))
+	var slots_tapped: Array = []
+	level.slot_tapped.connect(func(i: int) -> void: slots_tapped.append(i))
+	hud._on_map_input(mouse_button(Vector2(360, 700), true))
+	hud._on_map_input(mouse_motion(Vector2(360, 600), Vector2(0, -100)))
+	hud._on_map_input(mouse_motion(Vector2(360, 500), Vector2(0, -100)))
+	hud._on_map_input(mouse_button(Vector2(360, 500), false))
+	check(approx(level.scroll.y, -Level.SAFE_TOP + 100.0), "dragging up scrolls the map down by the finger distance (%.0f)" % level.scroll.y)
+	check(empty_taps.is_empty() and slots_tapped.is_empty(), "a drag does not count as a tap")
+	hud._on_map_input(mouse_button(Vector2(360, 500), true))
+	hud._on_map_input(mouse_motion(Vector2(362, 503), Vector2(2, 3)))
+	hud._on_map_input(mouse_button(Vector2(362, 503), false))
+	check(empty_taps.size() == 1 and approx(level.scroll.y, -Level.SAFE_TOP + 100.0), "a small movement is still a tap and does not scroll")
+	level.slot_tapped.emit(1)
+	check(hud._popup.get_node_or_null("BuildMenu") != null, "the build menu is open before scrolling")
+	hud._on_map_input(mouse_button(Vector2(360, 600), true))
+	hud._on_map_input(mouse_motion(Vector2(360, 560), Vector2(0, -40)))
+	hud._on_map_input(mouse_button(Vector2(360, 560), false))
+	check(hud._slot_for_menu == -1 and hud._popup.get_child_count() == 0, "scrolling closes the open menu")
+	var before: float = level.scroll.y
+	hud._on_map_input(mouse_wheel(MOUSE_BUTTON_WHEEL_DOWN))
+	check(approx(level.scroll.y, before + Hud.WHEEL_STEP), "the mouse wheel scrolls the map")
+	check(hud._scroll_track != null and hud._scroll_track.size.y > 0.0, "the HUD has a scroll indicator")
+	level.set_scroll(Vector2(0.0, -Level.SAFE_TOP))
+
+	var small := 0
+	for node in get_tree().get_nodes_in_group("tap_target"):
+		if node.is_inside_tree() and not node.is_queued_for_deletion() and (node.size.x < Hud.MIN_TAP or node.size.y < Hud.MIN_TAP):
+			small += 1
+			printerr("small tap target: %s %s" % [node.name, node.size])
+	check(small == 0, "every tappable HUD control is at least 48 dp (96 px)")
+	check(Level.TAP_RADIUS * 2.0 * Level.SHRINK >= Hud.MIN_TAP, "slots and enemies have a tap area of at least 48 dp")
+	hud.level.set_paused(false)
+	free_node(hud)
+	free_node(level)
+
+	level = new_level()
+	hud = Hud.new(level)
+	get_tree().root.add_child(hud)
+	level.body_health = 1
+	level._spawn_enemy("rhinovirus")
+	level.enemies[0].progress = 2000.0
+	level.step(0.05)
+	check(level.state == "lost" and hud._overlay.get_node_or_null("OverlayPanel") != null, "the defeat overlay appears when the body is lost")
+	free_node(hud)
+	free_node(level)
+
+	level = new_level()
+	hud = Hud.new(level)
+	get_tree().root.add_child(hud)
+	var bot := AutoplayBot.new(level, true)
+	run_level(level, bot, 400.0)
+	check(level.state == "won" and hud._overlay.get_node_or_null("OverlayPanel") != null, "the victory overlay appears when the level is won")
+	bot.free()
+	free_node(hud)
+	free_node(level)
+	done("test_hud")
+
+
+# --- audio ------------------------------------------------------------------
+
+func test_audio() -> void:
+	GameAudio.record = true
+	GameAudio.reset()
+	for id in _enemies:
+		var e: EnemyData = _enemies[id]
+		check(ResourceLoader.exists(e.sound_hit) and ResourceLoader.exists(e.sound_attack) and ResourceLoader.exists(e.sound_death),
+			"%s has hit, attack and death sounds" % id)
+		check(e.sound_hit != e.sound_attack and e.sound_attack != e.sound_death, "%s uses three different sounds" % id)
+	for id in _towers:
+		check(ResourceLoader.exists(_towers[id].sound_attack), "%s has an attack sound" % id)
+	check(ResourceLoader.exists(GameAudio.config.blocked_sound), "the blocked sound exists")
+	check(ResourceLoader.exists(_level_data.music), "level 1 has music")
+	var deaths := {}
+	for id in _enemies:
+		var stream := load(_enemies[id].sound_death) as AudioStreamWAV
+		deaths[id] = stream.get_length()
+	check(deaths["hiv"] > 0.6 and deaths["mycobacterium-tuberculosis"] > 0.6 and deaths["neisseria-meningitidis"] > 0.6, "boss deaths last longer than 0.6 s")
+	check(deaths["rhinovirus"] < 0.4 and deaths["e-coli"] < 0.4, "regular deaths are short")
+
+	var broken := _enemies.duplicate()
+	var copy: EnemyData = _enemies["hpv"].duplicate()
+	copy.sound_death = "res://assets/audio/enemies/hpv/missing.wav"
+	broken["hpv"] = copy
+	var errors := DataValidator.validate_enemies(broken)
+	check(errors.size() == 1 and errors[0].begins_with("hpv: sound_death"), "validation names the enemy and the missing sound")
+	var silent := _towers.duplicate()
+	var quiet: TowerData = _towers["lysozyme"].duplicate()
+	quiet.sound_attack = ""
+	silent["lysozyme"] = quiet
+	var tower_errors := DataValidator.validate_towers(silent)
+	check(tower_errors.size() == 1 and tower_errors[0].begins_with("lysozyme: sound_attack"), "validation names the tower with no sound")
+
+	var path: String = _enemies["rhinovirus"].sound_hit
+	GameAudio.reset()
+	for i in 50:
+		GameAudio.play_sfx(path)
+	check(GameAudio.play_log.size() == 1, "fifty requests for one sound in one frame start it once")
+	GameAudio.reset()
+	var started := 0
+	for id in _enemies:
+		for sound in [_enemies[id].sound_hit, _enemies[id].sound_attack, _enemies[id].sound_death]:
+			if GameAudio.play_sfx(sound):
+				started += 1
+	check(started == GameAudio.VOICES and GameAudio.voices_in_use() <= GameAudio.VOICES, "no more than 8 sounds play at once (%d started)" % started)
+
+	var level := new_level()
+	GameAudio.reset()
+	var enemy := spawn_at(level, "rhinovirus", 100.0)
+	enemy.take_damage(5.0, "physical")
+	check(GameAudio.play_log == [enemy.data.sound_hit], "a hit plays the hit sound")
+	GameAudio.reset()
+	enemy.take_damage(100.0, "physical")
+	check(GameAudio.play_log == [enemy.data.sound_death], "a defeated enemy plays its death sound")
+	GameAudio.reset()
+	var bacterium := spawn_at(level, "e-coli", 100.0)
+	bacterium.take_damage(6.0, "antiviral")
+	check(GameAudio.play_log == [GameAudio.config.blocked_sound], "an immune enemy plays the blocked sound, not its hit sound")
+	GameAudio.reset()
+	var runner := spawn_at(level, "influenza", 1699.0)
+	runner.step(0.5)
+	check(GameAudio.play_log == [runner.data.sound_attack], "an enemy at the exit plays its attack sound")
+	free_node(level)
+
+	for tower_id in ["macrophage", "mucus-cell", "interferon"]:
+		level = new_level()
+		var slot := 2 if tower_id != "mucus-cell" else 1
+		level.build_tower(slot, tower_id)
+		GameAudio.reset()
+		spawn_at(level, "rhinovirus", 850.0 if slot == 2 else 460.0)
+		level.step(0.05)
+		check(GameAudio.play_log.has(_towers[tower_id].sound_attack), "the %s plays its own attack sound" % tower_id)
+		free_node(level)
+
+	GameAudio.reset()
+	level = new_level()
+	check(GameAudio.current_music == level.data.music and GameAudio.is_music_playing(), "the music starts with the level")
+	check(GameAudio.music_stream().loop_mode == AudioStreamWAV.LOOP_FORWARD and GameAudio.music_stream().loop_begin == 0, "the music loops")
+	check(GameAudio.music_stream().loop_end == GameAudio.music_stream().data.size() / 2, "the loop covers the whole music, so there is no gap")
+	check(approx(GameAudio.music_volume_db(), GameAudio.config.music_volume_db) and GameAudio.config.music_volume_db < GameAudio.config.sfx_volume_db, "the music volume comes from data and is below the effects")
+	level.set_paused(true)
+	check(GameAudio.can_process() and GameAudio.is_music_playing(), "the music keeps playing while paused")
+	level.set_paused(false)
+	level.victory.emit()
+	check(GameAudio.music_fading, "the music fades out at the end of the level")
+	for i in 120:
+		await get_tree().process_frame
+	check(not GameAudio.is_music_playing(), "the music is silent after the fade")
+	free_node(level)
+	GameAudio.record = false
+	GameAudio.reset()
+	done("test_audio")
+

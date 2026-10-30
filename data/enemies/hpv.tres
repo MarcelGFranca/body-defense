@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/enemy_data.gd" id="1_n8eqw"]
+
+[resource]
+script = ExtResource("1_n8eqw")
+id = "hpv"
+display_name = "HPV"
+role = "resistant"
+trait_id = "shell"
+trait_description = "Shell that reduces damage taken."
+health = 70.0
+speed = 40.0
+body_damage = 2
+amino_acid_reward = 5
+armor_percent = 30.0
+sound_hit = "res://assets/audio/enemies/hpv/hit.wav"
+sound_attack = "res://assets/audio/enemies/hpv/attack.wav"
+sound_death = "res://assets/audio/enemies/hpv/death.wav"

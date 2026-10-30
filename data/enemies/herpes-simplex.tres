@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/enemy_data.gd" id="1_l7c3o"]
+
+[resource]
+script = ExtResource("1_l7c3o")
+id = "herpes-simplex"
+display_name = "Herpes Simplex"
+role = "stealthy"
+trait_id = "dormant"
+trait_description = "Goes dormant and is immune to attacks for a few moments."
+health = 50.0
+speed = 50.0
+amino_acid_reward = 4
+sound_hit = "res://assets/audio/enemies/herpes-simplex/hit.wav"
+sound_attack = "res://assets/audio/enemies/herpes-simplex/attack.wav"
+sound_death = "res://assets/audio/enemies/herpes-simplex/death.wav"

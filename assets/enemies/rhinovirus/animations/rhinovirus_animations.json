@@ -1,0 +1,38 @@
+{
+  "frame_size": [
+    32,
+    32
+  ],
+  "animations": {
+    "walk": {
+      "frames": 8,
+      "fps": 10,
+      "loop": true
+    },
+    "hit_physical": {
+      "frames": 8,
+      "fps": 10,
+      "loop": false
+    },
+    "hit_antiviral": {
+      "frames": 8,
+      "fps": 10,
+      "loop": false
+    },
+    "hit_mucus": {
+      "frames": 8,
+      "fps": 8,
+      "loop": false
+    },
+    "attack": {
+      "frames": 8,
+      "fps": 10,
+      "loop": false
+    },
+    "death": {
+      "frames": 8,
+      "fps": 8,
+      "loop": false
+    }
+  }
+}

@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="TowerData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/tower_data.gd" id="1_mdmbg"]
+
+[resource]
+script = ExtResource("1_mdmbg")
+id = "macrophage"
+display_name = "Macrophage"
+role = "single-target"
+ability_description = "Engulfs the first enemy in its range with a strong hit."
+damage_type = "physical"
+cost = 50
+in_prototype = true
+behavior = "single_target"
+range_px = 95.0
+attack_damage = 12.0
+sound_attack = "res://assets/audio/towers/macrophage/attack.wav"

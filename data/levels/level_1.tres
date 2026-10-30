@@ -1,0 +1,49 @@
+[gd_resource type="Resource" script_class="LevelData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/level_data.gd" id="1_5gghx"]
+[ext_resource type="Script" path="res://scripts/data/wave_data.gd" id="2_3fnvu"]
+
+[sub_resource type="Resource" id="Resource_3u61q"]
+script = ExtResource("2_3fnvu")
+start_time = 5.0
+spawn_interval = 1.2
+entries = [{
+"count": 8,
+"enemy": "rhinovirus"
+}]
+
+[sub_resource type="Resource" id="Resource_8p1tc"]
+script = ExtResource("2_3fnvu")
+start_time = 50.0
+entries = [{
+"count": 10,
+"enemy": "rhinovirus"
+}, {
+"count": 4,
+"enemy": "influenza"
+}]
+
+[sub_resource type="Resource" id="Resource_gyuma"]
+script = ExtResource("2_3fnvu")
+start_time = 150.0
+spawn_interval = 0.9
+entries = [{
+"count": 6,
+"enemy": "influenza"
+}, {
+"count": 4,
+"enemy": "streptococcus-pyogenes"
+}]
+
+[resource]
+script = ExtResource("1_5gghx")
+id = "level_1"
+display_name = "Garganta"
+music = "res://assets/audio/music/garganta.wav"
+map_size = Vector2(360, 820)
+path_points = PackedVector2Array(180, 40, 180, 110, 60, 110, 60, 260, 300, 260, 300, 410, 60, 410, 60, 560, 300, 560, 300, 700, 180, 700, 180, 780)
+slots = PackedVector2Array(180, 185, 180, 335, 180, 485, 240, 630, 250, 65, 110, 760)
+starting_amino_acids = 150
+body_health = 20
+tower_ids = ["macrophage", "mucus-cell", "interferon"]
+waves = Array[ExtResource("2_3fnvu")]([SubResource("Resource_3u61q"), SubResource("Resource_8p1tc"), SubResource("Resource_gyuma")])

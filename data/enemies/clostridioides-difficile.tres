@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/enemy_data.gd" id="1_2dtv4"]
+
+[resource]
+script = ExtResource("1_2dtv4")
+id = "clostridioides-difficile"
+display_name = "Clostridioides difficile"
+type = "bacterium"
+role = "spore"
+trait_id = "revive"
+trait_description = "Comes back once after being defeated, with low health."
+health = 55.0
+speed = 45.0
+body_damage = 2
+amino_acid_reward = 5
+damage_factor_overrides = {
+"chemical": 0.5,
+"thermal": 0.5
+}
+sound_hit = "res://assets/audio/enemies/clostridioides-difficile/hit.wav"
+sound_attack = "res://assets/audio/enemies/clostridioides-difficile/attack.wav"
+sound_death = "res://assets/audio/enemies/clostridioides-difficile/death.wav"

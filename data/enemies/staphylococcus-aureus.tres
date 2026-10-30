@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/enemy_data.gd" id="1_7v8rm"]
+
+[resource]
+script = ExtResource("1_7v8rm")
+id = "staphylococcus-aureus"
+display_name = "Staphylococcus aureus"
+type = "bacterium"
+role = "resistant"
+trait_id = "gain_resistance"
+trait_description = "Gains resistance to one damage type along the path."
+health = 75.0
+speed = 45.0
+body_damage = 2
+amino_acid_reward = 6
+sound_hit = "res://assets/audio/enemies/staphylococcus-aureus/hit.wav"
+sound_attack = "res://assets/audio/enemies/staphylococcus-aureus/attack.wav"
+sound_death = "res://assets/audio/enemies/staphylococcus-aureus/death.wav"

@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/enemy_data.gd" id="1_bowx1"]
+
+[resource]
+script = ExtResource("1_bowx1")
+id = "neisseria-meningitidis"
+display_name = "Neisseria meningitidis"
+type = "bacterium"
+role = "boss"
+trait_id = "split_at_half"
+trait_description = "High health, splits into two smaller copies when half of its health is gone."
+health = 300.0
+speed = 35.0
+body_damage = 10
+amino_acid_reward = 25
+sound_hit = "res://assets/audio/enemies/neisseria-meningitidis/hit.wav"
+sound_attack = "res://assets/audio/enemies/neisseria-meningitidis/attack.wav"
+sound_death = "res://assets/audio/enemies/neisseria-meningitidis/death.wav"

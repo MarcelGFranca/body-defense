@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/enemy_data.gd" id="1_258vw"]
+
+[resource]
+script = ExtResource("1_258vw")
+id = "hiv"
+display_name = "HIV"
+role = "boss"
+trait_id = "tower_disable_aura"
+trait_description = "Very high health, disables nearby towers in an aura, and affects lymphocytes longer."
+health = 350.0
+speed = 30.0
+body_damage = 10
+amino_acid_reward = 25
+sound_hit = "res://assets/audio/enemies/hiv/hit.wav"
+sound_attack = "res://assets/audio/enemies/hiv/attack.wav"
+sound_death = "res://assets/audio/enemies/hiv/death.wav"

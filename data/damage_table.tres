@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="DamageTable" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/damage_table.gd" id="1_5t0hk"]
+
+[resource]
+script = ExtResource("1_5t0hk")
+factors = {
+"antiviral": {
+"bacterium": 0.0,
+"virus": 1.5
+},
+"chemical": {
+"bacterium": 1.5,
+"virus": 0.5
+},
+"immunological": {
+"bacterium": 1.0,
+"virus": 1.0
+},
+"physical": {
+"bacterium": 1.0,
+"virus": 1.0
+},
+"thermal": {
+"bacterium": 1.0,
+"virus": 1.0
+}
+}
