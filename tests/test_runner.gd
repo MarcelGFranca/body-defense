@@ -529,6 +529,14 @@ func test_level_simulation() -> void:
 	check(level.towers[2].current_animation() == "attack", "the interferon plays its attack animation when it pulses")
 	free_node(level)
 
+	level = level_with_tower("hypothalamus")
+	level.step(2.0)
+	check(level.towers[2].current_animation() == "idle", "the hypothalamus idles while nothing is in range")
+	spawn_at(level, "rhinovirus", 850.0)
+	level.step(0.05)
+	check(level.towers[2].current_animation() == "attack", "the hypothalamus plays its attack animation when it sets an enemy on fire")
+	free_node(level)
+
 	level = level_with_tower("t-lymphocyte")
 	var caster: Tower = level.towers[2]
 	check(caster.current_animation() == "idle", "the T lymphocyte starts out ready, idling")

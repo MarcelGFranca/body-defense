@@ -286,12 +286,18 @@ func _step_root_aura() -> void:
 		GameAudio.play_sfx(data.sound_attack)
 
 
+## Sets fire to the enemies in range. The tower animates and sends a heat ring whenever it ignites a new one.
 func _step_dot_aura() -> void:
+	var ignited := false
 	for enemy: Enemy in _enemies():
 		var was_burning := enemy.status.has_dot()
 		enemy.status.apply_dot(data.dot_damage, data.damage_type, data.dot_seconds, data.id)
 		if not was_burning:
-			GameAudio.play_sfx(data.sound_attack)
+			ignited = true
+	if ignited:
+		_pulse_age = 0.0
+		play_attack()
+		GameAudio.play_sfx(data.sound_attack)
 
 
 ## A B Lymphocyte releases antibodies: the strongest enemies in range are marked and hurt a little.
