@@ -28,6 +28,10 @@ Enemies drop amino acids when they die. Selling a tower returns part of its cost
 
 Mobile towers can be moved to another slot.
 
+**Tower information.** Holding a build card or a built tower for 0.3 s shows its attributes (role, cost, range, damage, ability) and which enemies of the current level it is good, weak or useless against. Releasing closes the panel and does not build or open the sell card. A quick tap builds or opens the sell card as before.
+
+**Attack feedback.** Every tower plays an attack animation when it attacks. Area towers (lysozyme, interferon) also send a ring from the tower to the edge of its range in 0.6 s, coloured by damage type.
+
 ## Damage types
 
 | Type | vs virus | vs bacterium |

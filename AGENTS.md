@@ -18,7 +18,7 @@ Read this file first, then the doc that matches your task:
 
 - **Code, data and game text are in English.** The game will be translated later, so keep every player-facing string in one obvious place (data files, `menu.gd`, `hud.gd`) and never build sentences by concatenating pieces. The user talks to you in Portuguese; reply in Portuguese.
 - **All balance numbers live in `tools/generate_data.gd`.** The `.tres` files in `data/` are generated output. Change the table, then run `godot --headless --path . --script res://tools/generate_data.gd`. Never hand-edit `data/`.
-- **Commit and push only when the user asks.**
+- **Commit and push only when the user asks.** Before every commit, document the task: its `openspec/changes/<name>/` (proposal, design, tasks, spec, with the tasks ticked), `docs/` pages that describe the changed behaviour, and `design/balance.md` when numbers changed. Code is not ready to commit until its documentation is.
 - **Do not change balance without evidence.** Run playtests first (`docs/development.md`), show the analysis, and wait for approval.
 - Match the surrounding code: tabs, `##` doc comment on top of each script, short comments, typed GDScript (`var x: int`, `-> void`), `class_name` for reusable types, no new autoloads without a reason (current ones: `Economy`, `GameAudio`, `Session`).
 - Anything that depends on a level, tower, enemy or difficulty is data (`Resource` in `scripts/data/`), not a constant in code.

@@ -32,7 +32,7 @@ main.tscn (scripts/main.gd)  -- builds Level + Hud for that level and the chosen
 | `blocker_unit.gd` | Neutrophils summoned by Bone Marrow |
 | `mucus_glob.gd`, `mucus_puddle.gd` | Mucus Cell projectile and slowing puddle |
 | `damage_calculator.gd` | Damage after armor, resistances, marks and the damage table |
-| `hud.gd` (`Hud`) | Bars, build and sell menus, wave info, enemy card, pause, results |
+| `hud.gd` (`Hud`) | Bars, build and sell menus, long-press tower info panel (`HOLD_SECONDS`), wave info, enemy card, pause, results |
 | `game_stats.gd` | Per-game record: damage and kills by tower, leaks, waves |
 | `data_loader.gd`, `data_validator.gd` | Load `.tres` data and check it |
 | `autoplay_bot.gd` | Simple bot used by `--autoplay` |
