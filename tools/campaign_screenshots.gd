@@ -12,7 +12,7 @@ func _ready() -> void:
 	await get_tree().process_frame
 	Session.save_path = "user://screenshot_progress.cfg"
 	Session.best_health = {1: 16, 2: 20, 3: 14}
-	var menu: Control = load("res://scenes/menu.tscn").instantiate()
+	var menu: Control = load("res://game/menu.tscn").instantiate()
 	add_child(menu)
 	await _shot("menu")
 	menu.find_child("Level_4", true, false).pressed.emit()

@@ -19,5 +19,5 @@ Only the first one is done so far; the others are ticked in `tasks.md` as they a
 
 ## Impact
 
-- `scripts/blocker_unit.gd`, `scripts/level.gd` (the level steps the units), `scripts/tower.gd`, new tower data fields `unit_radius` and `unit_speed` (generated data), tests.
+- `game/blocker_unit.gd`, `game/level.gd` (the level steps the units), `game/tower.gd`, new tower data fields `unit_radius` and `unit_speed` (generated data), tests.
 - New screenshot tool `tools/neutrophil_screenshots`.

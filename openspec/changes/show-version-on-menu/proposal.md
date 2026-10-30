@@ -14,4 +14,4 @@ Test builds are installed over each other, and the designer cannot tell which bu
 
 ## Impact
 
-- `scripts/menu.gd`, `project.godot`, `export_presets.cfg`, `docs/development.md`, tests.
+- `game/menu.gd`, `project.godot`, `export_presets.cfg`, `docs/development.md`, tests.

@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="LevelData" format=3]
 
-[ext_resource type="Script" path="res://scripts/data/level_data.gd" id="1_hkfdj"]
-[ext_resource type="Script" path="res://scripts/data/wave_data.gd" id="2_lk6lq"]
+[ext_resource type="Script" path="res://game/data/level_data.gd" id="1_hkfdj"]
+[ext_resource type="Script" path="res://game/data/wave_data.gd" id="2_lk6lq"]
 
 [sub_resource type="Resource" id="Resource_3m3tp"]
 script = ExtResource("2_lk6lq")

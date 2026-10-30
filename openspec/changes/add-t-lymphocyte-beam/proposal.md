@@ -17,5 +17,5 @@ The T lymphocyte hits like every other single-target tower: a thin line and a sh
 
 ## Impact
 
-- New `scripts/tower_beam.gd`, new field `TowerData.beam_width` (generated data), `scripts/tower.gd`, sprite generator (`charge` animation) and the T lymphocyte sheets, tests.
+- New `game/tower_beam.gd`, new field `TowerData.beam_width` (generated data), `game/tower.gd`, sprite generator (`charge` animation) and the T lymphocyte sheets, tests.
 - New screenshot tool `tools/tlymphocyte_screenshots`.

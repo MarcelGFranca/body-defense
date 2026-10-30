@@ -3,9 +3,9 @@
 ## Flow
 
 ```
-splash.tscn (scripts/splash.gd) -- 5 s Apolo Software logo, then the menu
-menu.tscn (scripts/menu.gd)  -- pick level --> Session.current_level
-main.tscn (scripts/main.gd)  -- builds Level + Hud for that level and the chosen difficulty
+splash.tscn (game/splash.gd) -- 5 s Apolo Software logo, then the menu
+menu.tscn (game/menu.gd)  -- pick level --> Session.current_level
+main.tscn (game/main.gd)  -- builds Level + Hud for that level and the chosen difficulty
 ```
 - `Menu`: level list with locks, level detail page, Tutorial (`HOW TO PLAY`, text in `TutorialPages`), Settings page (difficulty, sound: mute, music and effects volume with `VolumeBar`, reset progress), and the game version (from `application/config/version`) in small text at the bottom.
 - `Main`: reads user args (`--level N`, `--difficulty id`, `--autoplay`, `--call-waves`), creates `Level` and `Hud`, and records a victory in `Session`.
@@ -14,11 +14,11 @@ main.tscn (scripts/main.gd)  -- builds Level + Hud for that level and the chosen
 
 | Autoload | File | Job |
 |---|---|---|
-| `Economy` | `scripts/economy.gd` | Amino acid balance, spending, rewards |
-| `GameAudio` | `scripts/game_audio.gd` | Music and sound effects, at most 8 voices at once |
-| `Session` | `scripts/session.gd` | Current level, unlocked levels, best health, difficulty, saving to `user://progress.cfg` |
+| `Economy` | `game/economy.gd` | Amino acid balance, spending, rewards |
+| `GameAudio` | `game/game_audio.gd` | Music and sound effects, at most 8 voices at once |
+| `Session` | `game/session.gd` | Current level, unlocked levels, best health, difficulty, saving to `user://progress.cfg` |
 
-## Runtime classes (`scripts/`)
+## Runtime classes (`game/`)
 
 | File | Job |
 |---|---|
@@ -40,7 +40,7 @@ main.tscn (scripts/main.gd)  -- builds Level + Hud for that level and the chosen
 | `data_loader.gd`, `data_validator.gd` | Load `.tres` data and check it |
 | `autoplay_bot.gd` | Simple bot used by `--autoplay` |
 
-## Data classes (`scripts/data/`)
+## Data classes (`game/data/`)
 
 `EnemyData`, `TowerData`, `LevelData`, `WaveData`, `DifficultyData`, `DamageTable`, `EconomyConfig`, `AudioConfig`. Instances are `.tres` files in `data/`, produced by `tools/generate_data.gd`.
 
@@ -76,4 +76,4 @@ The simulation has no random numbers, so a headless run at `--fixed-fps 60` give
 
 ## Languages
 
-`Localization` (`scripts/localization.gd`) lists the seven languages (English, Português, Français, Español, Italiano, 中文, 日本語) and applies one to the `TranslationServer`. The texts are in `localization/translations.csv`: the key is the English text, one column per language, and Godot imports the file into `translations.<code>.translation` (listed in `project.godot`). Code shows text with `tr("...")` (data texts as `tr(data.display_name)`), formatted strings keep their `%d` / `%s` in the key. A missing translation shows the English text. The language is chosen on the start screen (button at the top left), saved in `progress.cfg` (`[settings] language`) and defaults to the phone language on the first run. The pixel font has no Chinese or Japanese characters, so `Localization.prepare_font` gives it the system font as fallback. Scientific names of microbes stay untranslated on purpose.
+`Localization` (`game/localization.gd`) lists the seven languages (English, Português, Français, Español, Italiano, 中文, 日本語) and applies one to the `TranslationServer`. The texts are in `localization/translations.csv`: the key is the English text, one column per language, and Godot imports the file into `translations.<code>.translation` (listed in `project.godot`). Code shows text with `tr("...")` (data texts as `tr(data.display_name)`), formatted strings keep their `%d` / `%s` in the key. A missing translation shows the English text. The language is chosen on the start screen (button at the top left), saved in `progress.cfg` (`[settings] language`) and defaults to the phone language on the first run. The pixel font has no Chinese or Japanese characters, so `Localization.prepare_font` gives it the system font as fallback. Scientific names of microbes stay untranslated on purpose.

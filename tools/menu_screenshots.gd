@@ -9,12 +9,12 @@ func _ready() -> void:
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--out="):
 			_out = arg.trim_prefix("--out=")
-	var splash: Control = load("res://scenes/splash.tscn").instantiate()
+	var splash: Control = load("res://game/splash.tscn").instantiate()
 	add_child(splash)
 	await get_tree().create_timer(1.5).timeout
 	await _shot("splash")
 	splash.queue_free()
-	var menu: Control = load("res://scenes/menu.tscn").instantiate()
+	var menu: Control = load("res://game/menu.tscn").instantiate()
 	add_child(menu)
 	await _shot("menu_1_start")
 	menu._open_tutorial(1)

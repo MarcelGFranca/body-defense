@@ -15,5 +15,5 @@ The player cannot see what a tower does or which enemies it is good against befo
 
 ## Impact
 
-- `scripts/hud.gd` (panel, hold timers), `scripts/level.gd` (`tower_slot_at`), tests.
+- `game/hud.gd` (panel, hold timers), `game/level.gd` (`tower_slot_at`), tests.
 - Version moves to SemVer: `0.13.0`, code `1300` (see `docs/development.md`).

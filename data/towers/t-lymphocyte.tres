@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="TowerData" format=3]
 
-[ext_resource type="Script" path="res://scripts/data/tower_data.gd" id="1_u1why"]
+[ext_resource type="Script" path="res://game/data/tower_data.gd" id="1_u1why"]
 
 [resource]
 script = ExtResource("1_u1why")

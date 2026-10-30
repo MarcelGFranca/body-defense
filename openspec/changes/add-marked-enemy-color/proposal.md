@@ -16,5 +16,5 @@ A B lymphocyte marks up to 4 enemies so they take 35% more damage for 5 s, but n
 
 ## Impact
 
-- New `assets/shaders/mark_tint.gdshader`, `scripts/enemy.gd`, `scripts/enemy_status.gd` (`mark_amount`, `mark_color`), `TowerData.mark_color` (generated data), tests.
+- New `assets/shaders/mark_tint.gdshader`, `game/enemy.gd`, `game/enemy_status.gd` (`mark_amount`, `mark_color`), `TowerData.mark_color` (generated data), tests.
 - New screenshot tool `tools/blymphocyte_screenshots`.

@@ -14,4 +14,4 @@ The designer tests builds on a phone and needs to see how smoothly the game runs
 
 ## Impact
 
-- New `scripts/fps_counter.gd`, `scripts/session.gd`, `scripts/menu.gd`, `scripts/hud.gd`, tests, `docs/game-design.md`.
+- New `game/fps_counter.gd`, `game/session.gd`, `game/menu.gd`, `game/hud.gd`, tests, `docs/game-design.md`.

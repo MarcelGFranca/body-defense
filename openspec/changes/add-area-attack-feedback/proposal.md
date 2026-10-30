@@ -15,4 +15,4 @@ The lysozyme looks like it never attacks: its attack animation is a thin 1 px ri
 
 ## Impact
 
-- `tools/tower_art.py` and the regenerated lysozyme sheets, `scripts/tower.gd`, tests.
+- `tools/tower_art.py` and the regenerated lysozyme sheets, `game/tower.gd`, tests.

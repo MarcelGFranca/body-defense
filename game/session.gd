@@ -9,8 +9,8 @@ const LEVEL_PATH_FORMAT := "res://data/levels/level_%d.tres"
 const SAVE_PATH := "user://progress.cfg"
 const DIFFICULTY_IDS := ["easy", "medium", "hard"]
 const DIFFICULTY_PATH_FORMAT := "res://data/difficulties/%s.tres"
-const LEVEL_SCENE := "res://scenes/main.tscn"
-const MENU_SCENE := "res://scenes/menu.tscn"
+const LEVEL_SCENE := "res://game/main.tscn"
+const MENU_SCENE := "res://game/menu.tscn"
 
 var current_level := 1
 ## Level number -> the most body health left after winning it.

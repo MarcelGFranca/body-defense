@@ -1335,9 +1335,9 @@ func test_localization() -> void:
 	var missing: Array[String] = []
 	# every literal passed to tr() in the code
 	var pattern := RegEx.create_from_string("tr\\(\"([^\"]+)\"\\)")
-	for script_file in DirAccess.get_files_at("res://scripts"):
+	for script_file in DirAccess.get_files_at("res://game"):
 		if script_file.ends_with(".gd"):
-			for hit in pattern.search_all(FileAccess.get_file_as_string("res://scripts/" + script_file)):
+			for hit in pattern.search_all(FileAccess.get_file_as_string("res://game/" + script_file)):
 				if not keys.has(hit.get_string(1)):
 					missing.append(hit.get_string(1))
 	# the tutorial
@@ -1367,9 +1367,9 @@ func test_localization() -> void:
 
 
 func test_splash() -> void:
-	check(ProjectSettings.get_setting("application/run/main_scene") == "res://scenes/splash.tscn", "the game starts on the splash screen")
+	check(ProjectSettings.get_setting("application/run/main_scene") == "res://game/splash.tscn", "the game starts on the splash screen")
 	check(Splash.SECONDS == 5.0 and ResourceLoader.exists(Splash.LOGO_PATH), "the splash lasts 5 seconds and has the Apolo Software logo")
-	var splash: Control = load("res://scenes/splash.tscn").instantiate()
+	var splash: Control = load("res://game/splash.tscn").instantiate()
 	get_tree().root.add_child(splash)
 	await get_tree().process_frame
 	var texts: Array = splash.find_children("*", "Label", true, false).map(func(label: Label) -> String: return label.text)
@@ -1382,7 +1382,7 @@ func test_menu_and_results() -> void:
 	var real_path: String = Session.save_path
 	Session.save_path = "user://test_progress.cfg"
 	Session.best_health.clear()
-	var menu: Control = load("res://scenes/menu.tscn").instantiate()
+	var menu: Control = load("res://game/menu.tscn").instantiate()
 	get_tree().root.add_child(menu)
 	await get_tree().process_frame
 	await get_tree().process_frame

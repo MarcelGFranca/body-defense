@@ -18,4 +18,4 @@ The platelet has an attack animation, but it never plays: the root aura roots en
 
 ## Impact
 
-- New `scripts/root_tendrils.gd`, new field `TowerData.root_targets` (generated data, `tools/generate_data.gd`); `scripts/tower.gd` (holds), `scripts/enemy_status.gd` (`root_remaining`), tests. No sprite or data change.
+- New `game/root_tendrils.gd`, new field `TowerData.root_targets` (generated data, `tools/generate_data.gd`); `game/tower.gd` (holds), `game/enemy_status.gd` (`root_remaining`), tests. No sprite or data change.
