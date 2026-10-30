@@ -15,6 +15,8 @@ const CARD_WIDTH := 440.0
 ## Pixels a finger must move before a press becomes a drag.
 const DRAG_THRESHOLD := 14.0
 const WHEEL_STEP := 40.0
+## One tap on a zoom button, or one notch of the wheel with Ctrl held, changes the zoom by this factor.
+const ZOOM_STEP := 1.25
 ## Build menus with more towers than this are drawn in two columns.
 const MAX_SINGLE_COLUMN := 6
 const CARD_SIZE := Vector2(272, 104)
@@ -62,6 +64,8 @@ var _slot_for_sell := -1
 var _move_from := -1
 var _toast_tween: Tween
 var _scroll_track: Control
+## Fingers on the map: touch index -> position, used to pinch-zoom.
+var _touches: Dictionary = {}
 var _pressing := false
 var _dragging := false
 var _press_position := Vector2.ZERO
@@ -101,6 +105,7 @@ func _ready() -> void:
 	_build_top_bar()
 	_build_bottom_bar()
 	_build_scroll_track()
+	_build_zoom_buttons()
 	_build_enemy_card()
 	_popup = Control.new()
 	_popup.size = SCREEN
@@ -211,6 +216,19 @@ func _build_bottom_bar() -> void:
 	_root.add_child(_call_button)
 
 
+## Two buttons on the left edge, above the bottom bar, zoom in and out.
+func _build_zoom_buttons() -> void:
+	var top := SCREEN.y - BOTTOM_BAR_HEIGHT - 2.0 * MIN_TAP - 32.0
+	for i in 2:
+		var zoom_in := i == 0
+		var button := _button("+" if zoom_in else "-", Vector2(MIN_TAP, MIN_TAP), 36)
+		button.name = "ZoomInButton" if zoom_in else "ZoomOutButton"
+		button.position = Vector2(16, top + i * (MIN_TAP + 8.0))
+		button.modulate.a = 0.8
+		button.pressed.connect(func() -> void: level.zoom_by(ZOOM_STEP if zoom_in else 1.0 / ZOOM_STEP))
+		_root.add_child(button)
+
+
 ## A thin bar on the right edge that shows which part of the map is on screen, and where enemies are.
 func _build_scroll_track() -> void:
 	_scroll_track = Control.new()
@@ -227,10 +245,10 @@ func _draw_scroll_track() -> void:
 	var size := _scroll_track.size
 	_scroll_track.draw_rect(Rect2(Vector2.ZERO, size), Color(1, 1, 1, 0.14))
 	var map_height := level.data.map_size.y
-	var band := Level.VIEW_SIZE.y - Level.SAFE_TOP - Level.SAFE_BOTTOM
+	var band := (Level.VIEW_SIZE.y - Level.SAFE_TOP - Level.SAFE_BOTTOM) / level.zoom
 	if map_height <= band:
 		return
-	var top := clampf((level.scroll.y + Level.SAFE_TOP) / map_height, 0.0, 1.0)
+	var top := clampf((level.scroll.y + Level.SAFE_TOP / level.zoom) / map_height, 0.0, 1.0)
 	var thumb := Rect2(0.0, top * size.y, size.x, maxf(14.0, band / map_height * size.y))
 	_scroll_track.draw_rect(thumb, Color(1, 1, 1, 0.55))
 	for enemy in level.enemies:
@@ -403,6 +421,24 @@ func _orb_arrived(orb: Control, share: int) -> void:
 func _on_map_input(event: InputEvent) -> void:
 	if get_tree().paused:
 		return
+	if event is InputEventScreenTouch:
+		if event.pressed:
+			_touches[event.index] = event.position
+		else:
+			_touches.erase(event.index)
+		return
+	if event is InputEventScreenDrag:
+		_pinch(event)
+		return
+	if event is InputEventMagnifyGesture:
+		_dismiss_all()
+		level.zoom_by(event.factor, event.position)
+		return
+	if _touches.size() >= 2:
+		# A pinch is going on: the finger that also acts as the mouse must not scroll or tap.
+		_map_hold.stop()
+		_pressing = false
+		return
 	if event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_LEFT:
 			if event.pressed:
@@ -420,6 +456,8 @@ func _on_map_input(event: InputEvent) -> void:
 					level.handle_tap(event.position)
 				_pressing = false
 				_dragging = false
+		elif event.pressed and event.ctrl_pressed and event.button_index in [MOUSE_BUTTON_WHEEL_UP, MOUSE_BUTTON_WHEEL_DOWN]:
+			level.zoom_by(ZOOM_STEP if event.button_index == MOUSE_BUTTON_WHEEL_UP else 1.0 / ZOOM_STEP, event.position)
 		elif event.pressed and event.button_index == MOUSE_BUTTON_WHEEL_UP:
 			_dismiss_all()
 			level.scroll_by(Vector2(0.0, -WHEEL_STEP))
@@ -431,9 +469,25 @@ func _on_map_input(event: InputEvent) -> void:
 			_dragging = true
 			_map_hold.stop()
 			_dismiss_all()
-			level.scroll_by(-(event.position - _press_position) / Level.SHRINK)
+			level.scroll_by(-(event.position - _press_position) / level.screen_scale())
 		elif _dragging:
-			level.scroll_by(-event.relative / Level.SHRINK)
+			level.scroll_by(-event.relative / level.screen_scale())
+
+
+## Two fingers on the map zoom it: the distance between them sets the zoom, around their midpoint.
+func _pinch(event: InputEventScreenDrag) -> void:
+	if not _touches.has(event.index):
+		return
+	var before: Array = _touches.values()
+	_touches[event.index] = event.position
+	if _touches.size() != 2:
+		return
+	var after: Array = _touches.values()
+	var old_distance: float = before[0].distance_to(before[1])
+	var new_distance: float = after[0].distance_to(after[1])
+	if old_distance > 1.0:
+		_dismiss_all()
+		level.zoom_by(new_distance / old_distance, (after[0] + after[1]) / 2.0)
 
 
 ## Holding a built tower shows its attributes, like holding a build card.

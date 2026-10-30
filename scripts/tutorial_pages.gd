@@ -25,6 +25,6 @@ const PAGES := [
 	},
 	{
 		"title": "WAVES AND CONTROLS",
-		"text": "Waves come on a timer. Tap CALL WAVE to bring the next one early. When the field is empty, the next wave starts in 5 seconds.\n\nTap an enemy to see its stats. Drag the map to scroll. Use 2X to speed up and the pause button to stop.",
+		"text": "Waves come on a timer. Tap CALL WAVE to bring the next one early. When the field is empty, the next wave starts in 5 seconds.\n\nTap an enemy to see its stats. Drag the map to scroll and pinch or use + and - to zoom. Use 2X to speed up and the pause button to stop.",
 	},
 ]

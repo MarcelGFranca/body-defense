@@ -25,6 +25,9 @@ const DAMAGE_TABLE_PATH := "res://data/damage_table.tres"
 const SHRINK := 2
 ## When the field is empty between waves, the next wave starts after at most this many seconds.
 const EMPTY_FIELD_WAIT := 5.0
+## The player can zoom out to see more of the map or in to see it bigger.
+const ZOOM_MIN := 0.6
+const ZOOM_MAX := 2.0
 const TAP_RADIUS := 24.0
 ## Size of the drawn view in map units, and the parts of it covered by the HUD bars.
 const VIEW_SIZE := Vector2(360, 640)
@@ -50,6 +53,8 @@ var state := "running"  # "running", "won" or "lost"
 var speed := 1
 ## Map position shown at the top left corner of the view.
 var scroll := Vector2.ZERO
+## Camera zoom: 1 shows the map at its normal size, 2 shows it twice as big.
+var zoom := 1.0
 
 var _enemy_layer: Node2D
 var _ground_layer: Node2D
@@ -123,11 +128,15 @@ func step(delta: float) -> void:
 
 
 ## Lowest and highest scroll positions: the whole map can be brought between the HUD bars.
+## When the zoom shows more than the map is wide, the map stays centred.
 func scroll_limits() -> Rect2:
-	var low := Vector2(0.0, -SAFE_TOP)
+	var view_width := VIEW_SIZE.x / zoom
+	var low := Vector2(minf(0.0, (data.map_size.x - view_width) / 2.0), -SAFE_TOP / zoom)
 	var high := Vector2(
-		maxf(0.0, data.map_size.x - VIEW_SIZE.x),
-		maxf(-SAFE_TOP, data.map_size.y - (VIEW_SIZE.y - SAFE_BOTTOM)))
+		maxf(0.0, data.map_size.x - view_width),
+		maxf(low.y, data.map_size.y - (VIEW_SIZE.y - SAFE_BOTTOM) / zoom))
+	if data.map_size.x < view_width:
+		high.x = low.x
 	return Rect2(low, high - low)
 
 
@@ -142,12 +151,34 @@ func scroll_by(delta: Vector2) -> void:
 	set_scroll(scroll + delta)
 
 
+## Screen pixels per map unit.
+func screen_scale() -> float:
+	return SHRINK * zoom
+
+
+## Changes the zoom keeping the map point under `focus` (in screen pixels) where it is.
+func set_zoom(value: float, focus: Vector2 = Vector2(SHRINK * VIEW_SIZE.x / 2.0, SHRINK * VIEW_SIZE.y / 2.0)) -> void:
+	var anchor := screen_to_world(focus)
+	zoom = clampf(value, ZOOM_MIN, ZOOM_MAX)
+	_camera.zoom = Vector2(zoom, zoom)
+	set_scroll(anchor - focus / screen_scale())
+
+
+func zoom_by(factor: float, focus: Vector2 = Vector2(SHRINK * VIEW_SIZE.x / 2.0, SHRINK * VIEW_SIZE.y / 2.0)) -> void:
+	set_zoom(zoom * factor, focus)
+
+
+## Radius of a tap on a slot or an enemy, in map units: it never shrinks below the same size on screen at normal zoom.
+func tap_radius() -> float:
+	return TAP_RADIUS / minf(zoom, 1.0)
+
+
 func screen_to_world(screen_position: Vector2) -> Vector2:
-	return screen_position / SHRINK + scroll
+	return screen_position / screen_scale() + scroll
 
 
 func world_to_screen(world_position: Vector2) -> Vector2:
-	return (world_position - scroll) * SHRINK
+	return (world_position - scroll) * screen_scale()
 
 
 ## A Mucus Cell throws a glob at `target`; where it lands it leaves a puddle for a few seconds.
@@ -180,7 +211,7 @@ func enemies_in_range(center: Vector2, radius: float) -> Array:
 func tower_slot_at(screen_position: Vector2) -> int:
 	var point := screen_to_world(screen_position)
 	for i in data.slots.size():
-		if towers.has(i) and data.slots[i].distance_to(point) <= TAP_RADIUS:
+		if towers.has(i) and data.slots[i].distance_to(point) <= tap_radius():
 			return i
 	return -1
 
@@ -191,7 +222,7 @@ func handle_tap(screen_position: Vector2) -> void:
 		return
 	var point := screen_to_world(screen_position)
 	var nearest_enemy: Enemy = null
-	var nearest_distance := TAP_RADIUS
+	var nearest_distance := tap_radius()
 	for enemy in enemies:
 		var distance := enemy.position.distance_to(point)
 		if not enemy.finished and distance <= nearest_distance:
@@ -201,7 +232,7 @@ func handle_tap(screen_position: Vector2) -> void:
 		enemy_tapped.emit(nearest_enemy)
 		return
 	for i in data.slots.size():
-		if data.slots[i].distance_to(point) <= TAP_RADIUS:
+		if data.slots[i].distance_to(point) <= tap_radius():
 			if towers.has(i):
 				tower_tapped.emit(i)
 			else:
