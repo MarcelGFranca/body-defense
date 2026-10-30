@@ -188,7 +188,7 @@ func _save_level_1() -> void:
 	var level := LevelData.new()
 	level.id = "level_1"
 	level.display_name = "Garganta"
-	level.music = "res://assets/audio/music/garganta.wav"
+	level.music = "res://assets/audio/music/throat.wav"
 	level.map_size = LEVEL_1_MAP_SIZE
 	level.path_points = PackedVector2Array(LEVEL_1_PATH)
 	level.slots = PackedVector2Array(LEVEL_1_SLOTS)

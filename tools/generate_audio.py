@@ -196,39 +196,129 @@ def note(name):
     return 440.0 * 2 ** ((semitone - 9 + 12 * (octave - 4)) / 12)
 
 
+# Triads by name: bass root, then the chord tones used by the keyboard.
+CHORDS = {
+    "Am": ("A2", ["A4", "C5", "E5", "A5"]),
+    "F": ("F2", ["F4", "A4", "C5", "F5"]),
+    "C": ("C3", ["E4", "G4", "C5", "E5"]),
+    "G": ("G2", ["D4", "G4", "B4", "D5"]),
+    "E": ("E2", ["E4", "G#4", "B4", "E5"]),
+}
+
+# One bar of the lead = 16 sixteenths; "_" holds the previous note and "-" is a rest.
+LEAD_A = [
+    ("Am", "E5 _ _ _ A5 _ _ G5 E5 _ _ _ C5 _ D5 E5"),
+    ("F", "F5 _ _ _ A5 _ _ C6 A5 _ _ G5 F5 _ E5 F5"),
+    ("C", "G5 _ _ _ E5 _ _ G5 C6 _ _ _ B5 _ G5 E5"),
+    ("G", "D5 _ _ _ G5 _ _ B5 A5 _ _ G5 D5 _ E5 D5"),
+    ("Am", "E5 _ _ _ A5 _ _ G5 E5 _ _ _ C6 _ B5 A5"),
+    ("F", "A5 _ _ _ C6 _ _ A5 F5 _ _ _ A5 _ C6 _"),
+    ("G", "B5 _ _ B5 D6 _ _ B5 G5 _ _ _ A5 _ B5 _"),
+    ("E", "E5 _ G#5 _ B5 _ _ _ E6 _ _ _ _ _ - -"),
+]
+LEAD_B = [
+    ("F", "C6 _ _ _ _ _ A5 _ C6 _ _ _ D6 _ C6 _"),
+    ("G", "B5 _ _ _ _ _ G5 _ B5 _ _ _ C6 _ D6 _"),
+    ("Am", "E6 _ _ _ _ _ C6 _ A5 _ _ _ C6 _ E6 _"),
+    ("C", "G6 _ _ _ E6 _ _ _ C6 _ E6 _ G6 _ _ _"),
+    ("F", "A5 _ C6 _ F6 _ _ _ E6 _ C6 _ A5 _ C6 _"),
+    ("G", "D6 _ _ _ B5 _ D6 _ G6 _ _ _ F6 _ D6 _"),
+    ("E", "E6 _ _ G#5 B5 _ _ E6 D6 _ B5 _ G#5 _ B5 _"),
+    ("E", "E6 _ _ _ _ _ _ _ _ _ _ _ _ _ - -"),
+]
+INTRO = [("Am", None)] * 2
+OUTRO = [("F", None), ("G", None), ("E", None), ("E", None)]
+
+# Section plan: name, bars, keyboard 2 style. Intro 2 + A 8 + B 8 + A again 8 + outro 4 = 30 bars.
+SECTIONS = [
+    ("intro", INTRO, "arp"), ("a", LEAD_A, "stab"), ("b", LEAD_B, "pad"),
+    ("a", LEAD_A, "arp"), ("outro", OUTRO, "pad"),
+]
+# Bass: eighth notes, "r" = root, "o" = octave up.
+BASS_DRIVE = "r r o r r o r o".split()
+BASS_HALF = "r o r o r o r o".split()
+
+
+def envelope(duration, attack=0.004, tau=0.5, sustain=0.6, release=0.02):
+    t = time(duration)
+    body = sustain + (1.0 - sustain) * np.exp(-t / tau)
+    return np.minimum(t / attack, 1.0) * body * np.minimum((duration - t) / release, 1.0)
+
+
+def lead_note(name, duration):
+    """Keyboard 1: two slightly detuned narrow pulses with a late vibrato."""
+    t = time(duration)
+    freq = note(name) * (1 + 0.004 * np.sin(2 * np.pi * 5.5 * t) * np.minimum(t / 0.25, 1.0))
+    tone = square(freq * 1.003, 0.25) + square(freq * 0.997, 0.25)
+    return tone * envelope(duration, tau=0.35, sustain=0.55)
+
+
+def keys_note(name, duration, soft=False):
+    """Keyboard 2: a rounder, mellower tone (a pulse plus a triangle an octave down)."""
+    freq = np.full(int(SR * duration), note(name))
+    tone = lowpass(square(freq, 0.5), 3) * 0.6 + triangle(freq * 0.5) * 0.5
+    if soft:
+        return tone * envelope(duration, attack=0.12, tau=1.0, sustain=0.8, release=0.1)
+    return tone * envelope(duration, attack=0.003, tau=0.12, sustain=0.15, release=0.01)
+
+
+def bass_note(name, duration):
+    """Bass keyboard: a low saw, filtered, over a sine-like sub."""
+    freq = np.full(int(SR * duration), note(name))
+    saw = 2.0 * (phase(freq) % 1.0) - 1.0
+    return (lowpass(saw, 5) * 0.7 + triangle(freq) * 0.9) * envelope(duration, tau=0.18, sustain=0.45, release=0.015)
+
+
+def parse_lead(text):
+    """Turn a bar of 16 tokens into (step, note, length in steps)."""
+    tokens = text.split()
+    assert len(tokens) == 16, text
+    notes = []
+    for step, token in enumerate(tokens):
+        if token == "_":
+            notes[-1][2] += 1
+        elif token != "-":
+            notes.append([step, token, 1])
+    return notes
+
+
 def music():
-    bpm = 120
-    beat = 60.0 / bpm
-    eighth = beat / 2
-    bars = 8
-    total = bars * 4 * beat
-    out = silence(total)
-    # Am, F, C, G: two bars each. Root for the bass, chord for the arpeggio, eight-note lead pattern.
-    chords = [
-        ("A2", ["A3", "C4", "E4"], ["E5", "D5", "C5", "D5", "E5", "E5", "G5", "E5", "D5", "C5", "A4", "C5", "D5", "D5", "E5", None]),
-        ("F2", ["F3", "A3", "C4"], ["C5", "C5", "A4", "C5", "F5", "E5", "C5", "A4", "A4", "C5", "E5", "D5", "C5", "A4", "F4", None]),
-        ("C3", ["C4", "E4", "G4"], ["G4", "C5", "E5", "G5", "E5", "C5", "E5", "D5", "C5", "E5", "G5", "E5", "D5", "C5", "G4", None]),
-        ("G2", ["G3", "B3", "D4"], ["D5", "D5", "B4", "D5", "G5", "F5", "D5", "B4", "A4", "B4", "D5", "E5", "D5", "B4", "G4", None]),
-    ]
-    for index, (root, chord, lead) in enumerate(chords):
-        start = index * 8 * beat
-        for step in range(16):  # eighth notes over two bars
-            at = start + step * eighth
-            if step % 2 == 0:  # bass on every beat
-                d = beat * 0.9
-                place(out, triangle(np.full(int(SR * d), note(root))) * decay(d, 0.35, 0.004) * 0.55, at)
-            if lead[step]:
-                d = eighth * 1.7
-                freq = np.full(int(SR * d), note(lead[step]))
-                place(out, square(freq, 0.25) * decay(d, 0.16, 0.004) * 0.26, at)
-            # a quiet arpeggio in sixteenths
-            for half in range(2):
-                d = eighth / 2 * 0.9
-                tone = note(chord[(step * 2 + half) % 3])
-                place(out, square(np.full(int(SR * d), tone), 0.5) * decay(d, 0.05, 0.002) * 0.07, at + half * eighth / 2)
-            if step % 2 == 1:  # a hat on the off beats
-                place(out, noise(0.04, step + 100 * index, 2) * decay(0.04, 0.012, 0.001) * 0.10, at)
-    return out
+    bpm = 144
+    step = 60.0 / bpm / 4
+    bar = step * 16
+    bars = sum(len(section) for _, section, _ in SECTIONS)
+    total = bars * bar
+    lead, keys, bass = silence(total), silence(total), silence(total)
+    index = 0
+    for name, section, style in SECTIONS:
+        for chord_name, lead_text in section:
+            root, tones = CHORDS[chord_name]
+            start = index * bar
+            index += 1
+            if lead_text:
+                for at, pitch, length in parse_lead(lead_text):
+                    d = length * step * 0.95
+                    place(lead, lead_note(pitch, d), start + at * step)
+            drive = BASS_DRIVE if name in ("a",) else BASS_HALF
+            if name == "intro":
+                drive = ["r", "-", "r", "-", "r", "-", "r", "-"]
+            octave_up = root[:-1] + str(int(root[-1]) + 1)
+            for eighth, kind in enumerate(drive):
+                if kind != "-":
+                    place(bass, bass_note(root if kind == "r" else octave_up, step * 1.8), start + eighth * 2 * step)
+            if style == "stab":
+                for at in (2, 6, 10, 14):
+                    for tone in tones[:3]:
+                        place(keys, keys_note(tone, step * 1.6), start + at * step)
+            elif style == "arp":
+                order = [0, 1, 2, 3, 2, 1]
+                for at in range(16):
+                    place(keys, keys_note(tones[order[at % len(order)]], step * 0.9), start + at * step)
+            else:
+                for tone in tones[:3]:
+                    place(keys, keys_note(tone, bar * 0.98, soft=True), start)
+    mix = lead * 0.24 + keys * 0.14 + bass * 0.34
+    return mix
 
 
 # --- run ---------------------------------------------------------------------
@@ -246,7 +336,7 @@ def generate():
         save(path, tower_sound(tower))
         files[path] = (tower, "attack", False)
     save(os.path.join(ROOT, "common", "block.wav"), blocked_sound())
-    save(os.path.join(ROOT, "music", "garganta.wav"), music(), peak=0.7)
+    save(os.path.join(ROOT, "music", "throat.wav"), music(), peak=0.7)
     return files
 
 
@@ -272,9 +362,9 @@ def check(files):
     bosses = [length(p) for p, (e, k, boss) in files.items() if k == "death" and boss]
     if min(bosses) <= max(regular):
         problems.append("boss deaths must last longer than regular deaths")
-    music_length = length(os.path.join(ROOT, "music", "garganta.wav"))
-    if abs(music_length - 16.0) > 0.05:
-        problems.append("the music loop should be 16 s, found %.2f s" % music_length)
+    music_length = length(os.path.join(ROOT, "music", "throat.wav"))
+    if abs(music_length - 50.0) > 0.05:
+        problems.append("the music loop should be 50 s, found %.2f s" % music_length)
     print("%d sounds, music %.2f s, longest enemy death %.2f s, longest regular death %.2f s" % (
         len(files), music_length, max(bosses), max(regular)))
     for problem in problems:

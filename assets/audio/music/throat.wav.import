@@ -2,13 +2,13 @@
 
 importer="wav"
 type="AudioStreamWAV"
-uid="uid://bp47ajryrwweu"
-path="res://.godot/imported/garganta.wav-89c2f5025e2eb6a2b529d78d953aadf8.sample"
+uid="uid://r2p6cd3dgb1u"
+path="res://.godot/imported/throat.wav-534dd89e79ec993c352b1700964058d8.sample"
 
 [deps]
 
-source_file="res://assets/audio/music/garganta.wav"
-dest_files=["res://.godot/imported/garganta.wav-89c2f5025e2eb6a2b529d78d953aadf8.sample"]
+source_file="res://assets/audio/music/throat.wav"
+dest_files=["res://.godot/imported/throat.wav-534dd89e79ec993c352b1700964058d8.sample"]
 
 [params]
 
