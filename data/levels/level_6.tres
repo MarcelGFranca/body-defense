@@ -1,0 +1,94 @@
+[gd_resource type="Resource" script_class="LevelData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/level_data.gd" id="1_ycftc"]
+[ext_resource type="Script" path="res://scripts/data/wave_data.gd" id="2_4a8qo"]
+
+[sub_resource type="Resource" id="Resource_0d7y6"]
+script = ExtResource("2_4a8qo")
+start_time = 5.0
+entries = [{
+"count": 4,
+"enemy": "clostridioides-difficile"
+}, {
+"count": 6,
+"enemy": "e-coli"
+}]
+
+[sub_resource type="Resource" id="Resource_f4pfi"]
+script = ExtResource("2_4a8qo")
+start_time = 50.0
+spawn_interval = 0.9
+entries = [{
+"count": 5,
+"enemy": "clostridioides-difficile"
+}, {
+"count": 4,
+"enemy": "staphylococcus-aureus"
+}]
+
+[sub_resource type="Resource" id="Resource_ft5wt"]
+script = ExtResource("2_4a8qo")
+start_time = 100.0
+spawn_interval = 0.9
+entries = [{
+"count": 7,
+"enemy": "e-coli"
+}, {
+"count": 4,
+"enemy": "sars-cov-2"
+}, {
+"count": 4,
+"enemy": "helicobacter-pylori"
+}]
+
+[sub_resource type="Resource" id="Resource_0shc2"]
+script = ExtResource("2_4a8qo")
+start_time = 155.0
+spawn_interval = 0.8
+entries = [{
+"count": 6,
+"enemy": "clostridioides-difficile"
+}, {
+"count": 4,
+"enemy": "hpv"
+}, {
+"count": 3,
+"enemy": "streptococcus-pyogenes"
+}]
+
+[sub_resource type="Resource" id="Resource_0rl1b"]
+script = ExtResource("2_4a8qo")
+start_time = 210.0
+spawn_interval = 0.8
+entries = [{
+"count": 7,
+"enemy": "clostridioides-difficile"
+}, {
+"count": 5,
+"enemy": "staphylococcus-aureus"
+}, {
+"count": 6,
+"enemy": "e-coli"
+}]
+
+[resource]
+script = ExtResource("1_ycftc")
+id = "level_6"
+number = 6
+display_name = "Intestines"
+body_part = "The intestines"
+description = "A long winding road. C. difficile spores come back from the dead. Bone Marrow now sends neutrophils to block the way."
+background_color = Color(0.2509804, 0.15686275, 0.12156863, 1)
+tissue_color = Color(0.3529412, 0.21960784, 0.15686275, 1)
+path_edge_color = Color(0.47843137, 0.2901961, 0.14117648, 1)
+path_fill_color = Color(0.84313726, 0.5411765, 0.27058825, 1)
+path_dash_color = Color(0.9490196, 0.7607843, 0.5411765, 1)
+decor = "stripes"
+music = "res://assets/audio/music/intestines.wav"
+map_size = Vector2(360, 1250)
+path_points = PackedVector2Array(180, 40, 180, 100, 50, 100, 50, 250, 310, 250, 310, 400, 50, 400, 50, 550, 310, 550, 310, 700, 50, 700, 50, 850, 310, 850, 310, 1000, 50, 1000, 50, 1150, 180, 1150, 180, 1210)
+slots = PackedVector2Array(90, 180, 270, 320, 90, 470, 270, 620, 90, 770, 270, 920, 90, 1070, 110, 1190, 110, 60)
+starting_amino_acids = 250
+body_health = 20
+tower_ids = ["macrophage", "mucus-cell", "interferon", "neutrophil", "lysozyme", "platelet", "hypothalamus", "t-lymphocyte", "b-lymphocyte", "bone-marrow"]
+waves = Array[ExtResource("2_4a8qo")]([SubResource("Resource_0d7y6"), SubResource("Resource_f4pfi"), SubResource("Resource_ft5wt"), SubResource("Resource_0shc2"), SubResource("Resource_0rl1b")])

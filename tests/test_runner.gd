@@ -34,9 +34,17 @@ func _run() -> void:
 	await test_speed_and_pause()
 	await test_hud()
 	await test_audio()
+	test_campaign_data()
+	test_enemy_traits()
+	test_new_towers()
+	test_session()
+	await test_menu_and_results()
+	test_campaign_simulation()
 	for section in ["test_enemy_roster", "test_tower_roster", "test_level_data", "test_validator_catches_problems",
 			"test_damage_calculator", "test_status_effects", "test_wave_scheduler", "test_economy",
-			"test_level_simulation", "test_scrolling", "test_speed_and_pause", "test_hud", "test_audio"]:
+			"test_level_simulation", "test_scrolling", "test_speed_and_pause", "test_hud", "test_audio",
+			"test_campaign_data", "test_enemy_traits", "test_new_towers", "test_session", "test_menu_and_results",
+			"test_campaign_simulation"]:
 		if not _done.has(section):
 			_failures += 1
 			printerr("FAIL: %s stopped before its end (a script error?)" % section)
@@ -144,7 +152,7 @@ func test_tower_roster() -> void:
 
 
 func test_level_data() -> void:
-	check(_level_data.display_name == "Garganta", "level 1 is called Garganta")
+	check(_level_data.display_name == "Throat", "level 1 is called Throat")
 	check(_level_data.slots.size() == 6, "level 1 has 6 slots")
 	check(_level_data.starting_amino_acids == 150 and _level_data.body_health == 20, "level 1 starts with 150 amino acids and 20 health")
 	check(_level_data.waves.size() == 3, "level 1 has 3 waves")
@@ -467,7 +475,7 @@ func test_level_simulation() -> void:
 		check(frames != null and frames.get_frame_count("idle") == 8 and frames.get_frame_count("attack") == 8,
 			"%s has 8-frame idle and attack animations" % id)
 		check(frames.get_animation_loop("idle") and not frames.get_animation_loop("attack"), "%s idles in a loop and attacks once" % id)
-	check(TowerSprites.frames_for("platelet") == null, "towers without art fall back to a still image")
+	check(TowerSprites.frames_for("no-such-tower") == null, "towers without art fall back to a still image")
 
 	level = new_level()
 	level.build_tower(2, "macrophage")
@@ -574,7 +582,7 @@ func test_hud() -> void:
 	await get_tree().process_frame
 	check(hud._health_label.text == "20/20" and hud._amino_label.text == "150", "the top bar shows health and amino acids")
 	check(hud._wave_label.text == "WAVE 0/3", "the top bar shows the wave progress")
-	check(hud._level_label.text == "GARGANTA", "the top bar shows the level name")
+	check(hud._level_label.text == "THROAT", "the top bar shows the level name")
 	check(hud.find_children("*", "", true, false).filter(func(n: Node) -> bool: return String(n.name).to_lower().contains("atp")).is_empty(), "no ATP element in the HUD")
 
 	level.slot_tapped.emit(1)
@@ -642,7 +650,7 @@ func test_hud() -> void:
 	hud._pause_button.pressed.emit()
 	check(get_tree().paused and hud._overlay.get_child_count() > 0 and hud.can_process(), "pausing shows the overlay and keeps the HUD working")
 	var overlay_buttons := hud._overlay.find_children("*", "Button", true, false)
-	check(overlay_buttons.size() == 2, "the pause overlay has resume and restart")
+	check(overlay_buttons.size() == 3, "the pause overlay has resume, restart and menu")
 	overlay_buttons[0].pressed.emit()
 	check(not get_tree().paused, "resuming continues the game")
 
@@ -801,3 +809,340 @@ func test_audio() -> void:
 	GameAudio.reset()
 	done("test_audio")
 
+
+
+# --- the ten levels ---------------------------------------------------------
+
+func campaign_level(number: int) -> Level:
+	var level := Level.new(Session.load_level(number))
+	get_tree().root.add_child(level)
+	return level
+
+
+func test_campaign_data() -> void:
+	var levels: Array = []
+	var music := {}
+	var names := {}
+	var used_enemies := {}
+	for number in range(1, 11):
+		var data: LevelData = Session.load_level(number)
+		levels.append(data)
+		check(data != null and data.number == number and data.id == "level_%d" % number, "level %d loads with its number and id" % number)
+		check(DataValidator.validate_level(data, _towers, _enemies).is_empty(), "level %d validates: %s" % [number, DataValidator.validate_level(data, _towers, _enemies)])
+		check(data.slots.size() >= 6 and data.waves.size() >= 3, "level %d has at least 6 slots and 3 waves" % number)
+		check(data.description != "" and data.body_part != "", "level %d has a description and a body part" % number)
+		check(ResourceLoader.exists(data.music), "level %d has music" % number)
+		music[data.music] = true
+		names[data.display_name] = true
+		check(data.display_name.length() <= 13, "level %d name fits the top bar" % number)
+		for wave in data.waves:
+			for entry in wave.entries:
+				used_enemies[entry["enemy"]] = true
+	check(DataValidator.validate_campaign(levels).is_empty(), "the campaign validates: %s" % [DataValidator.validate_campaign(levels)])
+	check(music.size() == 10 and names.size() == 10, "every level has its own name and music")
+	check(used_enemies.size() == 13, "all 13 enemies appear somewhere in the campaign")
+	for number in [3, 7, 10]:
+		check(Session.load_level(number).boss_id != "", "level %d has a boss" % number)
+	check(Session.load_level(3).boss_id == "mycobacterium-tuberculosis" and Session.load_level(7).boss_id == "neisseria-meningitidis"
+		and Session.load_level(10).boss_id == "hiv", "the bosses are tuberculosis, meningitis and HIV")
+	var tower_counts: Array = levels.map(func(d: LevelData) -> int: return d.tower_ids.size())
+	check(tower_counts[0] == 3 and tower_counts[9] == 10, "towers are unlocked little by little, ending with all ten")
+	check(Session.load_level(1).disabled_traits == ["chain"] and Session.load_level(2).disabled_traits.is_empty(), "the chain trait is off in level 1 only")
+
+	var late: LevelData = Session.load_level(2).duplicate()
+	late.boss_id = "hiv"
+	check(not DataValidator.validate_campaign([late]).is_empty(), "the campaign validator catches a boss in the wrong level")
+	var crowded: LevelData = Session.load_level(2).duplicate()
+	crowded.slots = PackedVector2Array([crowded.path_points[1]])
+	check(not DataValidator.validate_level(crowded, _towers, _enemies).is_empty(), "the validator catches a slot on the path")
+	done("test_campaign_data")
+
+
+# --- enemy traits -----------------------------------------------------------
+
+func kill(enemy: Enemy) -> void:
+	enemy.take_damage(100000.0, "physical")
+
+
+func test_enemy_traits() -> void:
+	var level := campaign_level(2)
+	var balance: int = Economy.balance()
+	var sars := spawn_at(level, "sars-cov-2", 100.0)
+	kill(sars)
+	check(level.enemies.size() == 2 and Economy.balance() == balance + 5, "SARS-CoV-2 releases two minions and pays its reward")
+	for minion: Enemy in level.enemies:
+		check(minion.data.id == "rhinovirus" and minion.is_copy and approx(minion.progress, 100.0, 30.0), "a minion is a small rhinovirus where the virus died")
+	free_node(level)
+
+	level = campaign_level(2)
+	level._spawn_enemy("streptococcus-pyogenes")
+	check(level.enemies.size() == 3, "a strep chain walks as three segments")
+	check(level.enemies[0].health == 27.0 and level.enemies[0].reward == 2 and level.enemies[1].progress < level.enemies[0].progress,
+		"each segment has a third of the health and reward, and they follow one another")
+	balance = Economy.balance()
+	for segment in level.enemies.duplicate():
+		kill(segment)
+	check(Economy.balance() == balance + 6, "killing the whole chain pays the full reward")
+	free_node(level)
+	level = new_level()
+	level._spawn_enemy("streptococcus-pyogenes")
+	check(level.enemies.size() == 1 and level.enemies[0].health == 80.0, "level 1 keeps the strep chain turned off")
+	free_node(level)
+
+	level = campaign_level(4)
+	var herpes := spawn_at(level, "herpes-simplex", 50.0)
+	herpes.status.advance(3.0)
+	check(herpes.is_dormant() and herpes.take_damage(10.0, "physical") == 0 and herpes.health == 50.0, "dormant herpes ignores attacks")
+	herpes.status.advance(1.5)
+	check(not herpes.is_dormant() and herpes.take_damage(10.0, "physical") == 10, "herpes can be hurt when it is awake")
+	var hpv := spawn_at(level, "hpv", 50.0)
+	check(hpv.take_damage(10.0, "physical") == 7, "the HPV shell blocks 30% of physical damage")
+	free_node(level)
+
+	level = campaign_level(3)
+	var staph := spawn_at(level, "staphylococcus-aureus", 0.0)
+	check(staph.take_damage(10.0, "physical") == 10 and staph.resisted_type() == "", "staph takes full damage at first")
+	staph.progress = level.curve.get_baked_length() * 0.5
+	check(staph.take_damage(10.0, "physical") == 5 and staph.resisted_type() == "physical", "staph resists the damage type that hurt it most")
+	check(staph.take_damage(10.0, "chemical") == 15, "staph is not resistant to other types")
+	var tb := spawn_at(level, "mycobacterium-tuberculosis", 10.0)
+	check(tb.take_damage(12.0, "physical") == 7, "tuberculosis armor takes 40% of a macrophage hit")
+	check(tb.take_damage(30.0, "immunological") == 30, "armor does not stop immunological damage")
+	free_node(level)
+
+	level = campaign_level(6)
+	balance = Economy.balance()
+	var spore := spawn_at(level, "clostridioides-difficile", 100.0)
+	kill(spore)
+	check(not spore.finished and level.enemies.has(spore) and Economy.balance() == balance and absf(spore.health - 13.75) < 0.01,
+		"C. difficile comes back once with a quarter of its health")
+	kill(spore)
+	check(spore.finished and not level.enemies.has(spore) and Economy.balance() == balance + 5, "the second death is final and pays")
+	free_node(level)
+
+	level = campaign_level(7)
+	balance = Economy.balance()
+	var meningitis := spawn_at(level, "neisseria-meningitidis", 200.0)
+	meningitis.take_damage(100.0, "physical")
+	check(level.enemies.size() == 1 and level.enemies[0] == meningitis, "meningitis holds together above half health")
+	meningitis.take_damage(60.0, "physical")
+	check(level.enemies.size() == 2 and not level.enemies.has(meningitis), "meningitis splits in two at half health")
+	for copy: Enemy in level.enemies:
+		check(copy.is_copy and copy.health == 70.0 and copy.reward == 13 and approx(copy.progress, 200.0, 12.0), "a copy has half of what is left")
+		copy.take_damage(40.0, "physical")
+	check(level.enemies.size() == 2, "a copy does not split again")
+	balance = Economy.balance()
+	for copy in level.enemies.duplicate():
+		kill(copy)
+	check(Economy.balance() == balance + 26, "the copies pay the boss reward between them")
+	free_node(level)
+
+	level = campaign_level(10)
+	Economy.reset(500)
+	level.build_tower(0, "macrophage")
+	var tower: Tower = level.towers[0]
+	var hiv := spawn_at(level, "hiv", level.curve.get_closest_offset(tower.position))
+	level.step(3.1)
+	check(tower.is_disabled(), "HIV switches off the towers around it")
+	hiv.progress = 0.0
+	hiv.step(0.0)
+	tower._disabled_for = 0.0
+	level.step(3.1)
+	check(not tower.is_disabled(), "a tower out of the aura keeps working")
+	free_node(level)
+	done("test_enemy_traits")
+
+
+# --- the other seven towers -------------------------------------------------
+
+func test_new_towers() -> void:
+	var level := campaign_level(6)
+	Economy.reset(1000)
+	check(level.build_tower(0, "bone-marrow"), "level 6 lets the player build a Bone Marrow")
+	level.step(0.1)
+	check(level.blockers.size() == 1, "a Bone Marrow sends out its first neutrophil at once")
+	var unit := level.blockers[0]
+	var rhino := spawn_at(level, "rhinovirus", unit.offset - 10.0)
+	var before := rhino.progress
+	level.step(1.0)
+	check(rhino.progress <= unit.offset + BlockerUnit.REACH and rhino.progress - before < 12.0, "a neutrophil holds the enemy back")
+	check(unit.health < unit.max_health and rhino.health < rhino.max_health, "the neutrophil and the enemy hurt each other")
+	var boss := spawn_at(level, "mycobacterium-tuberculosis", unit.offset - 10.0)
+	var boss_before := boss.progress
+	level.step(1.0)
+	check(boss.progress - boss_before > 15.0, "a boss pushes through the blockers")
+	for enemy in level.enemies.duplicate():
+		enemy.queue_free()
+	level.enemies.clear()
+	for i in 500:
+		level.step(0.1)
+		if level.state != "running":
+			break
+	check(level.blockers.size() == 3, "a Bone Marrow keeps at most three neutrophils")
+	level.sell_tower(0)
+	check(level.blockers.is_empty() or level.blockers.all(func(u: BlockerUnit) -> bool: return u.is_queued_for_deletion()), "selling a Bone Marrow removes its neutrophils")
+	free_node(level)
+
+	level = campaign_level(5)
+	Economy.reset(1000)
+	level.build_tower(0, "b-lymphocyte")
+	var slot := level.data.slots[0]
+	var offset := level.curve.get_closest_offset(slot)
+	var targets: Array[Enemy] = []
+	for i in 4:
+		targets.append(spawn_at(level, "rhinovirus", offset - 6.0 * i))
+	level.step(0.1)
+	var marked := targets.filter(func(e: Enemy) -> bool: return e.status.mark_bonus() > 0.0)
+	check(marked.size() == 3 and marked.has(targets[0]), "a B lymphocyte marks the three enemies that are furthest along")
+	check(approx(targets[0].status.mark_bonus(), 0.25) and targets[0].health < 20.0, "a mark adds 25% and the antibodies hurt a little")
+	free_node(level)
+
+	level = campaign_level(4)
+	Economy.reset(1000)
+	check(level.build_tower(0, "t-lymphocyte") and level.build_tower(2, "macrophage"), "level 4 offers the T lymphocyte")
+	var t_cell: Tower = level.towers[0]
+	check(t_cell.data.mobility == "mobile" and level.towers[2].data.mobility == "fixed", "lymphocytes are mobile, macrophages are not")
+	check(not level.move_tower(2, 3) and not level.move_tower(0, 2) and not level.move_tower(1, 3), "only a mobile tower can move, and only to an empty slot")
+	check(level.move_tower(0, 1) and level.towers.has(1) and not level.towers.has(0) and t_cell.slot_index == 1, "a lymphocyte moves to another slot")
+	check(t_cell.position == level.data.slots[1] and t_cell.is_settling(), "it stands on the new slot and needs a moment to settle")
+	var victim := spawn_at(level, "e-coli", level.curve.get_closest_offset(t_cell.position))
+	victim.status.apply_root("test", 30.0, 0.0)
+	for i in 10:
+		level.step(0.1)
+	check(victim.health == 40.0, "a lymphocyte does not attack while it settles")
+	for i in 10:
+		level.step(0.1)
+	check(victim.health == 10.0, "and attacks again afterwards, ignoring armor")
+	free_node(level)
+
+	level = campaign_level(2)
+	Economy.reset(1000)
+	level.build_tower(0, "lysozyme")
+	var coli := spawn_at(level, "e-coli", level.curve.get_closest_offset(level.data.slots[0]))
+	level.step(0.1)
+	check(coli.health == 31.0, "lysozyme hurts bacteria with 1.5 times its chemical damage")
+	var virus := spawn_at(level, "influenza", level.curve.get_closest_offset(level.data.slots[0]))
+	level.step(1.1)
+	check(virus.health == 27.0, "and only half of it against viruses")
+	free_node(level)
+	done("test_new_towers")
+
+
+# --- progress and menu ------------------------------------------------------
+
+func with_test_progress(body: Callable) -> void:
+	var real_path: String = Session.save_path
+	Session.save_path = "user://test_progress.cfg"
+	Session.best_health.clear()
+	body.call()
+	DirAccess.remove_absolute(ProjectSettings.globalize_path("user://test_progress.cfg"))
+	Session.save_path = real_path
+	Session.load_progress()
+
+
+func test_session() -> void:
+	with_test_progress(func() -> void:
+		check(Session.is_unlocked(1) and not Session.is_unlocked(2), "only level 1 is open at the start")
+		check(Session.next_to_play() == 1, "the first level is next at the start")
+		Session.record_victory(1, 12)
+		check(Session.is_unlocked(2) and not Session.is_unlocked(3), "winning a level opens the next one")
+		Session.record_victory(1, 5)
+		check(Session.best_health[1] == 12, "the best result is kept")
+		check(Session.next_to_play() == 2, "the next level to play follows the last win")
+		Session.best_health.clear()
+		Session.load_progress()
+		check(Session.best_health.get(1, 0) == 12, "progress is saved on the device")
+		check(not Session.has_next(10) and Session.has_next(9), "level 10 is the last one")
+		Session.reset_progress()
+		check(not Session.is_unlocked(2) and Session.best_health.is_empty(), "reset closes the levels again"))
+	done("test_session")
+
+
+func test_menu_and_results() -> void:
+	var real_path: String = Session.save_path
+	Session.save_path = "user://test_progress.cfg"
+	Session.best_health.clear()
+	var menu: Control = load("res://scenes/menu.tscn").instantiate()
+	get_tree().root.add_child(menu)
+	await get_tree().process_frame
+	await get_tree().process_frame
+	var cards := menu.find_children("Level_*", "Button", true, false)
+	check(cards.size() == 10, "the menu lists ten levels")
+	var first: Button = menu.find_child("Level_1", true, false)
+	var second: Button = menu.find_child("Level_2", true, false)
+	check(first.modulate.a == 1.0 and second.modulate.a < 1.0, "locked levels look dimmed")
+	second.pressed.emit()
+	check(menu.find_child("Detail", true, false) == null, "a locked level does not open")
+	first.pressed.emit()
+	await get_tree().process_frame
+	var detail := menu.find_child("Detail", true, false)
+	check(detail != null and detail.find_child("PlayButton", true, false) != null, "an open level shows its page with a play button")
+	var boss_card: Button = menu.find_child("Level_3", true, false)
+	check(boss_card.find_children("*", "TextureRect", true, false).size() == 1, "a boss level shows its boss")
+	Session.record_victory(1, 10)
+	await get_tree().process_frame
+	await get_tree().process_frame
+	second = menu.find_child("Level_2", true, false)
+	check(second.modulate.a == 1.0, "winning level 1 opens the card of level 2")
+	get_tree().root.remove_child(menu)
+	menu.free()
+	DirAccess.remove_absolute(ProjectSettings.globalize_path("user://test_progress.cfg"))
+	Session.save_path = real_path
+	Session.load_progress()
+
+	# build menu with ten towers, mobile tower card and the result buttons
+	var level := campaign_level(10)
+	Economy.reset(1000)
+	var hud := Hud.new(level)
+	get_tree().root.add_child(hud)
+	await get_tree().process_frame
+	level.slot_tapped.emit(0)
+	var build_menu := hud.find_child("BuildMenu", true, false)
+	var tower_cards := build_menu.find_children("Card_*", "Button", true, false)
+	var columns := {}
+	for card: Button in tower_cards:
+		columns[card.position.x] = true
+	check(tower_cards.size() == 10 and columns.size() == 2, "ten towers are shown in two columns")
+	check(build_menu.size.y < Hud.SCREEN.y - Hud.TOP_BAR_HEIGHT - Hud.BOTTOM_BAR_HEIGHT, "the build menu fits between the bars")
+	hud._dismiss_all()
+	level.build_tower(0, "t-lymphocyte")
+	level.build_tower(1, "macrophage")
+	level.tower_tapped.emit(0)
+	check(hud.find_child("MoveButton", true, false) != null, "a lymphocyte card has a move button")
+	hud.find_child("MoveButton", true, false).pressed.emit()
+	level.slot_tapped.emit(2)
+	check(level.towers.has(2) and not level.towers.has(0), "move, then tap an empty slot, moves the lymphocyte")
+	level.tower_tapped.emit(1)
+	check(hud.find_child("MoveButton", true, false) == null, "a macrophage card has no move button")
+	hud._dismiss_all()
+	hud._show_result(true)
+	check(hud._overlay.find_children("*", "Button", true, false).size() == 2, "the last level has no next-level button after a win")
+	hud._show_result(false)
+	check(hud._overlay.find_children("*", "Button", true, false).size() == 2, "a defeat offers retry and menu")
+	free_node(hud)
+	free_node(level)
+	level = campaign_level(3)
+	hud = Hud.new(level)
+	get_tree().root.add_child(hud)
+	await get_tree().process_frame
+	hud._show_result(true)
+	check(hud._overlay.find_children("*", "Button", true, false).size() == 3, "a win offers next level, restart and menu")
+	free_node(hud)
+	free_node(level)
+	done("test_menu_and_results")
+
+
+# --- every level can be won, and not without towers -------------------------
+
+func test_campaign_simulation() -> void:
+	for number in range(1, 11):
+		var level := campaign_level(number)
+		var bot := AutoplayBot.new(level)
+		run_level(level, bot, 900.0)
+		check(level.state == "won" and level.body_health > 0, "the bot wins level %d (state %s, health %d)" % [number, level.state, level.body_health])
+		free_node(level)
+		level = campaign_level(number)
+		run_level(level, null, 900.0)
+		check(level.state == "lost", "level %d is lost without towers" % number)
+		free_node(level)
+	done("test_campaign_simulation")

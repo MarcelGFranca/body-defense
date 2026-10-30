@@ -5,6 +5,7 @@ extends Node2D
 const NORMAL_DISABLE_SECONDS := 3.0
 const MOBILE_DISABLE_SECONDS := 6.0
 const FLASH_SECONDS := 0.15
+const SETTLE_SECONDS := 1.5
 ## How often a slowing tower plays its secreting animation while enemies are in range.
 const SECRETE_INTERVAL := 2.0
 
@@ -26,6 +27,8 @@ var _pulse := 0.0
 var _missing_art := false
 var _sprite: AnimatedSprite2D
 var _on_attack_done := Callable()
+var _settling := 0.0
+var _units: Array[BlockerUnit] = []
 
 
 func setup(tower_data: TowerData, slot: int, level: Level) -> void:
@@ -52,6 +55,10 @@ func setup(tower_data: TowerData, slot: int, level: Level) -> void:
 func step(delta: float) -> void:
 	_pulse += delta
 	_flash = maxf(0.0, _flash - delta)
+	if _settling > 0.0:
+		_settling -= delta
+		queue_redraw()
+		return
 	if _disabled_for > 0.0:
 		_disabled_for -= delta
 		queue_redraw()
@@ -69,6 +76,10 @@ func step(delta: float) -> void:
 			_step_root_aura()
 		"dot_aura":
 			_step_dot_aura()
+		"summon_marker":
+			_step_summon_marker(delta)
+		"summon_units":
+			_step_summon_units(delta)
 	queue_redraw()
 
 
@@ -93,6 +104,17 @@ func play_attack(direction_x: float = 0.0) -> void:
 ## Stops the tower for a while. Lymphocytes (mobile towers) stay disabled twice as long.
 func disable() -> void:
 	_disabled_for = MOBILE_DISABLE_SECONDS if data.mobility == "mobile" else NORMAL_DISABLE_SECONDS
+
+
+## A lymphocyte that has just been moved rests for a moment before it works again.
+func settle() -> void:
+	_settling = SETTLE_SECONDS
+	_cooldown = 0.0
+	queue_redraw()
+
+
+func is_settling() -> bool:
+	return _settling > 0.0
 
 
 func is_disabled() -> bool:
@@ -189,6 +211,41 @@ func _step_dot_aura() -> void:
 			GameAudio.play_sfx(data.sound_attack)
 
 
+## A B Lymphocyte releases antibodies: the strongest enemies in range are marked and hurt a little.
+func _step_summon_marker(delta: float) -> void:
+	_cooldown -= delta
+	if _cooldown > 0.0:
+		return
+	var targets := _enemies()
+	if targets.is_empty():
+		return
+	targets.sort_custom(func(a: Enemy, b: Enemy) -> bool: return a.progress > b.progress)
+	for enemy: Enemy in targets.slice(0, maxi(1, data.mark_targets)):
+		enemy.status.apply_mark(data.mark_bonus, data.mark_seconds)
+		enemy.take_damage(data.attack_damage, data.damage_type)
+	_cooldown = data.attack_interval
+	_flash = FLASH_SECONDS
+	_flash_target = targets[0].position - position
+	play_attack(_flash_target.x)
+	GameAudio.play_sfx(data.sound_attack)
+
+
+## Bone Marrow keeps up to `summon_cap` neutrophils on the path to block enemies.
+func _step_summon_units(delta: float) -> void:
+	_units = _units.filter(func(u: BlockerUnit) -> bool: return is_instance_valid(u) and u.is_alive())
+	if _units.size() >= data.summon_cap:
+		_cooldown = data.summon_interval
+		return
+	_cooldown -= delta
+	if _cooldown > 0.0:
+		return
+	var shift := (float(_units.size()) - 1.0) * 16.0
+	_units.append(_level.add_blocker(position, shift, data.unit_health, data.unit_damage, self))
+	_cooldown = data.summon_interval
+	play_attack()
+	GameAudio.play_sfx(data.sound_attack)
+
+
 ## Waves of soft puffs that keep drifting outward and fading across the tower's area.
 func _draw_mist() -> void:
 	const WAVES := 3
@@ -222,5 +279,5 @@ func _draw() -> void:
 		draw_arc(Vector2.ZERO, data.range_px, 0.0, TAU, 48, Color(1, 1, 1, 0.8), 2.0)
 	if _flash > 0.0:
 		draw_line(Vector2.ZERO, _flash_target, Color("ffb3c7"), 3.0)
-	if _disabled_for > 0.0:
+	if _disabled_for > 0.0 or _settling > 0.0:
 		draw_circle(Vector2.ZERO, 14.0, Color(0, 0, 0, 0.45))

@@ -9,10 +9,16 @@ display_name = "SARS-CoV-2"
 role = "contagious"
 trait_id = "release_minions"
 trait_description = "Releases smaller viruses when defeated."
+trait_params = {
+"count": 2,
+"enemy": "rhinovirus",
+"scale": 0.7
+}
 health = 60.0
 speed = 45.0
 body_damage = 2
 amino_acid_reward = 5
+sprite_dir = "res://assets/enemies/sars-cov-2"
 sound_hit = "res://assets/audio/enemies/sars-cov-2/hit.wav"
 sound_attack = "res://assets/audio/enemies/sars-cov-2/attack.wav"
 sound_death = "res://assets/audio/enemies/sars-cov-2/death.wav"

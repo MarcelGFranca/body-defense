@@ -10,10 +10,15 @@ type = "bacterium"
 role = "resistant"
 trait_id = "gain_resistance"
 trait_description = "Gains resistance to one damage type along the path."
+trait_params = {
+"at": 0.4,
+"factor": 0.5
+}
 health = 75.0
 speed = 45.0
 body_damage = 2
 amino_acid_reward = 6
+sprite_dir = "res://assets/enemies/staphylococcus-aureus"
 sound_hit = "res://assets/audio/enemies/staphylococcus-aureus/hit.wav"
 sound_attack = "res://assets/audio/enemies/staphylococcus-aureus/attack.wav"
 sound_death = "res://assets/audio/enemies/staphylococcus-aureus/death.wav"

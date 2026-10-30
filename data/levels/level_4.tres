@@ -1,0 +1,80 @@
+[gd_resource type="Resource" script_class="LevelData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/level_data.gd" id="1_u0yyn"]
+[ext_resource type="Script" path="res://scripts/data/wave_data.gd" id="2_8e8kt"]
+
+[sub_resource type="Resource" id="Resource_st11h"]
+script = ExtResource("2_8e8kt")
+start_time = 5.0
+spawn_interval = 0.5
+entries = [{
+"count": 16,
+"enemy": "herpes-simplex"
+}, {
+"count": 21,
+"enemy": "rhinovirus"
+}]
+
+[sub_resource type="Resource" id="Resource_sjy25"]
+script = ExtResource("2_8e8kt")
+start_time = 27.5
+spawn_interval = 0.5
+entries = [{
+"count": 16,
+"enemy": "hpv"
+}, {
+"count": 21,
+"enemy": "e-coli"
+}]
+
+[sub_resource type="Resource" id="Resource_lvk11"]
+script = ExtResource("2_8e8kt")
+start_time = 52.5
+spawn_interval = 0.45
+entries = [{
+"count": 21,
+"enemy": "herpes-simplex"
+}, {
+"count": 16,
+"enemy": "hpv"
+}, {
+"count": 10,
+"enemy": "streptococcus-pyogenes"
+}]
+
+[sub_resource type="Resource" id="Resource_w0ntq"]
+script = ExtResource("2_8e8kt")
+start_time = 80.0
+spawn_interval = 0.4
+entries = [{
+"count": 21,
+"enemy": "hpv"
+}, {
+"count": 21,
+"enemy": "herpes-simplex"
+}, {
+"count": 21,
+"enemy": "influenza"
+}]
+
+[resource]
+script = ExtResource("1_u0yyn")
+id = "level_4"
+number = 4
+display_name = "Esophagus"
+body_part = "The food pipe"
+description = "A narrow, wavy tube. Herpes goes dormant and HPV wears a shell, so time your attacks. The T lymphocyte arrives."
+background_color = Color(0.22745098, 0.13725491, 0.14901961, 1)
+tissue_color = Color(0.32156864, 0.1882353, 0.18431373, 1)
+path_edge_color = Color(0.5411765, 0.23137255, 0.18039216, 1)
+path_fill_color = Color(0.8784314, 0.4392157, 0.24705882, 1)
+path_dash_color = Color(0.95686275, 0.654902, 0.4862745, 1)
+decor = "stripes"
+music = "res://assets/audio/music/esophagus.wav"
+map_size = Vector2(360, 1020)
+path_points = PackedVector2Array(180, 40, 180, 80, 207.20607, 94, 227.28899, 108, 234.99062, 122, 228.29446, 136, 208.95377, 150, 182.03233, 164, 154.57878, 178, 133.78108, 192, 125.0845, 206, 130.76602, 220, 149.33807, 234, 175.93811, 248, 203.60164, 262, 225.08572, 276, 234.76538, 290, 230.10625, 304, 212.32819, 318, 186.08589, 332, 158.25018, 346, 136.10905, 360, 125.45954, 374, 129.08994, 388, 146.0497, 402, 171.8984, 416, 199.86829, 430, 222.63622, 444, 234.24104, 458, 231.64436, 472, 215.52605, 486, 190.10622, 500, 162.04037, 514, 138.67674, 528, 126.13246, 542, 127.691895, 556, 142.94675, 570, 167.90295, 584, 196.02644, 598, 219.95384, 612, 233.42046, 626, 232.9004, 640, 218.52986, 654, 194.07135, 668, 165.92865, 682, 141.47014, 696, 127.09959, 710, 126.579544, 724, 140.04616, 738, 163.97356, 752, 192.09705, 766, 217.05325, 780, 232.3081, 794, 233.86754, 808, 221.32326, 822, 197.95963, 836, 169.89378, 850, 144.47395, 864, 128.35564, 878, 125.75896, 892, 137.36378, 906, 160.13171, 920, 180, 930, 180, 980)
+slots = PackedVector2Array(210, 370, 200, 550, 210, 720, 160, 120, 200, 880, 200, 200, 150, 450, 150, 630)
+starting_amino_acids = 210
+body_health = 20
+tower_ids = ["macrophage", "mucus-cell", "interferon", "neutrophil", "lysozyme", "platelet", "hypothalamus", "t-lymphocyte"]
+waves = Array[ExtResource("2_8e8kt")]([SubResource("Resource_st11h"), SubResource("Resource_sjy25"), SubResource("Resource_lvk11"), SubResource("Resource_w0ntq")])

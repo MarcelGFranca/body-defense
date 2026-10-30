@@ -2,11 +2,6 @@
 class_name MapView
 extends Node2D
 
-const BACKGROUND := Color("3a1f2b")
-const TISSUE := Color("4d2a3a")
-const PATH_EDGE := Color("7a1d2e")
-const PATH_FILL := Color("c4364f")
-const PATH_DASH := Color("e8667d")
 const SLOT_FILL := Color("2a1722")
 const SLOT_EDGE := Color("ffb3c7")
 
@@ -22,15 +17,12 @@ func _draw() -> void:
 	if _level == null or _level.data == null:
 		return
 	var map_size := _level.data.map_size
-	draw_rect(Rect2(Vector2(-40, -80), map_size + Vector2(80, 160)), BACKGROUND)
-	var random := RandomNumberGenerator.new()
-	random.seed = 7
-	for i in int(map_size.y / 45.0):
-		draw_circle(Vector2(random.randf_range(0.0, map_size.x), random.randf_range(0.0, map_size.y)),
-			random.randf_range(18.0, 34.0), TISSUE)
+	var level_data := _level.data
+	draw_rect(Rect2(Vector2(-40, -80), map_size + Vector2(80, 160)), level_data.background_color)
+	_draw_decor(map_size)
 	var points := _level.data.path_points
-	draw_polyline(points, PATH_EDGE, 40.0)
-	draw_polyline(points, PATH_FILL, 30.0)
+	draw_polyline(points, level_data.path_edge_color, 40.0)
+	draw_polyline(points, level_data.path_fill_color, 30.0)
 	_draw_dashes(points)
 	var entrance := points[0]
 	var exit_point := points[points.size() - 1]
@@ -44,6 +36,28 @@ func _draw() -> void:
 		draw_arc(center, 17.0, 0.0, TAU, 24, SLOT_EDGE, 2.0)
 
 
+## Tissue behind the path. The seed is fixed so the background looks the same every time.
+func _draw_decor(map_size: Vector2) -> void:
+	var tissue := _level.data.tissue_color
+	var random := RandomNumberGenerator.new()
+	random.seed = 6 + _level.data.number
+	match _level.data.decor:
+		"rings":
+			for i in int(map_size.y / 30.0):
+				var at := Vector2(random.randf_range(0.0, map_size.x), random.randf_range(0.0, map_size.y))
+				var radius := random.randf_range(14.0, 26.0)
+				draw_arc(at, radius, 0.0, TAU, 20, tissue, 5.0)
+		"stripes":
+			var y := 0.0
+			while y < map_size.y:
+				draw_line(Vector2(0, y), Vector2(map_size.x, y + random.randf_range(-6.0, 6.0)), tissue, random.randf_range(5.0, 10.0))
+				y += random.randf_range(22.0, 36.0)
+		_:
+			for i in int(map_size.y / 45.0):
+				draw_circle(Vector2(random.randf_range(0.0, map_size.x), random.randf_range(0.0, map_size.y)),
+					random.randf_range(18.0, 34.0), tissue)
+
+
 func _draw_dashes(points: PackedVector2Array) -> void:
 	for i in points.size() - 1:
 		var from := points[i]
@@ -52,5 +66,5 @@ func _draw_dashes(points: PackedVector2Array) -> void:
 		var direction := (to - from) / length
 		var at := 0.0
 		while at < length:
-			draw_line(from + direction * at, from + direction * minf(at + 6.0, length), PATH_DASH, 2.0)
+			draw_line(from + direction * at, from + direction * minf(at + 6.0, length), _level.data.path_dash_color, 2.0)
 			at += 16.0

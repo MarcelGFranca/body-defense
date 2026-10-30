@@ -17,4 +17,5 @@ attack_damage = 4.0
 attack_interval = 4.0
 mark_bonus = 0.25
 mark_seconds = 5.0
+mark_targets = 3
 sound_attack = "res://assets/audio/towers/b-lymphocyte/attack.wav"

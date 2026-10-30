@@ -9,7 +9,12 @@ display_name = "Streptococcus pyogenes"
 type = "bacterium"
 role = "chained"
 trait_id = "chain"
-trait_description = "Moves as a chain of segments that die separately (turned off in the prototype)."
+trait_description = "Moves as a chain of segments that die separately."
+trait_params = {
+"segment_sprite": "res://assets/enemies/streptococcus-pyogenes-segment",
+"segments": 3,
+"spacing": 16.0
+}
 health = 80.0
 speed = 40.0
 body_damage = 2

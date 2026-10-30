@@ -1,0 +1,119 @@
+[gd_resource type="Resource" script_class="LevelData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/level_data.gd" id="1_4epxs"]
+[ext_resource type="Script" path="res://scripts/data/wave_data.gd" id="2_ksf5g"]
+
+[sub_resource type="Resource" id="Resource_cfvvt"]
+script = ExtResource("2_ksf5g")
+start_time = 5.0
+spawn_interval = 0.8
+entries = [{
+"count": 22,
+"enemy": "influenza"
+}, {
+"count": 13,
+"enemy": "sars-cov-2"
+}, {
+"count": 16,
+"enemy": "e-coli"
+}]
+
+[sub_resource type="Resource" id="Resource_fx7wk"]
+script = ExtResource("2_ksf5g")
+start_time = 50.0
+spawn_interval = 0.8
+entries = [{
+"count": 16,
+"enemy": "hpv"
+}, {
+"count": 16,
+"enemy": "herpes-simplex"
+}, {
+"count": 13,
+"enemy": "staphylococcus-aureus"
+}]
+
+[sub_resource type="Resource" id="Resource_qs7rn"]
+script = ExtResource("2_ksf5g")
+start_time = 100.0
+spawn_interval = 0.7
+entries = [{
+"count": 19,
+"enemy": "clostridioides-difficile"
+}, {
+"count": 16,
+"enemy": "helicobacter-pylori"
+}, {
+"count": 10,
+"enemy": "streptococcus-pyogenes"
+}]
+
+[sub_resource type="Resource" id="Resource_d5hj0"]
+script = ExtResource("2_ksf5g")
+start_time = 155.0
+spawn_interval = 0.7
+entries = [{
+"count": 19,
+"enemy": "sars-cov-2"
+}, {
+"count": 16,
+"enemy": "hpv"
+}, {
+"count": 16,
+"enemy": "staphylococcus-aureus"
+}]
+
+[sub_resource type="Resource" id="Resource_2oi71"]
+script = ExtResource("2_ksf5g")
+start_time = 210.0
+spawn_interval = 0.7
+entries = [{
+"count": 19,
+"enemy": "herpes-simplex"
+}, {
+"count": 19,
+"enemy": "clostridioides-difficile"
+}, {
+"count": 22,
+"enemy": "influenza"
+}]
+
+[sub_resource type="Resource" id="Resource_x1yif"]
+script = ExtResource("2_ksf5g")
+start_time = 265.0
+spawn_interval = 0.6
+entries = [{
+"count": 19,
+"enemy": "hpv"
+}, {
+"count": 19,
+"enemy": "staphylococcus-aureus"
+}, {
+"count": 16,
+"enemy": "sars-cov-2"
+}, {
+"count": 16,
+"enemy": "helicobacter-pylori"
+}]
+
+[resource]
+script = ExtResource("1_4epxs")
+id = "level_9"
+number = 9
+display_name = "Spleen"
+body_part = "The spleen"
+description = "The immune system's filter is under siege. Every kind of invader attacks at once."
+background_color = Color(0.17254902, 0.11372549, 0.23137255, 1)
+tissue_color = Color(0.2509804, 0.15686275, 0.3529412, 1)
+path_edge_color = Color(0.3529412, 0.16470589, 0.5411765, 1)
+path_fill_color = Color(0.6039216, 0.3529412, 0.84705883, 1)
+path_dash_color = Color(0.8117647, 0.65882355, 0.9607843, 1)
+decor = "rings"
+music = "res://assets/audio/music/spleen.wav"
+map_size = Vector2(360, 960)
+path_points = PackedVector2Array(60, 40, 300, 40, 60, 220, 300, 220, 60, 400, 300, 400, 60, 580, 300, 580, 60, 760, 300, 760, 180, 900)
+slots = PackedVector2Array(230, 180, 230, 360, 230, 540, 180, 720, 180, 80, 130, 260, 130, 440, 130, 620, 210, 800, 120, 100)
+starting_amino_acids = 310
+body_health = 20
+tower_ids = ["macrophage", "mucus-cell", "interferon", "neutrophil", "lysozyme", "platelet", "hypothalamus", "t-lymphocyte", "b-lymphocyte", "bone-marrow"]
+waves = Array[ExtResource("2_ksf5g")]([SubResource("Resource_cfvvt"), SubResource("Resource_fx7wk"), SubResource("Resource_qs7rn"), SubResource("Resource_d5hj0"), SubResource("Resource_2oi71"), SubResource("Resource_x1yif")])

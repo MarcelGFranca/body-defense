@@ -1,0 +1,100 @@
+[gd_resource type="Resource" script_class="LevelData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/level_data.gd" id="1_pffwt"]
+[ext_resource type="Script" path="res://scripts/data/wave_data.gd" id="2_pcr0t"]
+
+[sub_resource type="Resource" id="Resource_epuu3"]
+script = ExtResource("2_pcr0t")
+start_time = 5.0
+spawn_interval = 0.8
+entries = [{
+"count": 27,
+"enemy": "rhinovirus"
+}, {
+"count": 17,
+"enemy": "e-coli"
+}, {
+"count": 10,
+"enemy": "helicobacter-pylori"
+}]
+
+[sub_resource type="Resource" id="Resource_03dem"]
+script = ExtResource("2_pcr0t")
+start_time = 50.0
+spawn_interval = 0.8
+entries = [{
+"count": 17,
+"enemy": "herpes-simplex"
+}, {
+"count": 14,
+"enemy": "hpv"
+}, {
+"count": 10,
+"enemy": "staphylococcus-aureus"
+}]
+
+[sub_resource type="Resource" id="Resource_5axjy"]
+script = ExtResource("2_pcr0t")
+start_time = 100.0
+spawn_interval = 0.7
+entries = [{
+"count": 17,
+"enemy": "clostridioides-difficile"
+}, {
+"count": 14,
+"enemy": "sars-cov-2"
+}, {
+"count": 17,
+"enemy": "influenza"
+}]
+
+[sub_resource type="Resource" id="Resource_52q4o"]
+script = ExtResource("2_pcr0t")
+start_time = 155.0
+spawn_interval = 0.7
+entries = [{
+"count": 17,
+"enemy": "staphylococcus-aureus"
+}, {
+"count": 17,
+"enemy": "hpv"
+}, {
+"count": 10,
+"enemy": "streptococcus-pyogenes"
+}]
+
+[sub_resource type="Resource" id="Resource_kjkkj"]
+script = ExtResource("2_pcr0t")
+start_time = 215.0
+spawn_interval = 0.7
+entries = [{
+"count": 20,
+"enemy": "clostridioides-difficile"
+}, {
+"count": 17,
+"enemy": "herpes-simplex"
+}, {
+"count": 17,
+"enemy": "helicobacter-pylori"
+}]
+
+[resource]
+script = ExtResource("1_pffwt")
+id = "level_8"
+number = 8
+display_name = "Liver"
+body_part = "The liver"
+description = "Three long lanes through the liver. Expect a bit of everything, in numbers."
+background_color = Color(0.17254902, 0.105882354, 0.105882354, 1)
+tissue_color = Color(0.2901961, 0.16470589, 0.13333334, 1)
+path_edge_color = Color(0.3529412, 0.14117648, 0.09411765, 1)
+path_fill_color = Color(0.65882355, 0.2784314, 0.18431373, 1)
+path_dash_color = Color(0.8784314, 0.5411765, 0.41568628, 1)
+music = "res://assets/audio/music/liver.wav"
+map_size = Vector2(360, 920)
+path_points = PackedVector2Array(60, 40, 60, 820, 180, 820, 180, 100, 300, 100, 300, 880)
+slots = PackedVector2Array(240, 160, 120, 760, 120, 340, 120, 520, 240, 640, 240, 400, 120, 220, 250, 780, 240, 520, 120, 640)
+starting_amino_acids = 290
+body_health = 20
+tower_ids = ["macrophage", "mucus-cell", "interferon", "neutrophil", "lysozyme", "platelet", "hypothalamus", "t-lymphocyte", "b-lymphocyte", "bone-marrow"]
+waves = Array[ExtResource("2_pcr0t")]([SubResource("Resource_epuu3"), SubResource("Resource_03dem"), SubResource("Resource_5axjy"), SubResource("Resource_52q4o"), SubResource("Resource_kjkkj")])

@@ -29,6 +29,10 @@ extends Resource
 @export var summon_interval: float = 0.0
 @export var summon_cap: int = 0
 @export var unit_health: float = 0.0
+## Damage per second that a summoned unit deals to the enemy blocked by it.
+@export var unit_damage: float = 0.0
+## Marked enemies that a "summon_marker" tower reaches in one release.
+@export var mark_targets: int = 0
 ## When its alpha is above 0 the tower keeps pulsing a mist of this color across its area.
 @export var mist_color: Color = Color(0, 0, 0, 0)
 ## Sound file played each time the tower attacks.

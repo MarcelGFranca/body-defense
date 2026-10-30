@@ -321,6 +321,153 @@ def music():
     return mix
 
 
+# --- the music of the other nine levels ------------------------------------------
+# Every track is 50 s and has the same three voices as the first one. What changes is the key, the scale,
+# the chords, the tempo (the section length decides how many bars fit in 50 s) and the melody (seeded).
+
+SCALES = {
+    "minor": [0, 2, 3, 5, 7, 8, 10],
+    "dorian": [0, 2, 3, 5, 7, 9, 10],
+    "harmonic": [0, 2, 3, 5, 7, 8, 11],
+    "phrygian": [0, 1, 3, 5, 7, 8, 10],
+}
+# Rhythms of the lead in sixteenths: where a new note starts in a bar.
+BUSY = [[0, 2, 4, 6, 8, 10, 12, 14], [0, 3, 6, 8, 11, 14], [0, 4, 7, 8, 12, 14], [0, 2, 4, 8, 10, 12]]
+SPARSE = [[0, 6, 8, 12], [0, 8], [0, 4, 8, 12], [0, 6, 10]]
+
+TRACKS = {
+    # name: root MIDI note, scale, chord degrees of section A, section B, outro, section length, bass style, seed
+    "trachea": (62, "dorian", [0, 6, 5, 6], [3, 4, 0, 0], [3, 4, 6, 0], 7, "drive", 21),
+    "lungs": (64, "harmonic", [0, 5, 6, 0], [3, 4, 5, 6], [5, 6, 4, 0], 9, "gallop", 31),
+    "esophagus": (57, "dorian", [0, 3, 6, 4], [5, 3, 4, 0], [5, 4, 3, 0], 5, "half", 41),
+    "stomach": (60, "minor", [0, 5, 2, 6], [3, 4, 0, 0], [3, 6, 4, 0], 6, "drive", 51),
+    "intestines": (55, "minor", [0, 6, 5, 4], [2, 3, 4, 0], [5, 6, 4, 0], 8, "gallop", 61),
+    "bloodstream": (59, "minor", [0, 5, 3, 4], [5, 6, 4, 0], [3, 4, 5, 0], 9, "gallop", 71),
+    "liver": (62, "minor", [0, 2, 5, 6], [3, 5, 4, 0], [5, 6, 4, 0], 7, "drive", 81),
+    "spleen": (57, "harmonic", [0, 3, 4, 0], [5, 6, 4, 4], [3, 4, 6, 0], 10, "gallop", 91),
+    "lymph-nodes": (64, "harmonic", [0, 5, 2, 6], [3, 4, 5, 6], [5, 6, 4, 4], 10, "gallop", 101),
+}
+INTRO_BARS = 2
+OUTRO_BARS = 4
+
+
+def pitch(midi):
+    return 440.0 * 2 ** ((midi - 69) / 12)
+
+
+def scale_midi(root, scale, degree):
+    offsets = SCALES[scale]
+    return root + offsets[degree % 7] + 12 * (degree // 7)
+
+
+def chord_midis(root, scale, degree):
+    return [scale_midi(root, scale, degree + k) for k in (0, 2, 4, 7)]
+
+
+def make_lead(rng, root, scale, degree, templates, high, last):
+    """One bar of lead as [(step, midi, length in steps)]: chord tones on the strong beats, scale steps between."""
+    steps = list(templates[rng.integers(len(templates))])
+    tones = [scale_midi(root, scale, degree + k) + 12 * high for k in (0, 2, 4)]
+    notes = []
+    current = scale_midi(root, scale, degree + int(rng.integers(0, 4))) + 12 * high
+    for index, at in enumerate(steps):
+        if at in (0, 8) or index == 0:
+            current = tones[int(rng.integers(len(tones)))]
+        else:
+            current += [-2, -1, 0, 1, 2][int(rng.integers(5))] * (1 if current < tones[-1] + 5 else -1)
+        if last and index == 0:
+            current = tones[0]
+        end = steps[index + 1] if index + 1 < len(steps) else 16
+        notes.append((at, current, end - at))
+    return notes
+
+
+def compose(name):
+    root, scale, prog_a, prog_b, prog_out, n, bass_style, seed = TRACKS[name]
+    rng = np.random.default_rng(seed)
+    bars = INTRO_BARS + 3 * n + OUTRO_BARS
+    bpm = bars * 4.8  # 50 s
+    step = 60.0 / bpm / 4
+    bar = step * 16
+    total = bars * bar
+    lead, keys, bass = silence(total), silence(total), silence(total)
+
+    plan = []  # (chord degree, section, bar index in the section, is last bar of a phrase)
+    for i in range(INTRO_BARS):
+        plan.append((prog_a[0], "intro", i))
+    for section, prog in (("a", prog_a), ("b", prog_b), ("a2", prog_a)):
+        for i in range(n):
+            plan.append((prog[i % 4], section, i))
+    for i in range(OUTRO_BARS):
+        plan.append((prog_out[i % 4], "outro", i))
+
+    for index, (degree, section, i) in enumerate(plan):
+        start = index * bar
+        bass_root = scale_midi(root - 24, scale, degree)
+        tones = chord_midis(root, scale, degree)
+        # lead
+        if section in ("a", "a2", "b"):
+            templates = SPARSE if section == "b" else BUSY
+            last = i % 4 == 3
+            for at, midi, length in make_lead(rng, root, scale, degree, templates, 1 if section != "b" else 2, last):
+                d = length * step * 0.95
+                place(lead, lead_note_midi(midi, d), start + at * step)
+        # bass
+        if section == "intro":
+            pattern = ["r", "-", "r", "-", "r", "-", "r", "-"]
+        elif section == "b" or bass_style == "half":
+            pattern = ["r", "o", "r", "o", "r", "o", "r", "o"]
+        else:
+            pattern = ["r", "r", "o", "r", "r", "o", "r", "o"]
+        if bass_style == "gallop" and section in ("a", "a2"):
+            for at in range(0, 16):
+                if at % 4 in (0, 1, 3):
+                    midi = bass_root + (12 if at in (6, 14) else 0)
+                    place(bass, bass_note_midi(midi, step * 1.6), start + at * step)
+        else:
+            for eighth, kind in enumerate(pattern):
+                if kind != "-":
+                    place(bass, bass_note_midi(bass_root + (12 if kind == "o" else 0), step * 1.8), start + eighth * 2 * step)
+        # keyboard 2
+        if section in ("a",):
+            for at in (2, 6, 10, 14):
+                for midi in tones[:3]:
+                    place(keys, keys_note_midi(midi + 12, step * 1.6), start + at * step)
+        elif section in ("intro", "a2"):
+            order = [0, 1, 2, 3, 2, 1]
+            for at in range(16):
+                place(keys, keys_note_midi(tones[order[at % 6]] + 12, step * 0.9), start + at * step)
+        else:
+            for midi in tones[:3]:
+                place(keys, keys_note_midi(midi + 12, bar * 0.98, soft=True), start)
+    return lead * 0.24 + keys * 0.14 + bass * 0.34
+
+
+def lead_note_midi(midi, duration):
+    return lead_note_hz(pitch(midi), duration)
+
+
+def lead_note_hz(freq_hz, duration):
+    t = time(duration)
+    freq = freq_hz * (1 + 0.004 * np.sin(2 * np.pi * 5.5 * t) * np.minimum(t / 0.25, 1.0))
+    tone = square(freq * 1.003, 0.25) + square(freq * 0.997, 0.25)
+    return tone * envelope(duration, tau=0.35, sustain=0.55)
+
+
+def keys_note_midi(midi, duration, soft=False):
+    freq = np.full(int(SR * duration), pitch(midi))
+    tone = lowpass(square(freq, 0.5), 3) * 0.6 + triangle(freq * 0.5) * 0.5
+    if soft:
+        return tone * envelope(duration, attack=0.12, tau=1.0, sustain=0.8, release=0.1)
+    return tone * envelope(duration, attack=0.003, tau=0.12, sustain=0.15, release=0.01)
+
+
+def bass_note_midi(midi, duration):
+    freq = np.full(int(SR * duration), pitch(midi))
+    saw = 2.0 * (phase(freq) % 1.0) - 1.0
+    return (lowpass(saw, 5) * 0.7 + triangle(freq) * 0.9) * envelope(duration, tau=0.18, sustain=0.45, release=0.015)
+
+
 # --- run ---------------------------------------------------------------------
 
 def generate():
@@ -337,6 +484,8 @@ def generate():
         files[path] = (tower, "attack", False)
     save(os.path.join(ROOT, "common", "block.wav"), blocked_sound())
     save(os.path.join(ROOT, "music", "throat.wav"), music(), peak=0.7)
+    for name in TRACKS:
+        save(os.path.join(ROOT, "music", "%s.wav" % name), compose(name), peak=0.7)
     return files
 
 
@@ -363,8 +512,12 @@ def check(files):
     if min(bosses) <= max(regular):
         problems.append("boss deaths must last longer than regular deaths")
     music_length = length(os.path.join(ROOT, "music", "throat.wav"))
-    if abs(music_length - 50.0) > 0.05:
-        problems.append("the music loop should be 50 s, found %.2f s" % music_length)
+    for name in ["throat"] + list(TRACKS):
+        track_length = length(os.path.join(ROOT, "music", "%s.wav" % name))
+        if abs(track_length - 50.0) > 0.05:
+            problems.append("the %s music loop should be 50 s, found %.2f s" % (name, track_length))
+        if peak(os.path.join(ROOT, "music", "%s.wav" % name)) >= 0.99:
+            problems.append("the %s music clips" % name)
     print("%d sounds, music %.2f s, longest enemy death %.2f s, longest regular death %.2f s" % (
         len(files), music_length, max(bosses), max(regular)))
     for problem in problems:

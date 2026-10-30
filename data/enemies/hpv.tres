@@ -14,6 +14,7 @@ speed = 40.0
 body_damage = 2
 amino_acid_reward = 5
 armor_percent = 30.0
+sprite_dir = "res://assets/enemies/hpv"
 sound_hit = "res://assets/audio/enemies/hpv/hit.wav"
 sound_attack = "res://assets/audio/enemies/hpv/attack.wav"
 sound_death = "res://assets/audio/enemies/hpv/death.wav"

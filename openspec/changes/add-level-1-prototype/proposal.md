@@ -9,7 +9,7 @@ Enemies, economy, towers and damage are specified in two other changes, but ther
 - Add a button that calls the next wave immediately, without moving the other waves' start times.
 - Define win and lose conditions: the level is won when every wave has started and no enemy is left, and lost when the body's health reaches zero.
 - Make the map larger than the screen: the path runs past the edges and the player drags to scroll, with a thin scroll indicator that also shows where the enemies are.
-- Name the level "Garganta" and show the level name at the top of the HUD.
+- Name the level "Throat" and show the level name at the top of the HUD.
 - Define the HUD for portrait phones: a top bar, the map, and a bottom area with wave info, the tap-slot-then-choose build flow, a tower card with sell, enemy info card, pause, and a 1× / 2× speed toggle.
 - Out of scope: upgrades, the other seven towers, levels 2 to 8, sound, menus outside the level, Android export, and final balance.
 

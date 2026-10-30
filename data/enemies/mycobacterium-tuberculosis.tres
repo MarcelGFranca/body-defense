@@ -15,6 +15,7 @@ speed = 22.0
 body_damage = 10
 amino_acid_reward = 30
 armor_percent = 40.0
+sprite_dir = "res://assets/enemies/mycobacterium-tuberculosis"
 sound_hit = "res://assets/audio/enemies/mycobacterium-tuberculosis/hit.wav"
 sound_attack = "res://assets/audio/enemies/mycobacterium-tuberculosis/attack.wav"
 sound_death = "res://assets/audio/enemies/mycobacterium-tuberculosis/death.wav"

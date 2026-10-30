@@ -7,6 +7,8 @@ extends Resource
 @export var role: String = ""
 @export var trait_id: String = ""
 @export_multiline var trait_description: String = ""
+## Numbers that the trait needs, for example {"enemy": "rhinovirus", "count": 2} for `release_minions`.
+@export var trait_params: Dictionary = {}
 @export var health: float = 1.0
 ## Movement speed in map units per second.
 @export var speed: float = 1.0

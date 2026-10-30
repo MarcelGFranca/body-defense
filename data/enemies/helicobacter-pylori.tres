@@ -14,6 +14,7 @@ health = 60.0
 speed = 45.0
 body_damage = 2
 amino_acid_reward = 5
+sprite_dir = "res://assets/enemies/helicobacter-pylori"
 sound_hit = "res://assets/audio/enemies/helicobacter-pylori/hit.wav"
 sound_attack = "res://assets/audio/enemies/helicobacter-pylori/attack.wav"
 sound_death = "res://assets/audio/enemies/helicobacter-pylori/death.wav"

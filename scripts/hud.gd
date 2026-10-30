@@ -15,6 +15,8 @@ const CARD_WIDTH := 440.0
 ## Pixels a finger must move before a press becomes a drag.
 const DRAG_THRESHOLD := 14.0
 const WHEEL_STEP := 40.0
+## Build menus with more towers than this are drawn in two columns.
+const MAX_SINGLE_COLUMN := 6
 const CARD_SIZE := Vector2(272, 104)
 
 const COLOR_BG := Color("2b1b3a")
@@ -49,6 +51,8 @@ var _card_title: Label
 var _preview_index := -2
 var _slot_for_menu := -1
 var _slot_for_sell := -1
+## Slot of the lymphocyte that is being moved, or -1: the next tap on an empty slot puts it there.
+var _move_from := -1
 var _toast_tween: Tween
 var _scroll_track: Control
 var _pressing := false
@@ -98,7 +102,7 @@ func _ready() -> void:
 	_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_root.add_child(_overlay)
 
-	level.slot_tapped.connect(_open_build_menu)
+	level.slot_tapped.connect(_on_slot_tapped)
 	level.tower_tapped.connect(_open_tower_card)
 	level.enemy_tapped.connect(_show_enemy_card)
 	level.nothing_tapped.connect(_dismiss_all)
@@ -379,6 +383,7 @@ func _on_map_input(event: InputEvent) -> void:
 
 
 func _dismiss_all() -> void:
+	_move_from = -1
 	_close_popups()
 	_enemy_card.visible = false
 	_card_enemy = null
@@ -412,20 +417,31 @@ func _popup_position(anchor: Vector2, popup_size: Vector2) -> Vector2:
 	return Vector2(x, y)
 
 
+func _on_slot_tapped(slot: int) -> void:
+	if _move_from >= 0:
+		var from := _move_from
+		_move_from = -1
+		if not level.move_tower(from, slot):
+			show_toast("CANNOT MOVE THERE")
+		return
+	_open_build_menu(slot)
+
+
 func _open_build_menu(slot: int) -> void:
 	_dismiss_all()
 	_slot_for_menu = slot
 	var ids: Array = level.data.tower_ids
-	var menu_size := Vector2(MENU_WIDTH, 12.0 + ids.size() * (CARD_SIZE.y + 8.0) + 4.0)
+	var columns := 1 if ids.size() <= MAX_SINGLE_COLUMN else 2
+	var rows := ceili(float(ids.size()) / columns)
+	var menu_size := Vector2(columns * (CARD_SIZE.x + 12.0) + 12.0, 12.0 + rows * (CARD_SIZE.y + 8.0) + 4.0)
 	_popup.add_child(_popup_catcher())
 	var menu := _panel(Rect2(_popup_position(level.world_to_screen(level.data.slots[slot]), menu_size), menu_size))
 	menu.name = "BuildMenu"
 	_popup.add_child(menu)
-	var y := 12.0
-	for id in ids:
-		var tower_data: TowerData = level.tower_catalog[id]
-		menu.add_child(_tower_card(tower_data, Vector2(12, y)))
-		y += CARD_SIZE.y + 8.0
+	for i in ids.size():
+		var tower_data: TowerData = level.tower_catalog[ids[i]]
+		var at := Vector2(12.0 + (i / rows) * (CARD_SIZE.x + 12.0), 12.0 + (i % rows) * (CARD_SIZE.y + 8.0))
+		menu.add_child(_tower_card(tower_data, at))
 
 
 func _tower_card(tower_data: TowerData, at: Vector2) -> Button:
@@ -490,13 +506,23 @@ func _open_tower_card(slot: int) -> void:
 	ability.clip_text = true
 	ability.add_theme_constant_override("line_spacing", 8)
 	card.add_child(ability)
-	var sell := _button("SELL +%d" % refund, Vector2(220, MIN_TAP), 20)
+	var mobile := tower.data.mobility == "mobile"
+	var sell := _button("SELL +%d" % refund, Vector2(190 if mobile else 220, MIN_TAP), 20)
 	sell.name = "SellButton"
-	sell.position = Vector2((CARD_WIDTH - 220.0) / 2.0, 220)
+	sell.position = Vector2(CARD_WIDTH - 206.0 if mobile else (CARD_WIDTH - 220.0) / 2.0, 220)
 	sell.pressed.connect(func() -> void:
 		level.sell_tower(slot)
 		_close_popups())
 	card.add_child(sell)
+	if mobile:
+		var move := _button("MOVE", Vector2(190, MIN_TAP), 20)
+		move.name = "MoveButton"
+		move.position = Vector2(16, 220)
+		move.pressed.connect(func() -> void:
+			_close_popups()
+			_move_from = slot
+			show_toast("TAP AN EMPTY SLOT"))
+		card.add_child(move)
 
 
 ## "DAMAGE: 12/S (PHYSICAL)" for towers that hurt enemies, "DAMAGE: NONE" for the others.
@@ -561,7 +587,7 @@ func _on_pause_pressed() -> void:
 		return
 	_dismiss_all()
 	level.set_paused(true)
-	_show_overlay("PAUSED", [["RESUME", _resume], ["RESTART", _restart]])
+	_show_overlay("PAUSED", [["RESUME", _resume], ["RESTART", _restart], ["MENU", _to_menu]])
 
 
 func _resume() -> void:
@@ -575,9 +601,22 @@ func _restart() -> void:
 	get_tree().reload_current_scene()
 
 
+func _to_menu() -> void:
+	Session.open_menu()
+
+
+func _next_level() -> void:
+	Session.start_level(level.data.number + 1)
+
+
 func _show_result(won: bool) -> void:
 	_dismiss_all()
-	_show_overlay("VICTORY!" if won else "DEFEAT", [["RESTART", _restart]])
+	if not won:
+		_show_overlay("DEFEAT", [["RETRY", _restart], ["MENU", _to_menu]])
+	elif Session.has_next(level.data.number):
+		_show_overlay("VICTORY!", [["NEXT LEVEL", _next_level], ["RESTART", _restart], ["MENU", _to_menu]])
+	else:
+		_show_overlay("BODY SAVED!", [["RESTART", _restart], ["MENU", _to_menu]])
 
 
 func _clear_overlay() -> void:

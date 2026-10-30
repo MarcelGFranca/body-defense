@@ -257,4 +257,261 @@ class Interferon(TowerArt):
         return f
 
 
-TOWERS = [Macrophage(), MucusCell(), Interferon()]
+
+# --- the other seven towers ---------------------------------------------------
+
+ORANGE = (255, 170, 80, 255)
+FLAME = (255, 120, 40, 255)
+ACID = (170, 255, 120, 255)
+BONE = (240, 232, 205, 255)
+
+
+def shape_ellipse(cx, cy, rx, ry):
+    return ellipse(cx, cy, rx, ry)
+
+
+class BlobTower(TowerArt):
+    """Shared idea of the friendly cells: a shaded body, a face, details, and a squash-and-stretch attack."""
+
+    color = (200, 200, 200)
+    face_dy = -3
+    mouth_dy = 1
+    feet = False
+    glow_color = WHITE
+
+    def body(self, cx, cy, rx, ry, spin):
+        return ellipse(cx, cy, rx, ry)
+
+    def details(self, img, shape, cx, cy, rx, ry, spin):
+        pass
+
+    def render(self, cx=16, cy=17, rx=10.0, ry=10.0, spin=0.0, mouth="smile", eyes="open", glow=0.0):
+        img = new_canvas()
+        shape = self.body(cx, cy, rx, ry, spin)
+        if self.feet:
+            for dx in (-5, 4):
+                shape |= ellipse(cx + dx + 1, cy + ry + 0.5, 2.6, 1.8)
+        shade_ellipse(img, shape, cx, cy, rx + 1, ry + 1, bands(self.color))
+        self.details(img, shape, cx, cy, rx, ry, spin)
+        outline(img, shape)
+        draw_eyes(img, round(cx), round(cy) + self.face_dy, eyes)
+        draw_mouth(img, round(cx), round(cy) + self.mouth_dy, mouth)
+        if glow:
+            tint(img, self.glow_color, glow)
+        return img
+
+    def idle_frames(self):
+        frames = []
+        for i in range(8):
+            wave = math.sin(2 * math.pi * i / 8)
+            frames.append(self.render(cy=17 + 0.6 * wave, rx=10 + 0.5 * wave, ry=10 - 0.5 * wave, spin=0.05 * i,
+                                      eyes="blink" if i == 6 else "open"))
+        return frames
+
+    def effect(self, frames):
+        """Draws the attack effect on the frames (a list of 8 images)."""
+
+    def attack_frames(self):
+        f = [
+            self.render(cy=18, rx=11, ry=9, eyes="angry", mouth="flat"),
+            self.render(cy=18.5, rx=11.5, ry=8.5, eyes="angry", mouth="flat"),
+            self.render(cy=16.5, rx=9.5, ry=10.8, eyes="wide", mouth="open"),
+            self.render(cy=16.5, rx=9.3, ry=11, eyes="wide", mouth="open", glow=0.25),
+            self.render(cy=17.5, rx=10.6, ry=9.4, eyes="wide", mouth="open", glow=0.1),
+            self.render(cy=16.8, rx=10, ry=10.4, mouth="smile"),
+            self.render(cy=17, rx=10.3, ry=9.9),
+            self.render(),
+        ]
+        self.effect(f)
+        return f
+
+
+class Neutrophil(BlobTower):
+    """A pale cell with a three-lobed nucleus that jabs again and again. Fixed, rapid fire."""
+
+    id = "neutrophil"
+    color = (205, 208, 236)
+    glow_color = CYAN
+
+    def details(self, img, shape, cx, cy, rx, ry, spin):
+        for dx, dy in ((-4, 4), (0, 6), (4, 4)):
+            for x, y in disc(cx + dx, cy + dy, 2.3):
+                if (x, y) in shape:
+                    img.putpixel((x, y), (118, 84, 170, 255))
+
+    def effect(self, f):
+        for i in (2, 3, 4):
+            dots(f[i], ((3, 8 + i), (2, 12 + i), (28, 9 + i), (29, 13 + i)), CYAN)
+        star(f[3], 27, 5, YELLOW, big=True)
+        star(f[3], 5, 6, WHITE)
+
+
+class Platelet(BlobTower):
+    """A small spiky fragment that sticks enemies in place. Fixed, root."""
+
+    id = "platelet"
+    color = (246, 168, 112)
+    glow_color = ORANGE
+
+    def body(self, cx, cy, rx, ry, spin):
+        shape = ellipse(cx, cy, rx * 0.82, ry * 0.8)
+        for i in range(7):
+            a = i * 2 * math.pi / 7 + spin
+            shape |= disc(cx + rx * 0.85 * math.cos(a), cy + ry * 0.82 * math.sin(a), 2.2)
+        return shape
+
+    def details(self, img, shape, cx, cy, rx, ry, spin):
+        for dx, dy in ((-5, 4), (5, 5), (0, 7), (6, -1), (-6, -2)):
+            put(img, round(cx + dx), round(cy + dy), (200, 100, 60, 255))
+
+    def effect(self, f):
+        for i, size in ((2, 10), (3, 13), (4, 15)):
+            for k in range(8):
+                a = k * math.pi / 4
+                for t in range(6, size):
+                    if (t + k) % 2 == 0:
+                        put(f[i], round(16 + t * math.cos(a)), round(17 + t * math.sin(a)), WHITE)
+        dots(f[5], ((4, 6), (27, 6), (4, 27), (27, 27)), ORANGE)
+
+
+class Hypothalamus(BlobTower):
+    """A warm red cell with a little flame on its head that gives enemies a fever. Fixed, damage over time."""
+
+    id = "hypothalamus"
+    color = (232, 104, 84)
+    face_dy = -1
+    mouth_dy = 3
+    glow_color = ORANGE
+
+    def body(self, cx, cy, rx, ry, spin):
+        return ellipse(cx, cy + 3, rx * 0.95, ry * 0.85)
+
+    def details(self, img, shape, cx, cy, rx, ry, spin):
+        flicker = math.sin(spin * 6)
+        for x, y in disc(cx, cy - 5.5, 3.2) | disc(cx + flicker, cy - 9, 2.0):
+            img.putpixel((x, y), FLAME)
+        for x, y in disc(cx, cy - 5, 1.6) | disc(cx + flicker, cy - 8.5, 0.9):
+            img.putpixel((x, y), YELLOW)
+        for x, y in ((x, y) for x, y in disc(cx, cy - 5.5, 3.2) | disc(cx + flicker, cy - 9, 2.0)):
+            shape.add((x, y))
+
+    def effect(self, f):
+        for i, r in ((2, 12), (3, 14), (4, 15)):
+            ring_solid(f[i], 16, 18, r, ORANGE, skip=2)
+        dots(f[3], ((5, 5), (26, 6), (3, 14), (28, 15)), FLAME)
+        star(f[3], 16, 2, YELLOW)
+
+
+class Lysozyme(BlobTower):
+    """A green enzyme drop with a bubbling mouth that dissolves bacteria. Fixed, area, chemical."""
+
+    id = "lysozyme"
+    color = (112, 200, 120)
+    glow_color = ACID
+
+    def body(self, cx, cy, rx, ry, spin):
+        shape = ellipse(cx, cy + 2, rx * 0.95, ry * 0.9)
+        for k in range(5):
+            shape.add((round(cx), round(cy - ry * 0.85 - 1 + k)))
+        shape |= disc(cx, cy - 6.5, 3.2) - disc(cx, cy + 5, 1)
+        return shape
+
+    def details(self, img, shape, cx, cy, rx, ry, spin):
+        for dx, dy, r in ((-5, 4, 1.4), (5, 6, 1.1), (4, -1, 1.0)):
+            for x, y in disc(cx + dx, cy + dy, r):
+                if (x, y) in shape:
+                    img.putpixel((x, y), (210, 255, 200, 255))
+
+    def effect(self, f):
+        for i, r in ((2, 12), (3, 14), (4, 15)):
+            ring_solid(f[i], 16, 18, r, ACID, skip=2)
+        dots(f[3], ((4, 8), (27, 9), (3, 22), (28, 23), (16, 2)), ACID)
+        dots(f[4], ((6, 5), (25, 6), (2, 16), (29, 17)), WHITE)
+
+
+class TLymphocyte(BlobTower):
+    """A blue soldier cell with a big dark nucleus and little feet. Mobile, a heavy single hit."""
+
+    id = "t-lymphocyte"
+    color = (104, 144, 232)
+    feet = True
+    face_dy = -4
+    mouth_dy = 0
+    glow_color = CYAN
+
+    def details(self, img, shape, cx, cy, rx, ry, spin):
+        for x, y in ellipse(cx, cy + 5, 6.2, 3.8):
+            img.putpixel((x, y), (66, 50, 140, 255))
+        for dx in (-8, 8):  # receptors
+            for k in range(3):
+                put(img, round(cx + dx * (1 + k * 0.12)), round(cy - 6 - k), (230, 240, 255, 255))
+
+    def effect(self, f):
+        for i in (2, 3):
+            for t in range(14, 31):
+                put(f[i], t, 15 + (i - 2), WHITE if t % 2 else CYAN)
+        star(f[3], 28, 12, YELLOW, big=True)
+        dots(f[4], ((26, 10), (28, 18), (24, 22)), CYAN)
+
+
+class BLymphocyte(BlobTower):
+    """A lilac cell that throws Y-shaped antibodies to mark enemies. Mobile, support."""
+
+    id = "b-lymphocyte"
+    color = (190, 124, 214)
+    feet = True
+    face_dy = -3
+    mouth_dy = 1
+    glow_color = VIOLET
+
+    def details(self, img, shape, cx, cy, rx, ry, spin):
+        for x, y in ellipse(cx, cy + 5, 4.2, 2.8):
+            img.putpixel((x, y), (118, 66, 160, 255))
+        for dx, dy in ((-9, -5), (9, -5), (-9, 2), (9, 2)):  # antibodies on the surface
+            ax, ay = round(cx + dx), round(cy + dy)
+            for ox, oy in ((0, 0), (0, 1), (-1, -1), (1, -1)):
+                put(img, ax + ox, ay + oy, (250, 240, 255, 255))
+
+    def effect(self, f):
+        for i, (ox, oy) in ((2, (6, 5)), (3, (4, 3)), (4, (2, 1))):
+            for sx, sy in ((6, 6), (26, 6), (4, 24), (28, 24)):
+                x = sx + (16 - sx) * 0 + (ox if sx < 16 else -ox) * 0
+                for px, py in ((0, 0), (0, 1), (-1, -1), (1, -1)):
+                    put(f[i], x + px, sy + py + (oy if sy < 16 else -oy) * 0, WHITE)
+        dots(f[3], ((16, 2), (3, 14), (28, 14)), VIOLET)
+
+
+class BoneMarrow(BlobTower):
+    """A cream colored bone with a red heart of marrow that sends out neutrophils. Fixed, summoner."""
+
+    id = "bone-marrow"
+    color = (238, 226, 190)
+    face_dy = -2
+    mouth_dy = 2
+    glow_color = (255, 120, 140, 255)
+
+    def body(self, cx, cy, rx, ry, spin):
+        shape = {(x, y) for x in range(round(cx - rx * 0.62), round(cx + rx * 0.62) + 1)
+                 for y in range(round(cy - ry), round(cy + ry) + 1)}
+        for ex in (-0.62, 0.62):
+            for ey in (-1.0, 1.0):
+                shape |= disc(cx + ex * rx, cy + ey * ry * 0.85, 3.6)
+        return shape
+
+    def details(self, img, shape, cx, cy, rx, ry, spin):
+        for x, y in ellipse(cx, cy + 3, 5.0, 3.8):
+            img.putpixel((x, y), (214, 70, 96, 255))
+        for dx, dy in ((-3, 3), (1, 2), (3, 4)):
+            put(img, round(cx + dx), round(cy + dy), (255, 150, 160, 255))
+
+    def effect(self, f):
+        for i, (x, y) in ((2, (6, 26)), (3, (3, 27)), (4, (2, 28))):
+            for px, py in disc(x, y, 2.4):
+                put(f[i], px, py, (230, 232, 250, 255))
+            for px, py in disc(32 - x, y, 2.4):
+                put(f[i], px, py, (230, 232, 250, 255))
+        dots(f[3], ((16, 1), (4, 8), (28, 8)), (255, 120, 140, 255))
+
+
+TOWERS = [Macrophage(), MucusCell(), Interferon(), Neutrophil(), Platelet(), Hypothalamus(), Lysozyme(),
+          TLymphocyte(), BLymphocyte(), BoneMarrow()]

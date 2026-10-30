@@ -5,11 +5,11 @@ Defines the first playable level (nose and throat): its map, tower slots, availa
 ## ADDED Requirements
 
 ### Requirement: Level name
-Level 1 SHALL be named "Garganta" (throat). The name SHALL be defined in the level data.
+Level 1 SHALL be named "Throat". The name SHALL be defined in the level data.
 
 #### Scenario: Name in the HUD
 - **WHEN** level 1 is playing
-- **THEN** the top bar shows "GARGANTA"
+- **THEN** the top bar shows "THROAT"
 
 ### Requirement: Portrait map with one path
 Level 1 SHALL be played in portrait orientation. It SHALL have one entrance at the top, one path that winds down the screen in a zigzag, and one exit at the bottom that leads to the lungs. Enemies SHALL always follow the path from the entrance to the exit.

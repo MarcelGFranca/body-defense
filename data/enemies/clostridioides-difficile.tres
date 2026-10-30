@@ -10,6 +10,9 @@ type = "bacterium"
 role = "spore"
 trait_id = "revive"
 trait_description = "Comes back once after being defeated, with low health."
+trait_params = {
+"health": 0.25
+}
 health = 55.0
 speed = 45.0
 body_damage = 2
@@ -18,6 +21,7 @@ damage_factor_overrides = {
 "chemical": 0.5,
 "thermal": 0.5
 }
+sprite_dir = "res://assets/enemies/clostridioides-difficile"
 sound_hit = "res://assets/audio/enemies/clostridioides-difficile/hit.wav"
 sound_attack = "res://assets/audio/enemies/clostridioides-difficile/attack.wav"
 sound_death = "res://assets/audio/enemies/clostridioides-difficile/death.wav"

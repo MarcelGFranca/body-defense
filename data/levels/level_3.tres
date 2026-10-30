@@ -1,0 +1,80 @@
+[gd_resource type="Resource" script_class="LevelData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/level_data.gd" id="1_wb310"]
+[ext_resource type="Script" path="res://scripts/data/wave_data.gd" id="2_f708c"]
+
+[sub_resource type="Resource" id="Resource_ruvs6"]
+script = ExtResource("2_f708c")
+start_time = 5.0
+entries = [{
+"count": 5,
+"enemy": "sars-cov-2"
+}, {
+"count": 4,
+"enemy": "staphylococcus-aureus"
+}]
+
+[sub_resource type="Resource" id="Resource_k2ehc"]
+script = ExtResource("2_f708c")
+start_time = 50.0
+spawn_interval = 0.9
+entries = [{
+"count": 10,
+"enemy": "influenza"
+}, {
+"count": 4,
+"enemy": "streptococcus-pyogenes"
+}]
+
+[sub_resource type="Resource" id="Resource_aq2lk"]
+script = ExtResource("2_f708c")
+start_time = 100.0
+spawn_interval = 0.9
+entries = [{
+"count": 6,
+"enemy": "sars-cov-2"
+}, {
+"count": 6,
+"enemy": "staphylococcus-aureus"
+}, {
+"count": 6,
+"enemy": "e-coli"
+}]
+
+[sub_resource type="Resource" id="Resource_l1sh6"]
+script = ExtResource("2_f708c")
+start_time = 165.0
+spawn_interval = 1.5
+entries = [{
+"count": 4,
+"enemy": "streptococcus-pyogenes"
+}, {
+"count": 4,
+"enemy": "sars-cov-2"
+}, {
+"count": 1,
+"enemy": "mycobacterium-tuberculosis"
+}]
+
+[resource]
+script = ExtResource("1_wb310")
+id = "level_3"
+number = 3
+display_name = "Lungs"
+body_part = "Lungs"
+description = "Tuberculosis hides in the alveoli. Beat its heavy armor with chemical and heat attacks. First boss."
+boss_id = "mycobacterium-tuberculosis"
+background_color = Color(0.22745098, 0.14117648, 0.19215687, 1)
+tissue_color = Color(0.3529412, 0.20392157, 0.2784314, 1)
+path_edge_color = Color(0.48235294, 0.20784314, 0.32156864, 1)
+path_fill_color = Color(0.8784314, 0.47843137, 0.6117647, 1)
+path_dash_color = Color(0.9607843, 0.7019608, 0.78431374, 1)
+decor = "rings"
+music = "res://assets/audio/music/lungs.wav"
+map_size = Vector2(360, 820)
+path_points = PackedVector2Array(60, 40, 300, 40, 300, 760, 60, 760, 60, 160, 220, 160, 220, 640, 140, 640, 140, 300)
+slots = PackedVector2Array(180, 570, 230, 100, 260, 270, 100, 410, 260, 410, 120, 700, 240, 700, 100, 230)
+starting_amino_acids = 190
+body_health = 20
+tower_ids = ["macrophage", "mucus-cell", "interferon", "neutrophil", "lysozyme", "platelet", "hypothalamus"]
+waves = Array[ExtResource("2_f708c")]([SubResource("Resource_ruvs6"), SubResource("Resource_k2ehc"), SubResource("Resource_aq2lk"), SubResource("Resource_l1sh6")])

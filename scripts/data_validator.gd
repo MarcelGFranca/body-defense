@@ -5,6 +5,13 @@ extends RefCounted
 const DAMAGE_TYPES := ["physical", "thermal", "chemical", "antiviral", "immunological"]
 const PROTOTYPE_TOWERS := ["macrophage", "mucus-cell", "interferon"]
 const BOSS_STRENGTH := 5.0
+const LEVEL_COUNT := 10
+const BOSS_LEVELS := [3, 7, 10]
+## A slot must not cover the path (path half width 20 + slot radius 17) and must still reach it.
+const SLOT_MIN_DISTANCE := 36.0
+const SLOT_MAX_DISTANCE := 100.0
+const SLOT_SPACING := 36.0
+const KNOWN_TRAITS := ["chain"]
 
 
 ## `enemies` maps id -> EnemyData. Returns error messages that name the enemy and the problem.
@@ -116,6 +123,21 @@ static func validate_level(level: LevelData, towers: Dictionary, enemies: Dictio
 	for id in level.tower_ids:
 		if not towers.has(id):
 			errors.append("%s: unknown tower %s" % [level.id, id])
+	if level.display_name == "" or level.body_part == "" or level.description == "":
+		errors.append("%s: name, body part and description are required" % level.id)
+	if level.id != "level_%d" % level.number:
+		errors.append("%s: id does not match its number %d" % [level.id, level.number])
+	if level.waves.is_empty():
+		errors.append("%s: the level needs waves" % level.id)
+	for trait_id in level.disabled_traits:
+		if not KNOWN_TRAITS.has(trait_id):
+			errors.append("%s: unknown trait to disable: %s" % [level.id, trait_id])
+	errors.append_array(_check_slots(level))
+	if level.boss_id != "":
+		if not enemies.has(level.boss_id) or (enemies[level.boss_id] as EnemyData).role != "boss":
+			errors.append("%s: boss_id must name a boss" % level.id)
+		elif level.waves.is_empty() or not _wave_has(level.waves[level.waves.size() - 1], level.boss_id):
+			errors.append("%s: the boss must come in the last wave" % level.id)
 	var last_start := -1.0
 	for wave in level.waves:
 		if wave.start_time <= last_start:
@@ -124,6 +146,54 @@ static func validate_level(level: LevelData, towers: Dictionary, enemies: Dictio
 		for entry in wave.entries:
 			if not enemies.has(entry["enemy"]):
 				errors.append("%s: unknown enemy %s" % [level.id, entry["enemy"]])
+	return errors
+
+
+static func _wave_has(wave: WaveData, enemy_id: String) -> bool:
+	for entry in wave.entries:
+		if entry["enemy"] == enemy_id:
+			return true
+	return false
+
+
+static func _check_slots(level: LevelData) -> Array[String]:
+	var errors: Array[String] = []
+	if level.slots.size() < 6:
+		errors.append("%s: the level needs at least 6 tower slots" % level.id)
+	for i in level.slots.size():
+		var slot := level.slots[i]
+		if slot.x < 0.0 or slot.y < 0.0 or slot.x > level.map_size.x or slot.y > level.map_size.y:
+			errors.append("%s: slot %d is outside the map" % [level.id, i])
+		var distance := INF
+		for k in level.path_points.size() - 1:
+			var closest := Geometry2D.get_closest_point_to_segment(slot, level.path_points[k], level.path_points[k + 1])
+			distance = minf(distance, slot.distance_to(closest))
+		if distance < SLOT_MIN_DISTANCE:
+			errors.append("%s: slot %d covers the path" % [level.id, i])
+		if distance > SLOT_MAX_DISTANCE:
+			errors.append("%s: slot %d is too far from the path" % [level.id, i])
+		for k in i:
+			if level.slots[k].distance_to(slot) < SLOT_SPACING:
+				errors.append("%s: slots %d and %d overlap" % [level.id, k, i])
+	return errors
+
+
+## The campaign as a whole: ten levels in order, bosses where the plan says, towers that only grow.
+static func validate_campaign(levels: Array) -> Array[String]:
+	var errors: Array[String] = []
+	if levels.size() != LEVEL_COUNT:
+		errors.append("campaign: expected %d levels, found %d" % [LEVEL_COUNT, levels.size()])
+	var previous_towers: Array = []
+	for i in levels.size():
+		var level: LevelData = levels[i]
+		if level.number != i + 1:
+			errors.append("campaign: level %d is at position %d" % [level.number, i + 1])
+		if (level.boss_id != "") != BOSS_LEVELS.has(level.number):
+			errors.append("%s: bosses belong to levels %s only" % [level.id, BOSS_LEVELS])
+		for id in previous_towers:
+			if not level.tower_ids.has(id):
+				errors.append("%s: tower %s was available before and is missing now" % [level.id, id])
+		previous_towers = level.tower_ids
 	return errors
 
 
@@ -141,8 +211,12 @@ static func validate_all() -> Dictionary:
 	var enemies := DataLoader.load_all("res://data/enemies")
 	var towers := DataLoader.load_all("res://data/towers")
 	var table: DamageTable = load("res://data/damage_table.tres")
-	var level: LevelData = load("res://data/levels/level_1.tres")
+	var levels: Array = []
+	for number in range(1, LEVEL_COUNT + 1):
+		levels.append(load("res://data/levels/level_%d.tres" % number))
 	var errors := validate_enemies(enemies)
 	errors.append_array(validate_towers(towers))
-	errors.append_array(validate_level(level, towers, enemies))
+	for level in levels:
+		errors.append_array(validate_level(level, towers, enemies))
+	errors.append_array(validate_campaign(levels))
 	return {"errors": errors, "warnings": damage_warnings(towers, enemies, table)}

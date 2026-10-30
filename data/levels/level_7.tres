@@ -1,0 +1,95 @@
+[gd_resource type="Resource" script_class="LevelData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/level_data.gd" id="1_ww005"]
+[ext_resource type="Script" path="res://scripts/data/wave_data.gd" id="2_rbhq0"]
+
+[sub_resource type="Resource" id="Resource_i5ccs"]
+script = ExtResource("2_rbhq0")
+start_time = 5.0
+spawn_interval = 0.9
+entries = [{
+"count": 8,
+"enemy": "staphylococcus-aureus"
+}, {
+"count": 10,
+"enemy": "influenza"
+}]
+
+[sub_resource type="Resource" id="Resource_nostt"]
+script = ExtResource("2_rbhq0")
+start_time = 50.0
+spawn_interval = 0.9
+entries = [{
+"count": 8,
+"enemy": "sars-cov-2"
+}, {
+"count": 6,
+"enemy": "hpv"
+}]
+
+[sub_resource type="Resource" id="Resource_2vb4d"]
+script = ExtResource("2_rbhq0")
+start_time = 100.0
+spawn_interval = 0.8
+entries = [{
+"count": 8,
+"enemy": "herpes-simplex"
+}, {
+"count": 8,
+"enemy": "clostridioides-difficile"
+}, {
+"count": 8,
+"enemy": "e-coli"
+}]
+
+[sub_resource type="Resource" id="Resource_ybk74"]
+script = ExtResource("2_rbhq0")
+start_time = 155.0
+spawn_interval = 0.8
+entries = [{
+"count": 10,
+"enemy": "staphylococcus-aureus"
+}, {
+"count": 8,
+"enemy": "sars-cov-2"
+}, {
+"count": 5,
+"enemy": "streptococcus-pyogenes"
+}]
+
+[sub_resource type="Resource" id="Resource_jfa1d"]
+script = ExtResource("2_rbhq0")
+start_time = 215.0
+spawn_interval = 1.4
+entries = [{
+"count": 6,
+"enemy": "hpv"
+}, {
+"count": 6,
+"enemy": "herpes-simplex"
+}, {
+"count": 1,
+"enemy": "neisseria-meningitidis"
+}]
+
+[resource]
+script = ExtResource("1_ww005")
+id = "level_7"
+number = 7
+display_name = "Bloodstream"
+body_part = "The blood"
+description = "The fast lane to every organ. Meningococcus rides the blood and splits in two when it is hurt. Second boss."
+boss_id = "neisseria-meningitidis"
+background_color = Color(0.18431373, 0.08627451, 0.1254902, 1)
+tissue_color = Color(0.27058825, 0.1254902, 0.18039216, 1)
+path_edge_color = Color(0.5411765, 0.0627451, 0.1254902, 1)
+path_fill_color = Color(0.8784314, 0.14117648, 0.23529412, 1)
+path_dash_color = Color(1, 0.5411765, 0.59607846, 1)
+music = "res://assets/audio/music/bloodstream.wav"
+map_size = Vector2(360, 1060)
+path_points = PackedVector2Array(180, 40, 201.84496, 54, 222.81972, 68, 242.08876, 82, 258.8845, 96, 272.5379, 110, 282.50504, 124, 288.38892, 138, 289.95514, 152, 287.1413, 166, 280.0595, 180, 268.99188, 194, 254.37924, 208, 236.80373, 222, 216.96544, 236, 195.65463, 250, 173.72023, 264, 152.03598, 278, 131.46568, 292, 112.828735, 306, 96.867546, 320, 84.21793, 334, 75.38378, 348, 70.71701, 362, 70.40351, 376, 74.45577, 390, 82.71238, 404, 94.84442, 418, 110.36863, 432, 128.6666, 446, 149.00941, 460, 170.58675, 474, 192.53906, 488, 213.99187, 502, 234.09062, 516, 252.03468, 530, 267.10925, 544, 278.71384, 558, 286.38614, 572, 289.8206, 586, 288.88037, 600, 283.60287, 614, 274.1984, 628, 261.04153, 642, 244.65637, 656, 225.69565, 670, 204.91464, 684, 183.14116, 698, 161.24255, 712, 140.09116, 726, 120.52951, 740, 103.33687, 754, 89.19809, 768, 78.6764, 782, 72.19092, 796, 70, 810, 72.19092, 824, 78.6764, 838, 89.19809, 852, 103.33687, 866, 120.52951, 880, 140.09116, 894, 161.24255, 908, 183.14116, 922, 204.91464, 936, 225.69565, 950, 244.65637, 964, 261.04153, 978, 274.1984, 992, 280.0595, 1000)
+slots = PackedVector2Array(130, 810, 210, 160, 130, 350, 220, 570, 230, 900, 160, 660, 200, 440, 210, 110, 180, 310)
+starting_amino_acids = 270
+body_health = 20
+tower_ids = ["macrophage", "mucus-cell", "interferon", "neutrophil", "lysozyme", "platelet", "hypothalamus", "t-lymphocyte", "b-lymphocyte", "bone-marrow"]
+waves = Array[ExtResource("2_rbhq0")]([SubResource("Resource_i5ccs"), SubResource("Resource_nostt"), SubResource("Resource_2vb4d"), SubResource("Resource_ybk74"), SubResource("Resource_jfa1d")])

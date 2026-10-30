@@ -38,7 +38,10 @@ entries = [{
 [resource]
 script = ExtResource("1_5gghx")
 id = "level_1"
-display_name = "Garganta"
+display_name = "Throat"
+body_part = "Nose and throat"
+description = "Viruses come in through the nose. Hold the line before they reach the lungs."
+disabled_traits = ["chain"]
 music = "res://assets/audio/music/throat.wav"
 map_size = Vector2(360, 820)
 path_points = PackedVector2Array(180, 40, 180, 110, 60, 110, 60, 260, 300, 260, 300, 410, 60, 410, 60, 560, 300, 560, 300, 700, 180, 700, 180, 780)

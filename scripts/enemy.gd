@@ -4,6 +4,8 @@ extends Node2D
 
 signal died(enemy: Enemy)
 signal reached_exit(enemy: Enemy)
+## Emitted when a boss that splits loses half of its health; the level replaces it with copies.
+signal split(enemy: Enemy)
 
 const HIT_COOLDOWN := 1.4
 const SLOW_ANIMATION_COOLDOWN := 3.0
@@ -12,7 +14,15 @@ const BAR_SIZE := Vector2(20, 3)
 var data: EnemyData
 var status: EnemyStatus
 var health := 0.0
+var max_health := 0.0
 var progress := 0.0
+## What this enemy gives when it dies and takes from the body when it gets out. Copies and chain
+## segments share the values of the enemy they came from.
+var reward := 0
+var body_damage := 1
+var is_copy := false
+## Set by the level so traits can reach the towers and spawn other enemies.
+var level: Level
 ## True once the enemy has died or reached the exit.
 var finished := false
 
@@ -24,20 +34,51 @@ var _one_shot_playing := false
 var _on_done := Callable()
 var _hit_cooldown := 0.0
 var _slow_cooldown := 0.0
+var _revived := false
+var _split_done := false
+var _damage_taken: Dictionary = {}  # damage type -> damage dealt so far
+var _resisted_type := ""
+var _aura_clock := 0.0
+var _blocked_by: BlockerUnit
 
 
-func setup(enemy_data: EnemyData, curve: Curve2D, table: DamageTable) -> void:
+## `options` may hold "health", "reward", "damage", "scale", "progress", "copy" and "level".
+func setup(enemy_data: EnemyData, curve: Curve2D, table: DamageTable, options: Dictionary = {}) -> void:
 	data = enemy_data
-	health = data.health
+	health = float(options.get("health", data.health))
+	max_health = health
+	reward = int(options.get("reward", data.amino_acid_reward))
+	body_damage = int(options.get("damage", data.body_damage))
+	is_copy = bool(options.get("copy", false))
+	level = options.get("level", null)
+	progress = float(options.get("progress", 0.0))
 	status = EnemyStatus.new(data)
 	_curve = curve
 	_length = curve.get_baked_length()
 	_table = table
-	position = curve.sample_baked(0.0)
+	position = curve.sample_baked(maxf(progress, 0.0))
 	_sprite = AnimatedSprite2D.new()
 	_sprite.sprite_frames = EnemySprites.frames_for(data)
+	_sprite.scale = Vector2.ONE * float(options.get("scale", 1.0))
 	add_child(_sprite)
 	_sprite.play("walk")
+
+
+## True when the trait is on for this enemy: it belongs to the roster entry and the level allows it.
+func has_trait(trait_id: String) -> bool:
+	return data.trait_id == trait_id and (level == null or level.trait_enabled(trait_id))
+
+
+func param(key: String, fallback: float) -> float:
+	return float(data.trait_params.get(key, fallback))
+
+
+## Dormant enemies (Herpes simplex) are immune for a few moments of every cycle.
+func is_dormant() -> bool:
+	if not has_trait("dormant"):
+		return false
+	var period := param("period", 4.0)
+	return fposmod(status.time, period) >= period - param("seconds", 1.5)
 
 
 ## Advanced by the level every frame, so tests can step the simulation by hand.
@@ -50,22 +91,58 @@ func step(delta: float) -> void:
 		take_damage(float(tick["damage"]), String(tick["type"]))
 		if finished:
 			return
-	progress += data.speed * status.speed_multiplier() * delta
+	_sprite.modulate.a = 0.4 if is_dormant() else 1.0
+	_step_aura(delta)
+	_update_blocker(delta)
+	var speed_factor := 0.0 if _blocked_by != null else status.speed_multiplier()
+	progress += data.speed * speed_factor * delta
 	_sprite.speed_scale = maxf(0.3, status.speed_multiplier())
-	position = _curve.sample_baked(minf(progress, _length))
+	position = _curve.sample_baked(clampf(progress, 0.0, _length))
 	if progress >= _length:
 		_exit()
 
 
+## HIV switches off the towers around it every few seconds.
+func _step_aura(delta: float) -> void:
+	if level == null or not has_trait("tower_disable_aura"):
+		return
+	_aura_clock += delta
+	if _aura_clock < param("interval", 3.0):
+		return
+	_aura_clock = 0.0
+	for tower: Tower in level.towers.values():
+		if tower.position.distance_to(position) <= param("radius", 70.0):
+			tower.disable()
+	queue_redraw()
+
+
+## A summoned unit in the way holds the enemy and trades blows with it. Bosses push through.
+func _update_blocker(delta: float) -> void:
+	if level == null or data.role == "boss":
+		_blocked_by = null
+		return
+	if _blocked_by != null and (not is_instance_valid(_blocked_by) or not _blocked_by.is_alive()):
+		_blocked_by = null
+	if _blocked_by == null:
+		_blocked_by = level.blocker_for(self)
+	if _blocked_by != null:
+		_blocked_by.fight(self, delta)
+
+
 ## Applies an attack. Returns the damage that was actually dealt.
 func take_damage(amount: float, damage_type: String) -> int:
-	if finished:
+	if finished or is_dormant():
 		return 0
-	var dealt := DamageCalculator.resolve(amount, damage_type, data, _table, status.mark_bonus())
+	_update_resistance()
+	var resistance := param("factor", 0.5) if damage_type == _resisted_type and _resisted_type != "" else 1.0
+	var dealt := DamageCalculator.resolve(amount, damage_type, data, _table, status.mark_bonus(), resistance)
 	health -= dealt
+	_damage_taken[damage_type] = float(_damage_taken.get(damage_type, 0.0)) + dealt
 	queue_redraw()
 	if health <= 0.0:
 		_die()
+	elif _should_split():
+		_split_in_two()
 	else:
 		if DamageCalculator.factor_for(damage_type, data, _table) <= 0.0:
 			GameAudio.play_sfx(GameAudio.config.blocked_sound)
@@ -91,7 +168,56 @@ func _hit_animation(damage_type: String, dealt: int) -> String:
 	return "hit_physical"
 
 
+## Staphylococcus aureus gains resistance, along the path, to the damage type that hurt it the most.
+func _update_resistance() -> void:
+	if _resisted_type != "" or not has_trait("gain_resistance") or progress < _length * param("at", 0.4):
+		return
+	var most := 0.0
+	for type in _damage_taken:
+		if float(_damage_taken[type]) > most:
+			most = float(_damage_taken[type])
+			_resisted_type = String(type)
+	if _resisted_type != "" and _sprite != null:
+		_flash_resistance()
+
+
+func _flash_resistance() -> void:
+	var tween := create_tween()
+	tween.tween_property(_sprite, "modulate", Color(1.0, 0.8, 0.3), 0.15)
+	tween.tween_property(_sprite, "modulate", Color.WHITE, 0.3)
+
+
+func resisted_type() -> String:
+	return _resisted_type
+
+
+func _should_split() -> bool:
+	return has_trait("split_at_half") and not is_copy and not _split_done and health <= data.health * 0.5
+
+
+## Neisseria meningitidis breaks into smaller copies when half of its health is gone.
+func _split_in_two() -> void:
+	_split_done = true
+	finished = true
+	queue_redraw()
+	split.emit(self)
+	_fade_out()
+
+
+## Clostridioides difficile comes back once, as a spore with little health.
+func _revive() -> void:
+	_revived = true
+	health = data.health * param("health", 0.25)
+	_damage_taken.clear()
+	queue_redraw()
+	if _sprite != null:
+		_flash_resistance()
+
+
 func _die() -> void:
+	if has_trait("revive") and not _revived:
+		_revive()
+		return
 	finished = true
 	queue_redraw()
 	GameAudio.play_sfx(data.sound_death)
@@ -133,10 +259,14 @@ func _fade_out() -> void:
 
 
 func _draw() -> void:
-	if finished or health >= data.health:
+	if finished:
+		return
+	if level != null and has_trait("tower_disable_aura"):
+		draw_arc(Vector2.ZERO, param("radius", 70.0), 0.0, TAU, 48, Color(0.9, 0.3, 0.3, 0.35), 1.0)
+	if health >= max_health:
 		return
 	var origin := Vector2(-BAR_SIZE.x / 2.0, -22.0)
 	draw_rect(Rect2(origin - Vector2(1, 1), BAR_SIZE + Vector2(2, 2)), Color("2b1b3a"))
-	var fraction := clampf(health / data.health, 0.0, 1.0)
+	var fraction := clampf(health / max_health, 0.0, 1.0)
 	var color := Color("6ad4a0") if fraction > 0.5 else Color("f4d35e") if fraction > 0.25 else Color("e84a5f")
 	draw_rect(Rect2(origin, Vector2(BAR_SIZE.x * fraction, BAR_SIZE.y)), color)
