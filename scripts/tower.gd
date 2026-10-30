@@ -38,7 +38,8 @@ var _missing_art := false
 var _sprite: AnimatedSprite2D
 var _on_attack_done := Callable()
 var _settling := 0.0
-var _units: Array[BlockerUnit] = []
+## Plain arrays: their entries are freed objects once they die, which typed arrays and typed parameters reject.
+var _units: Array = []
 ## Enemies this tower is holding: {"enemy": Enemy, "age": seconds since it was caught}.
 var _holds: Array[Dictionary] = []
 var _beam: TowerBeam
@@ -243,8 +244,9 @@ func holds() -> Array[Dictionary]:
 
 
 func _update_holds(delta: float) -> void:
+	# Untyped on purpose: a rooted enemy that died has been freed, and a typed variable cannot hold it.
 	_holds = _holds.filter(func(hold: Dictionary) -> bool:
-		var enemy: Enemy = hold["enemy"]
+		var enemy = hold["enemy"]
 		return is_instance_valid(enemy) and not enemy.finished and enemy.status.is_rooted())
 	for hold in _holds:
 		hold["age"] = float(hold["age"]) + delta
@@ -300,18 +302,19 @@ func _step_summon_marker(delta: float) -> void:
 	GameAudio.play_sfx(data.sound_attack)
 
 
-## Bone Marrow keeps up to `summon_cap` neutrophils on the path to block enemies.
+## Bone Marrow keeps a clock that never stops: every `summon_interval` seconds it creates a neutrophil if it has
+## fewer than `summon_cap`. Deaths do not restart the clock, so a lost neutrophil is replaced at the next tick.
 func _step_summon_units(delta: float) -> void:
-	_units = _units.filter(func(u: BlockerUnit) -> bool: return is_instance_valid(u) and u.is_alive())
-	if _units.size() >= data.summon_cap:
-		_cooldown = data.summon_interval
-		return
+	# Untyped on purpose: a neutrophil that died has been freed, and a typed parameter cannot take it.
+	_units = _units.filter(func(unit) -> bool: return is_instance_valid(unit) and unit.is_alive())
 	_cooldown -= delta
 	if _cooldown > 0.0:
 		return
+	_cooldown += data.summon_interval
+	if _units.size() >= data.summon_cap:
+		return
 	var shift := (float(_units.size()) - 1.0) * 16.0
 	_units.append(_level.add_blocker(position, shift, data.unit_health, data.unit_damage, self, data.unit_radius, data.unit_speed, data.unit_regen))
-	_cooldown = data.summon_interval
 	play_attack()
 	GameAudio.play_sfx(data.sound_attack)
 

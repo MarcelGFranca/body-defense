@@ -26,7 +26,9 @@ func _draw() -> void:
 	var holds := _tower.holds()
 	for i in holds.size():
 		var hold := holds[i]
-		var enemy: Enemy = hold["enemy"]
+		var enemy = hold["enemy"]
+		if not is_instance_valid(enemy):
+			continue
 		var grown := clampf(float(hold["age"]) / GROW_SECONDS, 0.0, 1.0)
 		var fade := clampf(enemy.status.root_remaining() / FADE_SECONDS, 0.0, 1.0)
 		_draw_enemy_tendrils(enemy.position - _tower.position, grown, fade, i)

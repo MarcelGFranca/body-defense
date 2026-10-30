@@ -6,6 +6,8 @@
 - [x] 1.4 Make the hold last 3 s, send the tendril to the furthest enemy and play the sound only when sending, and verify with tests (tendril still there at 2.5 s, gone after 3.5 s, no sound while holding, the furthest enemy is held)
 - [x] 1.5 Run all tests (477 checks, 0 failures) and validate the data
 
+- [x] 1.6 Fix a latent bug found with the Bone Marrow one: the platelet stored the enemies it held in typed variables, which fail once an enemy has been freed; the holds are now untyped and guarded with `is_instance_valid`, with a test that frees a held enemy
+
 ## 2. Check
 
 - [x] 2.1 Verify with `tools/platelet_screenshots` that three tendrils hold three enemies, fade and disappear

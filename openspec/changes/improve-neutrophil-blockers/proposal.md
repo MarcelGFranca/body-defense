@@ -6,8 +6,8 @@ The neutrophils that a Bone Marrow summons are a plain circle standing still on 
 
 1. **Roaming and guard radius.** Neutrophils use the neutrophil sprite, keep moving around their post, have a guard radius, and walk along the path to meet an enemy that comes inside it.
 2. **Attack animation** for the neutrophils (next task).
-3. **Attack animation for enemies** against the neutrophils (next task).
-4. **Respawn:** the Bone Marrow creates a neutrophil every 15 s (was 8 s), up to 3 at the same time, so a neutrophil that dies is replaced 15 s later. The numbers are the designer's; they have not been playtested, and with 15 s the Bone Marrow fills up more slowly than before.
+3. **Attack animation for enemies:** an enemy held by a neutrophil plays its attack animation against it, facing it, over and over until the neutrophil is gone. A hit reaction may interrupt it.
+4. **Respawn:** the Bone Marrow creates a neutrophil every 15 s (was 8 s), up to 3 at the same time, so a neutrophil that dies is replaced at the next tick of a clock that keeps running (every 15 s) and never stops or restarts when a neutrophil dies. The numbers are the designer's; they have not been playtested, and with 15 s the Bone Marrow fills up more slowly than before.
 5. **Regeneration:** a neutrophil recovers 2 health per second (`unit_regen`), up to its full health. Requested by the designer after the roaming task; the number was chosen by eye and has not been playtested (an enemy deals 4 per second per point of body damage while it fights the unit, so the regeneration only offsets half of one weak enemy).
 
 Only the first one is done so far; the others are ticked in `tasks.md` as they are finished.

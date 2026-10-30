@@ -29,6 +29,9 @@ var speed := 0.0
 ## Health recovered per second.
 var regen := 0.0
 
+## The one enemy this unit holds, or null. Untyped on purpose: the enemy is freed when it dies.
+var held = null
+
 var _curve: Curve2D
 var _home_point := Vector2.ZERO
 var _sprite: AnimatedSprite2D
@@ -89,12 +92,33 @@ func blocks(enemy: Enemy) -> bool:
 	return is_alive() and not enemy.finished and absf(enemy.progress - offset) <= REACH and enemy.progress <= offset + REACH
 
 
-## The enemy the unit goes to meet: the closest one inside its guard radius. Bosses push through, so they are ignored.
+func is_holding() -> bool:
+	return is_instance_valid(held) and not held.finished
+
+
+## A unit holds one enemy only. Returns true when `enemy` is (or now becomes) the one it holds; every other
+## enemy walks past it without being stopped or hurt.
+func try_hold(enemy: Enemy) -> bool:
+	if not blocks(enemy):
+		return false
+	if is_holding():
+		return held == enemy
+	held = enemy
+	return true
+
+
+## The enemy the unit goes to meet: the one it already holds, else the closest free one inside its guard radius.
+## Bosses push through, and enemies held by another neutrophil are not its business, so both are ignored.
 func target_among(enemies: Array) -> Enemy:
+	if is_holding():
+		return held
 	var nearest: Enemy = null
 	var nearest_distance := guard_radius
 	for enemy: Enemy in enemies:
 		if enemy.finished or enemy.data.role == "boss":
+			continue
+		var keeper := enemy.held_by()
+		if keeper != null and keeper != self:
 			continue
 		var distance := enemy.position.distance_to(_home_point)
 		if distance <= nearest_distance:
@@ -106,6 +130,8 @@ func target_among(enemies: Array) -> Enemy:
 ## Advanced by the level every frame: wanders around the post, or walks along the path to meet an enemy.
 func step(delta: float, enemies: Array) -> void:
 	_clock += delta
+	if held != null and not is_holding():
+		held = null
 	if health < max_health:
 		health = minf(max_health, health + regen * delta)
 	var target := target_among(enemies)

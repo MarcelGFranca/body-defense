@@ -3,7 +3,7 @@
 extends Node
 
 ## Seconds at which a picture is taken. The enemy is sent at 1.0 s.
-const MOMENTS := [2.5, 2.7, 2.85, 3.0, 3.15, 3.4]
+const MOMENTS := [1.9, 2.1, 2.3, 2.5, 2.7, 2.9]
 
 var _out := "/tmp"
 

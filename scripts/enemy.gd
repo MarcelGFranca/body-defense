@@ -45,6 +45,8 @@ var _damage_taken: Dictionary = {}  # damage type -> damage dealt so far
 var _resisted_type := ""
 var _aura_clock := 0.0
 var _blocked_by: BlockerUnit
+## True while the one-shot animation being played is the attack against a summoned unit.
+var _unit_attack_playing := false
 var _dye: ShaderMaterial
 
 
@@ -154,6 +156,33 @@ func _update_blocker(delta: float) -> void:
 		_blocked_by = level.blocker_for(self)
 	if _blocked_by != null:
 		_blocked_by.fight(self, delta)
+		if not _one_shot_playing:
+			_start_unit_attack()
+
+
+## The summoned unit that holds this enemy right now, or null.
+func held_by() -> BlockerUnit:
+	return _blocked_by if _is_fighting_unit() else null
+
+
+## True while a summoned unit holds this enemy and is still alive.
+func _is_fighting_unit() -> bool:
+	return not finished and _blocked_by != null and is_instance_valid(_blocked_by) and _blocked_by.is_alive()
+
+
+## An enemy held by a neutrophil strikes back with its attack animation, facing the neutrophil, over and over
+## until the neutrophil is gone. A hit reaction may interrupt it; the attack then starts again.
+func _start_unit_attack() -> void:
+	if not _is_fighting_unit() or not _sprite.sprite_frames.has_animation("attack"):
+		return
+	_sprite.flip_h = _blocked_by.position.x < position.x
+	_play_once("attack")
+	_unit_attack_playing = true
+
+
+## Name of the animation being played.
+func current_animation() -> String:
+	return String(_sprite.animation)
 
 
 ## Applies an attack. Returns the damage that was actually dealt.
@@ -179,7 +208,7 @@ func take_damage(amount: float, damage_type: String, source: String = "") -> int
 			GameAudio.play_sfx(GameAudio.config.blocked_sound)
 		elif dealt > 0:
 			GameAudio.play_sfx(data.sound_hit)
-		if _hit_cooldown <= 0.0 and not _one_shot_playing:
+		if _hit_cooldown <= 0.0 and (not _one_shot_playing or _unit_attack_playing):
 			_hit_cooldown = HIT_COOLDOWN
 			_play_once(_hit_animation(damage_type, dealt))
 	return dealt
@@ -273,13 +302,17 @@ func _play_once(anim: String, free_after := false) -> void:
 			_fade_out()
 		return
 	_one_shot_playing = true
+	_unit_attack_playing = false
 	_sprite.play(anim)
 	_on_done = func() -> void:
 		if free_after:
 			queue_free()
 		else:
 			_one_shot_playing = false
+			_unit_attack_playing = false
+			_sprite.flip_h = false
 			_sprite.play("walk")
+			_start_unit_attack()
 	_sprite.animation_finished.connect(_on_done, CONNECT_ONE_SHOT)
 
 

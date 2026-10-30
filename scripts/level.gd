@@ -272,7 +272,7 @@ func add_blocker(near: Vector2, shift: float, unit_health: float, unit_damage: f
 
 func blocker_for(enemy: Enemy) -> BlockerUnit:
 	for unit in blockers:
-		if is_instance_valid(unit) and unit.blocks(enemy):
+		if is_instance_valid(unit) and unit.try_hold(enemy):
 			return unit
 	return null
 

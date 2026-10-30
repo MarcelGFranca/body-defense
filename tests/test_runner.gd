@@ -38,7 +38,7 @@ func _run() -> void:
 	test_stats()
 	test_campaign_data()
 	test_enemy_traits()
-	test_new_towers()
+	await test_new_towers()
 	test_session()
 	await test_menu_and_results()
 	test_campaign_simulation()
@@ -1039,6 +1039,8 @@ func test_new_towers() -> void:
 	check(rhino.progress <= unit.offset + BlockerUnit.REACH and rhino.progress - before < 12.0, "a neutrophil holds the enemy back")
 	check(unit.health < unit.max_health and rhino.health < rhino.max_health, "the neutrophil and the enemy hurt each other")
 	check(unit.current_animation() == "attack", "the neutrophil plays its attack animation when it hits")
+	rhino._on_done.call()  # the hit reaction ends (the tests do not run the animation clock)
+	check(rhino.current_animation() == "attack", "an enemy held by a neutrophil plays its attack animation")
 	check(unit.guard_radius == 60.0 and unit.speed == 80.0, "the neutrophil gets its radius and speed from the Bone Marrow data")
 	var boss := spawn_at(level, "mycobacterium-tuberculosis", unit.offset - 10.0)
 	var boss_before := boss.progress
@@ -1056,10 +1058,15 @@ func test_new_towers() -> void:
 	first.died.emit(first)
 	first.queue_free()
 	level.blockers.erase(first)
-	level.towers[0].step(14.0)
-	check(level.blockers.size() == 2, "a dead neutrophil is not replaced before 15 s")
-	level.towers[0].step(1.2)
-	check(level.blockers.size() == 3, "a dead neutrophil is replaced 15 s after the Bone Marrow had its full count")
+	# Let the dead neutrophil really be freed: a freed object once made the Bone Marrow stop creating for good.
+	await get_tree().process_frame
+	await get_tree().process_frame
+	check(not is_instance_valid(first), "the dead neutrophil has been freed")
+	var until_tick: float = level.towers[0]._cooldown
+	level.towers[0].step(until_tick - 0.5)
+	check(level.blockers.size() == 2, "a dead neutrophil is not replaced before the next 15 s tick")
+	level.towers[0].step(1.0)
+	check(level.blockers.size() == 3, "a dead neutrophil is replaced at the next 15 s tick")
 	free_node(level)
 
 	level = campaign_level(6)
@@ -1144,6 +1151,36 @@ func test_new_towers() -> void:
 	level.step(1.1)
 	check(virus.health == 28.0, "and only half of it against viruses")
 	free_node(level)
+	# A neutrophil holds one enemy only; the others walk past it without being stopped or hurt.
+	level = campaign_level(6)
+	Economy.reset(1000)
+	level.build_tower(0, "bone-marrow")
+	level.step(0.1)
+	var lone := level.blockers[0]
+	var first_enemy := spawn_at(level, "rhinovirus", lone.offset - 10.0)
+	var second_enemy := spawn_at(level, "rhinovirus", lone.offset - 6.0)
+	level.step(1.0)
+	var holding := [first_enemy, second_enemy].filter(func(e: Enemy) -> bool: return e.held_by() == lone)
+	check(holding.size() == 1 and lone.held == holding[0], "a neutrophil holds exactly one enemy")
+	var passer: Enemy = second_enemy if holding[0] == first_enemy else first_enemy
+	check(passer.held_by() == null and passer.progress > lone.offset, "the other enemy walks past the neutrophil")
+	check(passer.health == passer.max_health, "the neutrophil does not hurt the enemy that passes")
+	check(holding[0].progress <= lone.offset + BlockerUnit.REACH, "the held enemy is stopped")
+	free_node(level)
+
+	# A held enemy that dies is freed; the platelet must let go of it without errors.
+	level = level_with_tower("platelet")
+	var caught := spawn_at(level, "rhinovirus", 850.0)
+	level.step(0.05)
+	check(level.towers[2].holds().size() == 1, "the platelet holds the enemy")
+	caught.queue_free()
+	level.enemies.erase(caught)
+	await get_tree().process_frame
+	await get_tree().process_frame
+	level.towers[2].step(0.1)
+	check(level.towers[2].holds().is_empty(), "the platelet lets go of an enemy that was freed")
+	free_node(level)
+
 	done("test_new_towers")
 
 
