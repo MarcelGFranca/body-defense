@@ -53,6 +53,8 @@ var _amino_icon: TextureRect
 var _orbs_in_flight := 0
 var _enemy_card: Panel
 var _card_enemy: Enemy
+## Set instead of `_card_enemy` when the card describes a kind of enemy from the next-wave preview.
+var _card_data: EnemyData
 var _card_lines: Label
 var _card_title: Label
 var _preview_index := -2
@@ -356,7 +358,11 @@ func _rebuild_preview(next_index: int) -> void:
 		icon.stretch_mode = TextureRect.STRETCH_SCALE
 		icon.size = Vector2(64, 64)
 		icon.position = Vector2(x, 0)
-		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		icon.mouse_filter = Control.MOUSE_FILTER_STOP
+		icon.name = "Preview_%s" % enemy_id
+		icon.gui_input.connect(func(event: InputEvent) -> void:
+			if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+				_show_enemy_kind_card(enemy_data))
 		var mark := _label("V" if enemy_data.type == "virus" else "B", 16, COLOR_GOOD if enemy_data.type == "virus" else COLOR_BORDER)
 		mark.position = Vector2(46, 52)
 		icon.add_child(mark)
@@ -506,6 +512,7 @@ func _dismiss_all() -> void:
 	_close_popups()
 	_enemy_card.visible = false
 	_card_enemy = null
+	_card_data = null
 
 
 func _close_popups() -> void:
@@ -747,21 +754,37 @@ func _damage_text(tower_data: TowerData) -> String:
 func _show_enemy_card(enemy: Enemy) -> void:
 	_dismiss_all()
 	_card_enemy = enemy
+	_card_data = null
 	_enemy_card.visible = true
 	_card_title.text = enemy.data.display_name.to_upper()
+	_refresh_enemy_card()
+
+
+## Shows the card of an enemy kind (a tap on the next-wave preview), with its full health.
+func _show_enemy_kind_card(data: EnemyData) -> void:
+	_dismiss_all()
+	_card_enemy = null
+	_card_data = data
+	_enemy_card.visible = true
+	_card_title.text = data.display_name.to_upper()
 	_refresh_enemy_card()
 
 
 func _refresh_enemy_card() -> void:
 	if not _enemy_card.visible:
 		return
-	if _card_enemy == null or not is_instance_valid(_card_enemy) or _card_enemy.finished:
-		_dismiss_all()
-		return
-	var data := _card_enemy.data
+	var data: EnemyData = _card_data
 	var lines := PackedStringArray()
+	if _card_data == null:
+		if _card_enemy == null or not is_instance_valid(_card_enemy) or _card_enemy.finished:
+			_dismiss_all()
+			return
+		data = _card_enemy.data
 	lines.append("%s - %s" % [data.type.to_upper(), data.role.to_upper()])
-	lines.append("HP %d/%d" % [maxi(0, ceili(_card_enemy.health)), int(_card_enemy.max_health)])
+	if _card_data == null:
+		lines.append("HP %d/%d" % [maxi(0, ceili(_card_enemy.health)), int(_card_enemy.max_health)])
+	else:
+		lines.append("HP %d" % roundi(data.health * level.difficulty.enemy_health))
 	var weak: Array[String] = []
 	var resists: Array[String] = []
 	var immune: Array[String] = []
