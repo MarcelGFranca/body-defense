@@ -15,7 +15,7 @@ const CARD_WIDTH := 440.0
 ## Pixels a finger must move before a press becomes a drag.
 const DRAG_THRESHOLD := 14.0
 const WHEEL_STEP := 40.0
-## One tap on a zoom button, or one notch of the wheel with Ctrl held, changes the zoom by this factor.
+## One notch of the wheel with Ctrl held changes the zoom by this factor.
 const ZOOM_STEP := 1.25
 ## Build menus with more towers than this are drawn in two columns.
 const MAX_SINGLE_COLUMN := 6
@@ -108,7 +108,6 @@ func _ready() -> void:
 	_build_top_bar()
 	_build_bottom_bar()
 	_build_scroll_track()
-	_build_zoom_buttons()
 	_build_enemy_card()
 	_popup = Control.new()
 	_popup.size = SCREEN
@@ -220,19 +219,6 @@ func _build_bottom_bar() -> void:
 	_call_button.position = Vector2(SCREEN.x - 290 - 16, top + 56)
 	_call_button.pressed.connect(func() -> void: level.call_next_wave())
 	_root.add_child(_call_button)
-
-
-## Two buttons on the left edge, above the bottom bar, zoom in and out.
-func _build_zoom_buttons() -> void:
-	var top := SCREEN.y - BOTTOM_BAR_HEIGHT - 2.0 * MIN_TAP - 32.0
-	for i in 2:
-		var zoom_in := i == 0
-		var button := _button("+" if zoom_in else "-", Vector2(MIN_TAP, MIN_TAP), 36)
-		button.name = "ZoomInButton" if zoom_in else "ZoomOutButton"
-		button.position = Vector2(16, top + i * (MIN_TAP + 8.0))
-		button.modulate.a = 0.8
-		button.pressed.connect(func() -> void: level.zoom_by(ZOOM_STEP if zoom_in else 1.0 / ZOOM_STEP))
-		_root.add_child(button)
 
 
 ## A thin bar on the right edge that shows which part of the map is on screen, and where enemies are.

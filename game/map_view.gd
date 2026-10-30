@@ -9,6 +9,8 @@ const SLOT_EDGE := Color("ffb3c7")
 ## The drawing is refreshed this many times per second: enough for slow motion, cheap on a phone.
 const REDRAW_RATE := 12.0
 const PUS_SPOTS := 14
+## The tissue goes on this far past the edges of the map, so zooming out never shows an empty border.
+const MARGIN := Vector2(320.0, 240.0)
 const PUS_COLOR := Color(0.85, 0.85, 0.35)
 const INFECTION_TINT := Color(0.75, 0.08, 0.1)
 
@@ -46,7 +48,7 @@ func _draw() -> void:
 		return
 	var map_size := _level.data.map_size
 	var level_data := _level.data
-	draw_rect(Rect2(Vector2(-40, -80), map_size + Vector2(80, 160)), level_data.background_color)
+	draw_rect(Rect2(-MARGIN, map_size + MARGIN * 2.0), level_data.background_color)
 	_draw_decor()
 	_draw_infection(map_size)
 	var points := _level.data.path_points
@@ -86,11 +88,34 @@ func _build_decor() -> void:
 			for i in int(map_size.y / 45.0):
 				var at := Vector2(random.randf_range(0.0, map_size.x), random.randf_range(0.0, map_size.y))
 				_decor.append({"at": at, "radius": random.randf_range(18.0, 34.0), "phase": random.randf() * TAU, "width": 0.0})
+	_build_margin_decor(map_size)
 	var pus_random := RandomNumberGenerator.new()
 	pus_random.seed = 77 + _level.data.number
 	for i in PUS_SPOTS:
 		_pus.append({"at": Vector2(pus_random.randf_range(10.0, map_size.x - 10.0), pus_random.randf_range(20.0, map_size.y - 20.0)),
 			"radius": pus_random.randf_range(7.0, 14.0), "phase": pus_random.randf()})
+
+
+## More tissue of the same kind around the map, from its own seed so the map itself keeps its look.
+func _build_margin_decor(map_size: Vector2) -> void:
+	var random := RandomNumberGenerator.new()
+	random.seed = 1000 + _level.data.number
+	var area := Rect2(-MARGIN, map_size + MARGIN * 2.0)
+	match _level.data.decor:
+		"stripes":
+			var y := area.position.y
+			while y < area.end.y:
+				if y < 0.0 or y > map_size.y:
+					_decor.append({"at": Vector2(0.0, y), "radius": random.randf_range(-6.0, 6.0), "phase": random.randf() * TAU, "width": random.randf_range(5.0, 10.0)})
+				y += random.randf_range(22.0, 36.0)
+		_:
+			var count := int(area.get_area() / (map_size.x * 30.0) * 0.5) if _level.data.decor == "rings" else int(area.get_area() / (map_size.x * 45.0) * 0.5)
+			for i in count:
+				var at := Vector2(random.randf_range(area.position.x, area.end.x), random.randf_range(area.position.y, area.end.y))
+				if Rect2(Vector2.ZERO, map_size).has_point(at):
+					continue
+				var radius := random.randf_range(14.0, 26.0) if _level.data.decor == "rings" else random.randf_range(18.0, 34.0)
+				_decor.append({"at": at, "radius": radius, "phase": random.randf() * TAU, "width": 5.0 if _level.data.decor == "rings" else 0.0})
 
 
 ## Draws the tissue. Every shape drifts a few pixels and swells a little, each on its own rhythm.
@@ -106,7 +131,7 @@ func _draw_decor() -> void:
 				draw_arc(item["at"] + sway, float(item["radius"]) * swell, 0.0, TAU, 20, tissue, item["width"])
 			"stripes":
 				var from: Vector2 = item["at"] + Vector2(0.0, sway.y)
-				draw_line(from, from + Vector2(map_width, float(item["radius"]) + sway.x), tissue, item["width"])
+				draw_line(from + Vector2(-MARGIN.x, 0.0), from + Vector2(map_width + MARGIN.x, float(item["radius"]) + sway.x), tissue, item["width"])
 			_:
 				draw_circle(item["at"] + sway, float(item["radius"]) * swell, tissue)
 
@@ -116,7 +141,7 @@ func _draw_infection(map_size: Vector2) -> void:
 	var level_of_infection := infection()
 	if level_of_infection <= 0.0:
 		return
-	draw_rect(Rect2(Vector2.ZERO, map_size), Color(INFECTION_TINT, 0.32 * level_of_infection))
+	draw_rect(Rect2(-MARGIN, map_size + MARGIN * 2.0), Color(INFECTION_TINT, 0.32 * level_of_infection))
 	var visible_spots := ceili(level_of_infection * PUS_SPOTS)
 	for i in visible_spots:
 		var spot: Dictionary = _pus[i]

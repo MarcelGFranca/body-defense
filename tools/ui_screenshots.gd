@@ -15,6 +15,9 @@ func _ready() -> void:
 	var hud := Hud.new(level)
 	add_child(hud)
 	await _shot("1_start")
+	level.set_zoom(0.01)
+	await _shot("1a_zoom_out")
+	level.set_zoom(1.0)
 	level.body_health = int(level.max_body_health * 0.4)
 	await get_tree().create_timer(0.4).timeout
 	await _shot("1b_infected")

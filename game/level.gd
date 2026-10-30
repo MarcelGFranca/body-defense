@@ -26,7 +26,8 @@ const SHRINK := 2
 ## When the field is empty between waves, the next wave starts after at most this many seconds.
 const EMPTY_FIELD_WAIT := 5.0
 ## The player can zoom out to see more of the map or in to see it bigger.
-const ZOOM_MIN := 0.6
+## The lowest zoom ever; each map lowers it further to the zoom that fits it between the bars (`zoom_min`).
+const ZOOM_MIN := 0.4
 const ZOOM_MAX := 2.0
 const TAP_RADIUS := 24.0
 ## Size of the drawn view in map units, and the parts of it covered by the HUD bars.
@@ -159,9 +160,15 @@ func screen_scale() -> float:
 ## Changes the zoom keeping the map point under `focus` (in screen pixels) where it is.
 func set_zoom(value: float, focus: Vector2 = Vector2(SHRINK * VIEW_SIZE.x / 2.0, SHRINK * VIEW_SIZE.y / 2.0)) -> void:
 	var anchor := screen_to_world(focus)
-	zoom = clampf(value, ZOOM_MIN, ZOOM_MAX)
+	zoom = clampf(value, zoom_min(), ZOOM_MAX)
 	_camera.zoom = Vector2(zoom, zoom)
 	set_scroll(anchor - focus / screen_scale())
+
+
+## The zoom that fits the whole map between the HUD bars: zooming out stops there.
+func zoom_min() -> float:
+	var fit := (VIEW_SIZE.y - SAFE_TOP - SAFE_BOTTOM) / data.map_size.y
+	return clampf(fit, ZOOM_MIN, 1.0)
 
 
 func zoom_by(factor: float, focus: Vector2 = Vector2(SHRINK * VIEW_SIZE.x / 2.0, SHRINK * VIEW_SIZE.y / 2.0)) -> void:
