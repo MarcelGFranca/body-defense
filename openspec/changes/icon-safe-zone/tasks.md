@@ -6,3 +6,4 @@
 - [x] 1.4 docs/development.md lists the screen, panel and icon sizes
 - [x] 1.5 Test that the foreground stays inside the safe zone
 - [x] 1.6 Add tests, update docs, run the test runner (0 failures)
+- [x] Approved by the designer on 2026-10-30 (tested on a Samsung S24 FE); version 0.20.0

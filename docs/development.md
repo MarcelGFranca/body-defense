@@ -74,4 +74,5 @@ The Android emulator (`~/Android/sdk/emulator`, AVD `pkbattle-maestro-e2e`) rend
 ## Workflow
 
 - Use OpenSpec (`openspec/changes/<name>/`) for each feature. Past changes: enemy roster and economy, tower roster and damage, level 1 prototype, game audio, levels 2 to 10, balance and difficulty.
+- The designer approves finished tasks one by one on the phone; `design/review-checklist.md` tracks the status and each approval raises the MINOR version.
 - Commit and push only on request. Commit messages: short imperative subject, then details.
