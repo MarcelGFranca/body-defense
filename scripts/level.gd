@@ -87,8 +87,8 @@ func _ready() -> void:
 	max_body_health = maxi(1, roundi(data.body_health * difficulty.body_health))
 	body_health = max_body_health
 	body_health_changed.emit(body_health, max_body_health)
-	victory.connect(func() -> void: GameAudio.stop_music())
-	defeat.connect(func() -> void: GameAudio.stop_music())
+	victory.connect(func() -> void: GameAudio.play_jingle(GameAudio.config.victory_music))
+	defeat.connect(func() -> void: GameAudio.play_jingle(GameAudio.config.defeat_music))
 	GameAudio.play_music(data.music)
 
 

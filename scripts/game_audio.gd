@@ -79,11 +79,27 @@ func play_music(path: String) -> void:
 	var stream := source.duplicate() as AudioStreamWAV
 	stream.loop_mode = AudioStreamWAV.LOOP_FORWARD
 	stream.loop_begin = 0
-	stream.loop_end = stream.data.size() / (4 if stream.stereo else 2)
+	# The data of an imported sample is compressed, so the loop end comes from its length in seconds.
+	stream.loop_end = roundi(source.get_length() * source.mix_rate)
 	if _fade != null:
 		_fade.kill()
 	music_fading = false
 	_music.stream = stream
+	_music.volume_db = _scaled_db(config.music_volume_db, music_volume)
+	_music.play()
+	current_music = path
+
+
+## Plays a short piece of music once (the victory and defeat tunes), replacing whatever music is playing.
+func play_jingle(path: String) -> void:
+	var source := load(path) as AudioStreamWAV
+	if source == null:
+		push_warning("missing music: %s" % path)
+		return
+	if _fade != null:
+		_fade.kill()
+	music_fading = false
+	_music.stream = source
 	_music.volume_db = _scaled_db(config.music_volume_db, music_volume)
 	_music.play()
 	current_music = path

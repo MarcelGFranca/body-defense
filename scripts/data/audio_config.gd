@@ -8,3 +8,6 @@ extends Resource
 @export var blocked_sound: String = ""
 ## Played when the secret tap code in the menu opens every level.
 @export var unlock_sound: String = ""
+## Tunes played once when a level is won or lost.
+@export var victory_music: String = ""
+@export var defeat_music: String = ""

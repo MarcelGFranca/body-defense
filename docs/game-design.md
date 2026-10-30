@@ -89,7 +89,7 @@ Level n+1 opens when level n is won. The menu shows the best body health per lev
 
 ## Audio
 
-One music loop per level (about 50 s, three instruments) and one sound set per tower and enemy. At most 8 sounds play at once.
+One music loop per level (185 s, three instruments) and one sound set per tower and enemy. At most 8 sounds play at once. A short tune plays once when a level is won and another when it is lost.
 
 ## Debug aids
 

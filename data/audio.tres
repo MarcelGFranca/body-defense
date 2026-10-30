@@ -6,3 +6,5 @@
 script = ExtResource("1_pndmc")
 blocked_sound = "res://assets/audio/common/block.wav"
 unlock_sound = "res://assets/audio/common/unlock.wav"
+victory_music = "res://assets/audio/music/victory.wav"
+defeat_music = "res://assets/audio/music/defeat.wav"

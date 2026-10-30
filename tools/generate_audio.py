@@ -239,11 +239,15 @@ LEAD_B = [
 INTRO = [("Am", None)] * 2
 OUTRO = [("F", None), ("G", None), ("E", None), ("E", None)]
 
-# Section plan: name, bars, keyboard 2 style. Intro 2 + A 8 + B 8 + A again 8 + outro 4 = 30 bars.
-SECTIONS = [
-    ("intro", INTRO, "arp"), ("a", LEAD_A, "stab"), ("b", LEAD_B, "pad"),
-    ("a", LEAD_A, "arp"), ("outro", OUTRO, "pad"),
-]
+# Every level track lasts at least three minutes: the A B A form is played REPEATS times.
+REPEATS = 4
+LOOP_SECONDS = 185.0
+# Section plan: name, bars, keyboard 2 style. Intro 2 + REPEATS x (A 8 + B 8 + A 8) + outro 4 bars.
+SECTIONS = [("intro", INTRO, "arp")]
+for _repeat in range(REPEATS):
+    SECTIONS += [("a", LEAD_A, "stab" if _repeat % 2 == 0 else "arp"), ("b", LEAD_B, "pad"),
+                 ("a", LEAD_A, "arp" if _repeat % 2 == 0 else "stab")]
+SECTIONS.append(("outro", OUTRO, "pad"))
 # Bass: eighth notes, "r" = root, "o" = octave up.
 BASS_DRIVE = "r r o r r o r o".split()
 BASS_HALF = "r o r o r o r o".split()
@@ -293,10 +297,10 @@ def parse_lead(text):
 
 
 def music():
-    bpm = 144
+    bars = sum(len(section) for _, section, _ in SECTIONS)
+    bpm = bars * 240.0 / LOOP_SECONDS
     step = 60.0 / bpm / 4
     bar = step * 16
-    bars = sum(len(section) for _, section, _ in SECTIONS)
     total = bars * bar
     lead, keys, bass = silence(total), silence(total), silence(total)
     index = 0
@@ -332,8 +336,8 @@ def music():
 
 
 # --- the music of the other nine levels ------------------------------------------
-# Every track is 50 s and has the same three voices as the first one. What changes is the key, the scale,
-# the chords, the tempo (the section length decides how many bars fit in 50 s) and the melody (seeded).
+# Every track lasts LOOP_SECONDS and has the same three voices as the first one. What changes is the key, the scale,
+# the chords, the tempo (the section length decides how many bars fit in the loop) and the melody (seeded).
 
 SCALES = {
     "minor": [0, 2, 3, 5, 7, 8, 10],
@@ -395,8 +399,8 @@ def make_lead(rng, root, scale, degree, templates, high, last):
 def compose(name):
     root, scale, prog_a, prog_b, prog_out, n, bass_style, seed = TRACKS[name]
     rng = np.random.default_rng(seed)
-    bars = INTRO_BARS + 3 * n + OUTRO_BARS
-    bpm = bars * 4.8  # 50 s
+    bars = INTRO_BARS + REPEATS * 3 * n + OUTRO_BARS
+    bpm = bars * 240.0 / LOOP_SECONDS
     step = 60.0 / bpm / 4
     bar = step * 16
     total = bars * bar
@@ -405,9 +409,10 @@ def compose(name):
     plan = []  # (chord degree, section, bar index in the section, is last bar of a phrase)
     for i in range(INTRO_BARS):
         plan.append((prog_a[0], "intro", i))
-    for section, prog in (("a", prog_a), ("b", prog_b), ("a2", prog_a)):
-        for i in range(n):
-            plan.append((prog[i % 4], section, i))
+    for repeat in range(REPEATS):
+        for section, prog in (("a", prog_a), ("b", prog_b), ("a2", prog_a)):
+            for i in range(n):
+                plan.append((prog[i % 4], section if repeat % 2 == 0 or section == "b" else ("a2" if section == "a" else "a"), i))
     for i in range(OUTRO_BARS):
         plan.append((prog_out[i % 4], "outro", i))
 
@@ -480,6 +485,33 @@ def bass_note_midi(midi, duration):
 
 # --- run ---------------------------------------------------------------------
 
+def jingle(notes, step, bass_notes):
+    """A short phrase that plays once: notes are (pitch name, start in steps, length in steps)."""
+    total = max(start + length for _, start, length in notes) * step + 1.0
+    lead, keys, bass = silence(total), silence(total), silence(total)
+    for name, start, length in notes:
+        place(lead, lead_note(name, length * step * 0.95), start * step)
+        place(keys, keys_note(name, length * step * 0.95), start * step)
+    for name, start, length in bass_notes:
+        place(bass, bass_note(name, length * step), start * step)
+    return lead * 0.24 + keys * 0.14 + bass * 0.34
+
+
+def victory_music():
+    """A bright major fanfare, about 7 s."""
+    notes = [("C5", 0, 2), ("E5", 2, 2), ("G5", 4, 2), ("C6", 6, 4), ("G5", 10, 2), ("C6", 12, 2),
+             ("A5", 16, 2), ("C6", 18, 2), ("F6", 20, 4), ("E6", 24, 2), ("D6", 26, 2), ("G6", 28, 10)]
+    bass = [("C3", 0, 6), ("C3", 6, 4), ("C3", 10, 6), ("F2", 16, 8), ("G2", 24, 4), ("C3", 28, 10)]
+    return jingle(notes, 0.19, bass)
+
+
+def defeat_music():
+    """A slow descending minor phrase, about 8 s."""
+    notes = [("E5", 0, 4), ("D5", 4, 4), ("C5", 8, 4), ("B4", 12, 4), ("A4", 16, 6), ("E4", 22, 4), ("A4", 26, 14)]
+    bass = [("A2", 0, 8), ("F2", 8, 8), ("E2", 16, 8), ("A2", 24, 16)]
+    return jingle(notes, 0.21, bass)
+
+
 def generate():
     files = {}
     for enemy, (f0, boss) in ENEMIES.items():
@@ -497,6 +529,8 @@ def generate():
     save(os.path.join(ROOT, "music", "throat.wav"), music(), peak=0.7)
     for name in TRACKS:
         save(os.path.join(ROOT, "music", "%s.wav" % name), compose(name), peak=0.7)
+    save(os.path.join(ROOT, "music", "victory.wav"), victory_music(), peak=0.7)
+    save(os.path.join(ROOT, "music", "defeat.wav"), defeat_music(), peak=0.7)
     return files
 
 
@@ -525,8 +559,8 @@ def check(files):
     music_length = length(os.path.join(ROOT, "music", "throat.wav"))
     for name in ["throat"] + list(TRACKS):
         track_length = length(os.path.join(ROOT, "music", "%s.wav" % name))
-        if abs(track_length - 50.0) > 0.05:
-            problems.append("the %s music loop should be 50 s, found %.2f s" % (name, track_length))
+        if abs(track_length - LOOP_SECONDS) > 0.05:
+            problems.append("the %s music loop should be %.0f s, found %.2f s" % (name, LOOP_SECONDS, track_length))
         if peak(os.path.join(ROOT, "music", "%s.wav" % name)) >= 0.99:
             problems.append("the %s music clips" % name)
     print("%d sounds, music %.2f s, longest enemy death %.2f s, longest regular death %.2f s" % (

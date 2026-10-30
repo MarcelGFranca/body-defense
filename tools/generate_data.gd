@@ -402,6 +402,8 @@ func _save_audio() -> void:
 	config.music_volume_db = -14.0
 	config.blocked_sound = "res://assets/audio/common/block.wav"
 	config.unlock_sound = "res://assets/audio/common/unlock.wav"
+	config.victory_music = "res://assets/audio/music/victory.wav"
+	config.defeat_music = "res://assets/audio/music/defeat.wav"
 	_save(config, "res://data/audio.tres")
 
 
