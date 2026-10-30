@@ -32,3 +32,10 @@ A Bone Marrow SHALL create one neutrophil at once when it is built and one more 
 #### Scenario: A neutrophil dies
 - **WHEN** a neutrophil dies and the Bone Marrow has fewer than three
 - **THEN** a new one appears after 15 seconds, and never more than three exist
+
+### Requirement: Neutrophils show their attack
+A neutrophil SHALL play its attack animation, facing the enemy, each time it hits the enemy it is holding, and SHALL be drawn above the enemies so the attack can be seen.
+
+#### Scenario: A neutrophil hits
+- **WHEN** a neutrophil hits the enemy it holds
+- **THEN** its attack animation plays and it goes back to idle afterwards

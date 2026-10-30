@@ -1038,6 +1038,7 @@ func test_new_towers() -> void:
 	level.step(1.0)
 	check(rhino.progress <= unit.offset + BlockerUnit.REACH and rhino.progress - before < 12.0, "a neutrophil holds the enemy back")
 	check(unit.health < unit.max_health and rhino.health < rhino.max_health, "the neutrophil and the enemy hurt each other")
+	check(unit.current_animation() == "attack", "the neutrophil plays its attack animation when it hits")
 	check(unit.guard_radius == 60.0 and unit.speed == 80.0, "the neutrophil gets its radius and speed from the Bone Marrow data")
 	var boss := spawn_at(level, "mycobacterium-tuberculosis", unit.offset - 10.0)
 	var boss_before := boss.progress

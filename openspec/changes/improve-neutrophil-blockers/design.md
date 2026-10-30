@@ -7,3 +7,5 @@
 - **The guard radius is drawn as a faint ring** around the post, like the aura of the area towers.
 - **Radius (60) and speed (80) are data** (`unit_radius`, `unit_speed` of the Bone Marrow); the numbers were chosen by eye, not playtested, and the blocking rules, health and damage are unchanged.
 - **Size.** The neutrophil sprite is drawn at 0.425 of its size (half of the first version, 0.85) so a group of three does not hide the path; the health bar shrinks with it. Only the picture changes: the blocking reach (14) is unchanged.
+- **Seen above the enemy.** Units are drawn with `z_index = 1`, above the enemies: at half size and 8 units ahead the unit was hidden behind the enemy sprite (32 px) and its attack could not be seen. It now stops 12 units ahead (blocking still works up to 14).
+- **One animation per hit.** The unit plays `attack` when its hit lands (every second), faces the enemy and goes back to `idle` when the animation ends.

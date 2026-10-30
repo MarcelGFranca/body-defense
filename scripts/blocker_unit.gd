@@ -13,8 +13,8 @@ const ENEMY_DPS := 4.0
 ## How far along the path the unit drifts around its post while it waits, and how fast.
 const WANDER := 7.0
 const WANDER_SPEED := 1.3
-## The unit stops this far ahead of the enemy it goes to meet.
-const MEET_DISTANCE := 8.0
+## The unit stops this far ahead of the enemy it goes to meet (it must stay within REACH to block it).
+const MEET_DISTANCE := 12.0
 const SPRITE_SCALE := 0.425
 
 var offset := 0.0
@@ -39,6 +39,7 @@ var _phase := 0.0
 
 func setup(curve: Curve2D, path_offset: float, unit_health: float, unit_damage: float, radius: float, move_speed: float, health_regen: float = 0.0) -> void:
 	_curve = curve
+	z_index = 1
 	offset = path_offset
 	home_offset = path_offset
 	_home_point = curve.sample_baked(path_offset)
@@ -56,6 +57,27 @@ func setup(curve: Curve2D, path_offset: float, unit_health: float, unit_damage: 
 		_sprite.sprite_frames = frames
 		_sprite.scale = Vector2.ONE * SPRITE_SCALE
 		add_child(_sprite)
+		_sprite.play("idle")
+
+
+## Name of the animation being played, or an empty string when the unit has no sprite.
+func current_animation() -> String:
+	return String(_sprite.animation) if _sprite != null else ""
+
+
+## Plays the attack animation once, facing the enemy, then goes back to idle.
+func _play_attack(direction_x: float) -> void:
+	if _sprite == null or not _sprite.sprite_frames.has_animation("attack"):
+		return
+	if direction_x != 0.0:
+		_sprite.flip_h = direction_x < 0.0
+	_sprite.play("attack")
+	if not _sprite.animation_finished.is_connected(_back_to_idle):
+		_sprite.animation_finished.connect(_back_to_idle, CONNECT_ONE_SHOT)
+
+
+func _back_to_idle() -> void:
+	if _sprite != null:
 		_sprite.play("idle")
 
 
@@ -107,6 +129,7 @@ func fight(enemy: Enemy, delta: float) -> void:
 	if _fight_clock >= HIT_INTERVAL:
 		_fight_clock -= HIT_INTERVAL
 		enemy.take_damage(damage, "physical", "bone-marrow")
+		_play_attack(enemy.position.x - position.x)
 	queue_redraw()
 	if health <= 0.0:
 		died.emit(self)

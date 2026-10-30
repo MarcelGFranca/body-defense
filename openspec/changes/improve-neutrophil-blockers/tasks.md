@@ -10,7 +10,8 @@
 
 ## 2. Attack animation of the neutrophils
 
-- [ ] 2.1 To do
+- [x] 2.1 Play the attack animation of the neutrophil sprite each time the unit hits, facing the enemy, and verify with a test that it plays
+- [x] 2.2 Draw the unit above the enemies and stand it 12 units ahead of the enemy (was 8) so it is seen while it fights, and verify with `tools/neutrophil_screenshots`
 
 ## 3. Attack animation of the enemies against the neutrophils
 
