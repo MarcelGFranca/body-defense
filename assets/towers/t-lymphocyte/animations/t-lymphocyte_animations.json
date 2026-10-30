@@ -13,6 +13,11 @@
       "frames": 8,
       "fps": 12,
       "loop": false
+    },
+    "charge": {
+      "frames": 8,
+      "fps": 8,
+      "loop": false
     }
   }
 }

@@ -80,6 +80,7 @@ class TowerArt:
     id = ""
     idle_fps = 6
     attack_fps = 12
+    charge_fps = 8
 
     def idle_frames(self):
         raise NotImplementedError
@@ -451,11 +452,29 @@ class TLymphocyte(BlobTower):
                 put(img, round(cx + dx * (1 + k * 0.12)), round(cy - 6 - k), (230, 240, 255, 255))
 
     def effect(self, f):
-        for i in (2, 3):
-            for t in range(14, 31):
-                put(f[i], t, 15 + (i - 2), WHITE if t % 2 else CYAN)
-        star(f[3], 28, 12, YELLOW, big=True)
+        # The beam itself is drawn on the map; the sprite only shows the recoil and a flash at the receptors.
+        star(f[2], 27, 13, YELLOW, big=True)
+        star(f[3], 26, 13, WHITE, big=True)
+        dots(f[3], ((29, 9), (30, 15), (28, 19)), CYAN)
         dots(f[4], ((26, 10), (28, 18), (24, 22)), CYAN)
+
+    def charge_frames(self):
+        """Eight frames of gathering energy: sparks fly into the nucleus, which glows brighter until the shot."""
+        frames = []
+        for i in range(8):
+            k = i / 7.0
+            img = self.render(cy=17 + 0.8 * k, rx=10 + 0.6 * k, ry=10 - 0.6 * k, eyes="angry" if i >= 2 else "open",
+                              mouth="flat" if i >= 2 else "smile", glow=0.45 * k)
+            for x, y in disc(16, 22, 0.8 + 2.6 * k):
+                put(img, x, y, WHITE if i >= 5 else CYAN)
+            for n in range(4):
+                a = n * math.pi / 2 + 0.6 + i * 0.35
+                r = 15.0 - 9.5 * k
+                put(img, round(16 + r * math.cos(a)), round(22 + r * 0.8 * math.sin(a)), CYAN if i < 6 else WHITE)
+            if i >= 6:
+                ring_solid(img, 16, 22, 5 + (i - 6), CYAN, skip=2)
+            frames.append(img)
+        return frames
 
 
 class BLymphocyte(BlobTower):

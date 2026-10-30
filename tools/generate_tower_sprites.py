@@ -25,6 +25,8 @@ def generate(art):
         "idle": (art.idle_frames(), art.idle_fps, True),
         "attack": (art.attack_frames(), art.attack_fps, False),
     }
+    if hasattr(art, "charge_frames"):
+        animations["charge"] = (art.charge_frames(), art.charge_fps, False)
     animations["idle"][0][0].save(os.path.join(ROOT, f"{art.id}.png"))
     meta = {"frame_size": [SIZE, SIZE], "animations": {}}
     rows = []

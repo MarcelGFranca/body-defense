@@ -16,6 +16,8 @@ extends Resource
 @export var range_px: float = 80.0
 @export var attack_damage: float = 0.0
 @export var attack_interval: float = 1.0
+## Width in map units of the beam of a "single_target" tower that charges before it fires. 0 draws the thin flash line.
+@export var beam_width: float = 0.0
 @export var slow_percent: float = 0.0
 ## For "slow_puddle" towers: size and lifetime of the mucus left on the ground.
 @export var puddle_radius: float = 0.0

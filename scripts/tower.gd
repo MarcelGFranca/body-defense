@@ -41,6 +41,7 @@ var _settling := 0.0
 var _units: Array[BlockerUnit] = []
 ## Enemies this tower is holding: {"enemy": Enemy, "age": seconds since it was caught}.
 var _holds: Array[Dictionary] = []
+var _beam: TowerBeam
 
 
 func setup(tower_data: TowerData, slot: int, level: Level) -> void:
@@ -61,6 +62,10 @@ func setup(tower_data: TowerData, slot: int, level: Level) -> void:
 		add_child(sprite)
 	else:
 		_missing_art = true
+	if data.beam_width > 0.0:
+		_beam = TowerBeam.new()
+		_beam.setup(data.beam_width)
+		add_child(_beam)
 	if data.behavior == "root_aura":
 		var tendrils := RootTendrils.new()
 		tendrils.setup(self)
@@ -115,9 +120,22 @@ func play_attack(direction_x: float = 0.0) -> void:
 		_sprite.flip_h = direction_x < 0.0
 	if _on_attack_done.is_valid() and _sprite.animation_finished.is_connected(_on_attack_done):
 		_sprite.animation_finished.disconnect(_on_attack_done)
+	_sprite.speed_scale = 1.0
 	_sprite.play("attack")
-	_on_attack_done = func() -> void: _sprite.play("idle")
+	_on_attack_done = _after_attack
 	_sprite.animation_finished.connect(_on_attack_done, CONNECT_ONE_SHOT)
+
+
+## A tower with a charging animation spends the rest of its interval charging, then waits fully charged.
+func _after_attack() -> void:
+	var frames := _sprite.sprite_frames
+	if not frames.has_animation("charge"):
+		_sprite.play("idle")
+		return
+	var attack_seconds := frames.get_frame_count("attack") / frames.get_animation_speed("attack")
+	var charge_seconds := frames.get_frame_count("charge") / frames.get_animation_speed("charge")
+	_sprite.speed_scale = charge_seconds / maxf(data.attack_interval - attack_seconds, 0.1)
+	_sprite.play("charge")
 
 
 ## Stops the tower for a while. Lymphocytes (mobile towers) stay disabled twice as long.
@@ -164,6 +182,8 @@ func _step_single_target(delta: float) -> void:
 	_cooldown = data.attack_interval
 	_flash = FLASH_SECONDS
 	_flash_target = target.position - position
+	if _beam != null:
+		_beam.fire(_flash_target)
 	play_attack(_flash_target.x)
 	GameAudio.play_sfx(data.sound_attack)
 
@@ -230,13 +250,14 @@ func _update_holds(delta: float) -> void:
 		hold["age"] = float(hold["age"]) + delta
 
 
-## Sticks the enemies in range that are ready to be rooted, the ones furthest along the path first, up to
-## `root_targets` at the same time; the tower reacts once per release.
+## Sends a tendril to each enemy in range that is ready to be rooted, the ones furthest along the path first,
+## up to `root_targets` held at the same time. A tendril stays until its enemy is free; only a new send
+## makes the tower animate and play its sound (once per step, however many tendrils it sends).
 func _step_root_aura() -> void:
 	var free := data.root_targets - _holds.size()
 	if free <= 0:
 		return
-	var released := false
+	var sent := false
 	var targets := _enemies()
 	targets.sort_custom(func(a: Enemy, b: Enemy) -> bool: return a.progress > b.progress)
 	for enemy: Enemy in targets:
@@ -244,11 +265,12 @@ func _step_root_aura() -> void:
 			break
 		if enemy.status.apply_root(str(get_instance_id()), data.root_seconds, data.root_cooldown):
 			free -= 1
-			GameAudio.play_sfx(data.sound_attack)
 			_holds.append({"enemy": enemy, "age": 0.0})
-			if not released:
-				released = true
+			if not sent:
+				sent = true
 				play_attack(enemy.position.x - position.x)
+	if sent:
+		GameAudio.play_sfx(data.sound_attack)
 
 
 func _step_dot_aura() -> void:
@@ -329,7 +351,7 @@ func _draw() -> void:
 		var fraction := _pulse_age / PULSE_SECONDS
 		var color: Color = PULSE_COLORS.get(data.damage_type, Color.WHITE)
 		draw_arc(Vector2.ZERO, data.range_px * fraction, 0.0, TAU, 48, Color(color, 0.8 * (1.0 - fraction)), 3.0)
-	if _flash > 0.0:
+	if _flash > 0.0 and _beam == null:
 		draw_line(Vector2.ZERO, _flash_target, Color("ffb3c7"), 3.0)
 	if _disabled_for > 0.0 or _settling > 0.0:
 		draw_circle(Vector2.ZERO, 14.0, Color(0, 0, 0, 0.45))

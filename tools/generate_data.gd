@@ -55,8 +55,8 @@ const TOWERS := [
 		"behavior": "single_target", "range": 80, "damage": 5, "interval": 0.4},
 	{"id": "mucus-cell", "ability": "Throws mucus at the first enemy. The puddle slows enemies by 40% for 6 s.", "name": "Mucus Cell", "role": "slow", "damage_type": "none", "cost": 40, "mobility": "fixed",
 		"proto": true, "behavior": "slow_puddle", "range": 90, "interval": 3.0, "slow": 40, "puddle_radius": 24, "puddle_seconds": 6.0},
-	{"id": "platelet", "ability": "Holds up to 3 enemies in place for 1.2 s each. Bosses are held for half the time.", "name": "Platelet", "role": "root", "damage_type": "none", "cost": 55, "mobility": "fixed",
-		"behavior": "root_aura", "range": 80, "root": 1.2, "root_cooldown": 3.0, "root_targets": 3},
+	{"id": "platelet", "ability": "Holds up to 3 enemies in place for 3 s each. Bosses are held for half the time.", "name": "Platelet", "role": "root", "damage_type": "none", "cost": 55, "mobility": "fixed",
+		"behavior": "root_aura", "range": 80, "root": 3.0, "root_cooldown": 3.0, "root_targets": 3},
 	{"id": "hypothalamus", "ability": "Fever: burns enemies for 3 damage per second during 4 s.", "name": "Hypothalamus", "role": "damage over time", "damage_type": "thermal", "cost": 90, "mobility": "fixed",
 		"behavior": "dot_aura", "range": 85, "dot": 3, "dot_seconds": 4},
 	{"id": "lysozyme", "ability": "Dissolves bacteria. Strong against bacteria, weak against viruses.", "name": "Lysozyme", "role": "area", "damage_type": "chemical", "cost": 70, "mobility": "fixed",
@@ -64,8 +64,8 @@ const TOWERS := [
 	{"id": "interferon", "ability": "Antiviral pulse that also slows viruses by 25%. Bacteria are immune.", "name": "Interferon", "role": "area", "damage_type": "antiviral", "cost": 70, "mobility": "fixed",
 		"proto": true, "behavior": "damage_aura", "range": 85, "damage": 5, "interval": 1.0, "slow": 25,
 		"mist": Color(0.7, 0.95, 1.0)},
-	{"id": "t-lymphocyte", "ability": "Hits one enemy at a time and ignores armor. It moves.", "name": "T Lymphocyte", "role": "single-target", "damage_type": "immunological", "cost": 90, "mobility": "mobile",
-		"behavior": "single_target", "range": 100, "damage": 55, "interval": 2.0},
+	{"id": "t-lymphocyte", "ability": "Charges, then fires a thick beam that explodes on one enemy. Ignores armor. It moves.", "name": "T Lymphocyte", "role": "single-target", "damage_type": "immunological", "cost": 90, "mobility": "mobile",
+		"behavior": "single_target", "range": 100, "damage": 55, "interval": 2.0, "beam": 14},
 	{"id": "b-lymphocyte", "ability": "Releases antibodies that mark up to 4 enemies: 35% more damage for 5 s. It moves.", "name": "B Lymphocyte", "role": "summoner", "damage_type": "antiviral", "cost": 70, "mobility": "mobile",
 		"behavior": "summon_marker", "range": 100, "damage": 6, "interval": 3.5, "mark": 0.35, "mark_seconds": 5.0, "mark_targets": 4},
 	{"id": "bone-marrow", "ability": "Creates up to 3 neutrophils that block enemies.", "name": "Bone Marrow", "role": "summoner", "damage_type": "physical", "cost": 90, "mobility": "fixed",
@@ -351,6 +351,7 @@ func _save_tower(row: Dictionary) -> void:
 	t.root_seconds = float(row.get("root", 0))
 	t.root_cooldown = float(row.get("root_cooldown", 0))
 	t.root_targets = int(row.get("root_targets", 0))
+	t.beam_width = float(row.get("beam", 0))
 	t.dot_damage = float(row.get("dot", 0))
 	t.dot_seconds = float(row.get("dot_seconds", 0))
 	t.mark_bonus = float(row.get("mark", 0))

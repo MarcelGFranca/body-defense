@@ -504,12 +504,26 @@ func test_level_simulation() -> void:
 	check(level.towers[2].current_animation() == "attack", "the interferon plays its attack animation when it pulses")
 	free_node(level)
 
+	level = level_with_tower("t-lymphocyte")
+	var caster: Tower = level.towers[2]
+	check(caster.current_animation() == "idle", "the T lymphocyte starts out ready, idling")
+	spawn_at(level, "rhinovirus", 850.0)
+	level.step(0.05)
+	check(caster.current_animation() == "attack" and caster._beam.is_active(), "the T lymphocyte fires a beam with an explosion")
+	caster._after_attack()
+	check(caster.current_animation() == "charge", "after firing the T lymphocyte charges")
+	check(is_equal_approx(caster._sprite.speed_scale, 1.0 / (2.0 - 8.0 / 12.0)), "the charge lasts until the next shot")
+	free_node(level)
+
 	level = level_with_tower("platelet")
 	spawn_at(level, "rhinovirus", 850.0)
 	level.step(0.05)
 	check(level.towers[2].current_animation() == "attack", "the platelet plays its attack animation when it roots an enemy")
 	check(level.towers[2].holds().size() == 1, "the platelet holds the rooted enemy with tendrils")
 	for i in 25:
+		level.step(0.1)
+	check(level.towers[2].holds().size() == 1, "the tendril stays for the whole 3 s of the hold")
+	for i in 10:
 		level.step(0.1)
 	check(level.towers[2].holds().is_empty(), "the tendrils are gone once the enemy is free")
 	free_node(level)
@@ -519,6 +533,16 @@ func test_level_simulation() -> void:
 		spawn_at(level, "rhinovirus", 850.0 + i * 3.0)
 	level.step(0.05)
 	check(level.towers[2].holds().size() == 3, "the platelet holds at most 3 enemies at once (one tendril each)")
+	var furthest: Enemy = level.enemies[0]
+	for candidate: Enemy in level.enemies:
+		if candidate.progress > furthest.progress:
+			furthest = candidate
+	check(furthest.status.is_rooted(), "the platelet holds the enemy that has walked the furthest")
+	GameAudio.record = true
+	GameAudio.reset()
+	level.step(0.05)
+	check(GameAudio.play_log.is_empty(), "the platelet makes no sound while it only holds its enemies")
+	GameAudio.record = false
 	free_node(level)
 
 	level = level_with_tower("lysozyme")
