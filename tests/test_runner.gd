@@ -1356,6 +1356,21 @@ func test_menu_and_results() -> void:
 	Session.load_progress()
 	menu.find_child("BackButton", true, false).pressed.emit()
 	await get_tree().process_frame
+	menu.find_child("TutorialButton", true, false).pressed.emit()
+	await get_tree().process_frame
+	check(menu.find_child("Tutorial", true, false) != null and menu.find_child("TutorialTitle", true, false).text == TutorialPages.PAGES[0]["title"], "the tutorial opens on its first page")
+	check(menu.find_child("TutorialBack", true, false).disabled, "the first tutorial page has no back")
+	menu.find_child("TutorialNext", true, false).pressed.emit()
+	await get_tree().process_frame
+	check(menu.find_child("TutorialCounter", true, false).text == "2/%d" % TutorialPages.PAGES.size(), "next shows the second page")
+	for i in TutorialPages.PAGES.size() - 1:
+		menu.find_child("TutorialNext", true, false).pressed.emit()
+		await get_tree().process_frame
+	check(menu.find_child("Tutorial", true, false) == null, "the last page closes the tutorial")
+	var mentions_amino := false
+	for page in TutorialPages.PAGES:
+		mentions_amino = mentions_amino or String(page["text"]).contains("Amino acids are the building blocks")
+	check(mentions_amino, "the tutorial explains what amino acids are for")
 	var fps_label: FpsCounter = menu.find_child("FpsCounter", true, false)
 	Session.all_levels_open = false
 	fps_label._process(1.0)

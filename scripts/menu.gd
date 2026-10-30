@@ -22,6 +22,7 @@ var _scroll: ScrollContainer
 var _detail: Control
 
 var _settings: Control
+var _tutorial: Control
 var _reset_armed := false
 var _taps: Array[String] = []
 var _levels: Array[LevelData] = []
@@ -92,9 +93,14 @@ func _build() -> void:
 	_list.add_theme_constant_override("separation", 14)
 	_scroll.add_child(_list)
 
+	var tutorial := _button("HOW TO PLAY", Vector2(300, 72), 16)
+	tutorial.name = "TutorialButton"
+	tutorial.position = Vector2(40, 1150)
+	tutorial.pressed.connect(_open_tutorial.bind(0))
+	add_child(tutorial)
 	var settings := _button("SETTINGS", Vector2(300, 72), 16)
 	settings.name = "SettingsButton"
-	settings.position = Vector2(210, 1150)
+	settings.position = Vector2(380, 1150)
 	settings.pressed.connect(_open_settings)
 	add_child(settings)
 	var version := _label("V%s" % ProjectSettings.get_setting("application/config/version", "0"), 10, COLOR_DIM)
@@ -270,9 +276,70 @@ func _add_enemy_row(panel: Control, data: LevelData, at: Vector2) -> void:
 		x += 76.0
 
 
+## The tutorial: one page of TutorialPages at a time, with buttons to go back, forward and close.
+func _open_tutorial(index: int) -> void:
+	_close_detail()
+	_close_settings()
+	_close_tutorial()
+	var pages := TutorialPages.PAGES
+	index = clampi(index, 0, pages.size() - 1)
+	_tutorial = Control.new()
+	_tutorial.name = "Tutorial"
+	_tutorial.size = SCREEN
+	add_child(_tutorial)
+	var dim := ColorRect.new()
+	dim.color = Color(0, 0, 0, 0.7)
+	dim.size = SCREEN
+	_tutorial.add_child(dim)
+	var panel := _panel(Rect2(40, 140, 640, 940))
+	_tutorial.add_child(panel)
+	var heading := _label(pages[index]["title"], 28, COLOR_GOLD)
+	heading.name = "TutorialTitle"
+	heading.position = Vector2(30, 36)
+	heading.size = Vector2(580, 40)
+	panel.add_child(heading)
+	var counter := _label("%d/%d" % [index + 1, pages.size()], 16, COLOR_DIM)
+	counter.name = "TutorialCounter"
+	counter.position = Vector2(30, 90)
+	counter.size = Vector2(580, 22)
+	panel.add_child(counter)
+	var text := _label(pages[index]["text"], 18, Color("d9cce6"))
+	text.name = "TutorialText"
+	text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	text.position = Vector2(30, 140)
+	text.size = Vector2(580, 560)
+	text.add_theme_constant_override("line_spacing", 10)
+	panel.add_child(text)
+	var back := _button("BACK", Vector2(280, MIN_TAP), 22)
+	back.name = "TutorialBack"
+	back.position = Vector2(30, 720)
+	back.disabled = index == 0
+	back.pressed.connect(_open_tutorial.bind(index - 1))
+	panel.add_child(back)
+	var last := index == pages.size() - 1
+	var forward := _button("DONE" if last else "NEXT", Vector2(280, MIN_TAP), 22)
+	forward.name = "TutorialNext"
+	forward.position = Vector2(330, 720)
+	forward.pressed.connect(_close_tutorial if last else _open_tutorial.bind(index + 1))
+	panel.add_child(forward)
+	var close := _button("CLOSE", Vector2(580, MIN_TAP), 22)
+	close.name = "TutorialClose"
+	close.position = Vector2(30, 824)
+	close.pressed.connect(_close_tutorial)
+	panel.add_child(close)
+
+
+func _close_tutorial() -> void:
+	if _tutorial != null:
+		remove_child(_tutorial)
+		_tutorial.queue_free()
+		_tutorial = null
+
+
 ## The settings page: the difficulty, the sound, and a way to start over.
 func _open_settings() -> void:
 	_close_detail()
+	_close_tutorial()
 	_close_settings()
 	_reset_armed = false
 	_settings = Control.new()
