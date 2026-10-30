@@ -4,7 +4,7 @@ On a Samsung S24 FE the launcher mask cut into the icon text: the adaptive foreg
 
 ## What Changes
 
-- tools/generate_icon.py draws the original icon design (macrophage, bolt, virus, BODY DEFENSE) inside 134 px of the centre
+- tools/generate_icon.py draws the original icon design (macrophage, bolt, virus, BODY DEFENSE) inside 142 px of the centre (icon 15% bigger after review)
 - Same picture, bigger, for the legacy 512 px icon
 - design/icon-options/safe_zone_preview.png shows it under circle and rounded-square masks
 - docs/development.md lists the screen, panel and icon sizes

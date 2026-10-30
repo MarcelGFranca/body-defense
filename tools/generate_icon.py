@@ -17,7 +17,7 @@ from PIL import Image, ImageDraw, ImageFont
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
 ASSETS = os.path.join(ROOT, "assets")
 LAYER = 432
-SAFE_RADIUS = 134  # a little inside the 144 px (288 px circle) that Android guarantees
+SAFE_RADIUS = 142  # a little inside the 144 px (288 px circle) that Android guarantees
 FONT = ImageFont.truetype(os.path.join(ASSETS, "fonts", "PressStart2P-Regular.ttf"), 8)
 OUTLINE = (43, 27, 58, 255)
 BG = (58, 31, 43, 255)
@@ -55,7 +55,7 @@ def sprite(path, size, flip=False):
     return img.resize((size, size), Image.NEAREST)
 
 
-def foreground(scale=1.1):
+def foreground(scale=1.265):
     """The characters and the title on a transparent 432 px layer, scaled around the centre."""
     layer = Image.new("RGBA", (LAYER, LAYER), (0, 0, 0, 0))
     hero = 64
@@ -125,7 +125,7 @@ def main():
     front.save(os.path.join(icon_dir, "adaptive_foreground.png"))
     # the legacy icon (phones before Android 8, and the store) is the same picture on the rays, a bit bigger
     legacy = rays(LAYER, 8)
-    legacy.alpha_composite(foreground(1.25))
+    legacy.alpha_composite(foreground(1.44))
     legacy.resize((512, 512), Image.NEAREST).save(os.path.join(icon_dir, "icon.png"))
     out_dir = os.path.join(ROOT, "design", "icon-options")
     os.makedirs(out_dir, exist_ok=True)
