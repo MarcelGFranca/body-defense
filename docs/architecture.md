@@ -7,7 +7,7 @@ splash.tscn (game/splash.gd) -- 5 s Apolo Software logo, then the menu
 menu.tscn (game/menu.gd)  -- pick level --> Session.current_level
 main.tscn (game/main.gd)  -- builds Level + Hud for that level and the chosen difficulty
 ```
-- `Menu`: level list with locks, level detail page, Tutorial (`HOW TO PLAY`, text in `TutorialPages`), Settings page (difficulty, sound: mute, music and effects volume with `VolumeBar`, reset progress), and the game version (from `application/config/version`) in small text at the bottom.
+- `Menu`: level list with locks, level detail page, Tutorial (`HOW TO PLAY`, text in `TutorialPages`), Changelog (`Changelog`, opened on the first start after an update and from Settings, `WHAT'S NEW`), Settings page (difficulty, sound: mute, music and effects volume with `VolumeBar`, reset progress), and the game version (from `application/config/version`) in small text at the bottom.
 - `Main`: reads user args (`--level N`, `--difficulty id`, `--autoplay`, `--call-waves`), creates `Level` and `Hud`, and records a victory in `Session`.
 
 ## Autoloads
@@ -72,7 +72,7 @@ The simulation has no random numbers, so a headless run at `--fixed-fps 60` give
 
 ## Save file
 
-`user://progress.cfg`: `[progress]` best health per level (a level is unlocked when the one before has a best), `[settings]` difficulty, music_volume, sfx_volume, muted. Reset keeps the difficulty.
+`user://progress.cfg`: `[progress]` best health per level (a level is unlocked when the one before has a best), `[settings]` difficulty, language, last_seen_version, music_volume, sfx_volume, muted. Reset keeps the difficulty.
 
 ## Languages
 

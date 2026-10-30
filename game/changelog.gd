@@ -1,0 +1,98 @@
+## What changed in each version, newest first. Shown once when the game opens after an update, and from the settings.
+## Add an entry for every version you release (a test fails if the current version has none).
+class_name Changelog
+extends RefCounted
+
+const ENTRIES := [
+	{
+		"version": "0.20.0",
+		"items": [
+			"New splash screen with the Apolo Software logo.",
+			"How to play: a tutorial explains the goal, amino acids, towers and controls.",
+			"Seven languages, chosen on the start screen.",
+			"Volume and mute in the settings, and music of more than three minutes in every level.",
+			"Victory and defeat tunes.",
+			"Zoom the map with two fingers.",
+			"The next wave starts 5 seconds after the field is cleared.",
+			"Tap the enemies of the next wave to see their attributes.",
+			"Amino acids count when their orbs reach the bar, and fly into new towers.",
+			"The tissue moves, and turns red with pus as the body gets hurt.",
+			"Hypothalamus and interferon animations, and colour flashes for each damage type.",
+			"Bigger text, a bigger icon and a smoother start screen scroll.",
+		],
+	},
+	{
+		"version": "0.19.0",
+		"items": [
+			"The Bone Marrow keeps making neutrophils after one dies, each neutrophil holds one enemy, and enemies strike back.",
+		],
+	},
+	{
+		"version": "0.18.0",
+		"items": [
+			"Neutrophils play an attack animation and are drawn above the enemies.",
+		],
+	},
+	{
+		"version": "0.17.0",
+		"items": [
+			"Neutrophils from the Bone Marrow roam, fight and come back every 15 seconds.",
+		],
+	},
+	{
+		"version": "0.16.0",
+		"items": [
+			"Enemies marked by the B lymphocyte change colour.",
+			"The game version is shown on the start screen.",
+		],
+	},
+	{
+		"version": "0.15.0",
+		"items": [
+			"The T lymphocyte charges and fires a thick beam with an explosion.",
+			"The platelet holds up to 3 enemies.",
+		],
+	},
+	{
+		"version": "0.14.0",
+		"items": [
+			"Area attacks are visible: lysozyme rings, and platelet tendrils that hold enemies.",
+		],
+	},
+	{
+		"version": "0.13.0",
+		"items": [
+			"Hold a build card or a tower to see its attributes and which enemies it is good against.",
+		],
+	},
+	{
+		"version": "0.10",
+		"items": [
+			"A tidier start screen header.",
+		],
+	},
+	{
+		"version": "0.9",
+		"items": [
+			"Three difficulties (easy, medium and hard) and a balance pass on every level.",
+		],
+	},
+	{
+		"version": "0.7",
+		"items": [
+			"Levels 2 to 10 with new enemies, new towers, a level menu and saved progress.",
+		],
+	},
+	{
+		"version": "0.5",
+		"items": [
+			"A music loop for the level and a game icon.",
+		],
+	},
+	{
+		"version": "0.1",
+		"items": [
+			"First playable version: the throat level with its towers, enemies, sounds and music.",
+		],
+	},
+]

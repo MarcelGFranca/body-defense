@@ -20,6 +20,8 @@ var save_path := SAVE_PATH
 var difficulty := "medium"
 ## A code from Localization.LANGUAGES, chosen on the start screen and saved on the device.
 var language := "en"
+## The version whose changelog the player has already seen; a different one opens the changelog on start.
+var last_seen_version := ""
 ## Set by the secret tap code in the menu. It is not saved: it lasts until the game is closed.
 var all_levels_open := false
 ## The secret tap code also turns on the debug aids (the FPS readout).
@@ -55,6 +57,20 @@ func set_difficulty(id: String) -> void:
 	difficulty = id
 	save_progress()
 	progress_changed.emit()
+
+
+func current_version() -> String:
+	return String(ProjectSettings.get_setting("application/config/version", "0"))
+
+
+## True the first time the game opens after an update. A fresh install has nothing new to read.
+func should_show_changelog() -> bool:
+	return last_seen_version != current_version()
+
+
+func mark_changelog_seen() -> void:
+	last_seen_version = current_version()
+	save_progress()
 
 
 func set_language(code: String) -> void:
@@ -109,6 +125,7 @@ func save_progress() -> void:
 		file.set_value("best_health", str(number), int(best_health[number]))
 	file.set_value("settings", "difficulty", difficulty)
 	file.set_value("settings", "language", language)
+	file.set_value("settings", "last_seen_version", last_seen_version)
 	file.set_value("settings", "music_volume", GameAudio.music_volume)
 	file.set_value("settings", "sfx_volume", GameAudio.sfx_volume)
 	file.set_value("settings", "muted", GameAudio.muted)
@@ -119,12 +136,14 @@ func load_progress() -> void:
 	best_health.clear()
 	difficulty = "medium"
 	language = "en"
+	last_seen_version = current_version()
 	GameAudio.set_music_volume(1.0)
 	GameAudio.set_sfx_volume(1.0)
 	GameAudio.set_muted(false)
 	var file := ConfigFile.new()
 	if file.load(save_path) != OK:
 		return
+	last_seen_version = String(file.get_value("settings", "last_seen_version", ""))
 	var saved_language := String(file.get_value("settings", "language", "en"))
 	language = saved_language if Localization.is_supported(saved_language) else "en"
 	GameAudio.set_music_volume(float(file.get_value("settings", "music_volume", 1.0)))

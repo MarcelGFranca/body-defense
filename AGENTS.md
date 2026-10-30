@@ -25,6 +25,7 @@ Read this file first, then the doc that matches your task:
 - Tests must pass before you finish: `godot --headless --path . --fixed-fps 60 res://tests/test_runner.tscn` (expected: `0 failures`).
 - After adding or changing assets or scripts run `godot --headless --path . --import`.
 - `build/` and `.godot/` are ignored. The debug APK goes to `build/body-defense-debug.apk`; raise the version in `export_presets.cfg` for every new build (SemVer name, numeric code: see `docs/development.md`).
+- Every release adds an entry to `game/changelog.gd` (and its translations): the game shows it after an update and in Settings.
 - Use `openspec/` for planned work: one change per feature, with `proposal.md`, `design.md`, `tasks.md` and spec deltas.
 
 ## Quick commands

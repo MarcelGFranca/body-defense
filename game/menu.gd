@@ -26,6 +26,7 @@ var _detail: Control
 var _settings: Control
 var _tutorial: Control
 var _languages: Control
+var _changelog: Control
 ## Dragging the level list: the buttons inside it swallow touches, so the menu scrolls it by hand.
 var _press_in_list := false
 var _dragging := false
@@ -128,6 +129,8 @@ func _build() -> void:
 	# Start with the level to play next in view.
 	var next := Session.next_to_play()
 	call_deferred("_scroll_to", next)
+	if Session.should_show_changelog():
+		call_deferred("_open_changelog")
 
 
 ## Drag scrolling for the level list. A drag past DRAG_THRESHOLD scrolls and cancels the tap on the card under the finger.
@@ -136,7 +139,7 @@ func _input(event: InputEvent) -> void:
 		return
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
 		if event.pressed:
-			_press_in_list = _detail == null and _settings == null and _tutorial == null and _scroll.get_global_rect().has_point(event.position)
+			_press_in_list = _detail == null and _settings == null and _tutorial == null and _languages == null and _changelog == null and _scroll.get_global_rect().has_point(event.position)
 			_dragging = false
 			_drag_travel = 0.0
 	elif event is InputEventMouseMotion and _press_in_list and (event.button_mask & MOUSE_BUTTON_MASK_LEFT) != 0:
@@ -311,6 +314,7 @@ func _add_enemy_row(panel: Control, data: LevelData, at: Vector2) -> void:
 ## The tutorial: one page of TutorialPages at a time, with buttons to go back, forward and close.
 func _open_tutorial(index: int) -> void:
 	_close_detail()
+	_close_changelog()
 	_close_settings()
 	_close_languages()
 	_close_tutorial()
@@ -365,6 +369,7 @@ func _open_tutorial(index: int) -> void:
 ## The language page: one button per language, each written in its own language.
 func _open_languages() -> void:
 	_close_detail()
+	_close_changelog()
 	_close_settings()
 	_close_tutorial()
 	_close_languages()
@@ -402,6 +407,64 @@ func _open_languages() -> void:
 	panel.add_child(back)
 
 
+## The changelog: every version, newest first, in a scrolling list. Closing it marks the current version as seen.
+func _open_changelog() -> void:
+	_close_detail()
+	_close_settings()
+	_close_tutorial()
+	_close_languages()
+	_close_changelog()
+	_changelog = Control.new()
+	_changelog.name = "Changelog"
+	_changelog.size = SCREEN
+	add_child(_changelog)
+	var dim := ColorRect.new()
+	dim.color = Color(0, 0, 0, 0.7)
+	dim.size = SCREEN
+	_changelog.add_child(dim)
+	var panel := _panel(Rect2(40, 100, 640, 1080))
+	_changelog.add_child(panel)
+	var heading := _label(tr("WHAT'S NEW"), 30, COLOR_GOLD)
+	heading.position = Vector2(30, 30)
+	heading.size = Vector2(580, 40)
+	panel.add_child(heading)
+	var scroll := ScrollContainer.new()
+	scroll.name = "ChangelogScroll"
+	scroll.position = Vector2(30, 100)
+	scroll.size = Vector2(580, 840)
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
+	panel.add_child(scroll)
+	var list := VBoxContainer.new()
+	list.add_theme_constant_override("separation", 10)
+	scroll.add_child(list)
+	for entry in Changelog.ENTRIES:
+		var version := _label("V%s" % entry["version"], 22, COLOR_BORDER)
+		version.custom_minimum_size = Vector2(560, 34)
+		list.add_child(version)
+		for item: String in entry["items"]:
+			var line := _label("- %s" % tr(item), 18, Color("d9cce6"))
+			line.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			line.custom_minimum_size = Vector2(560, 0)
+			list.add_child(line)
+		var gap := Control.new()
+		gap.custom_minimum_size = Vector2(0, 16)
+		list.add_child(gap)
+	var close := _button(tr("CLOSE"), Vector2(580, MIN_TAP), 22)
+	close.name = "ChangelogClose"
+	close.position = Vector2(30, 956)
+	close.pressed.connect(_close_changelog)
+	panel.add_child(close)
+
+
+func _close_changelog() -> void:
+	if _changelog != null:
+		remove_child(_changelog)
+		_changelog.queue_free()
+		_changelog = null
+		Session.mark_changelog_seen()
+
+
 func _close_languages() -> void:
 	if _languages != null:
 		remove_child(_languages)
@@ -419,6 +482,7 @@ func _close_tutorial() -> void:
 ## The settings page: the difficulty, the sound, and a way to start over.
 func _open_settings() -> void:
 	_close_detail()
+	_close_changelog()
 	_close_tutorial()
 	_close_languages()
 	_close_settings()
@@ -431,7 +495,7 @@ func _open_settings() -> void:
 	dim.color = Color(0, 0, 0, 0.7)
 	dim.size = SCREEN
 	_settings.add_child(dim)
-	var panel := _panel(Rect2(60, 100, 600, 1080))
+	var panel := _panel(Rect2(60, 40, 600, 1200))
 	panel.name = "SettingsPanel"
 	_settings.add_child(panel)
 	var heading := _label(tr("SETTINGS"), 34, COLOR_TEXT)
@@ -474,9 +538,14 @@ func _open_settings() -> void:
 		Session.reset_progress()
 		_open_settings())
 	panel.add_child(reset)
+	var news := _button(tr("WHAT'S NEW"), Vector2(540, MIN_TAP), 20)
+	news.name = "ChangelogButton"
+	news.position = Vector2(30, 956)
+	news.pressed.connect(_open_changelog)
+	panel.add_child(news)
 	var back := _button(tr("BACK"), Vector2(540, MIN_TAP), 22)
 	back.name = "BackButton"
-	back.position = Vector2(30, 956)
+	back.position = Vector2(30, 1060)
 	back.pressed.connect(_close_settings)
 	panel.add_child(back)
 

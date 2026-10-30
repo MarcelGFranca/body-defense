@@ -22,6 +22,7 @@ func _ready() -> void:
 
 func _run() -> void:
 	Localization.apply("en")
+	Session.last_seen_version = Session.current_version()
 	test_enemy_roster()
 	test_tower_roster()
 	test_level_data()
@@ -45,12 +46,14 @@ func _run() -> void:
 	await test_splash()
 	test_localization()
 	test_icon_safe_zone()
+	await test_changelog_menu()
+	test_changelog()
 	test_campaign_simulation()
 	for section in ["test_enemy_roster", "test_tower_roster", "test_level_data", "test_validator_catches_problems",
 			"test_damage_calculator", "test_status_effects", "test_wave_scheduler", "test_economy",
 			"test_level_simulation", "test_scrolling", "test_speed_and_pause", "test_hud", "test_audio",
 			"test_difficulty", "test_stats", "test_campaign_data", "test_enemy_traits", "test_new_towers", "test_session", "test_menu_and_results",
-			"test_splash", "test_localization", "test_campaign_simulation"]:
+			"test_splash", "test_localization", "test_changelog", "test_changelog_menu", "test_campaign_simulation"]:
 		if not _done.has(section):
 			_failures += 1
 			printerr("FAIL: %s stopped before its end (a script error?)" % section)
@@ -1332,6 +1335,10 @@ func test_localization() -> void:
 		for text in [page["title"]] + page["paragraphs"]:
 			if not keys.has(text):
 				missing.append(text)
+	for entry in Changelog.ENTRIES:
+		for item: String in entry["items"]:
+			if not keys.has(item):
+				missing.append(item)
 	# the texts stored in data
 	for dir in ["enemies", "towers", "levels", "difficulties"]:
 		for data_file in DirAccess.get_files_at("res://data/" + dir):
@@ -1354,6 +1361,57 @@ func test_localization() -> void:
 
 
 ## The adaptive icon is masked by the launcher: its picture must stay inside the central circle Android guarantees.
+func test_changelog_menu() -> void:
+	var save := Session.save_path
+	Session.save_path = "user://test_progress.cfg"
+	Session.last_seen_version = "0.19.0"
+	var menu: Control = load("res://game/menu.tscn").instantiate()
+	get_tree().root.add_child(menu)
+	await get_tree().process_frame
+	await get_tree().process_frame
+	check(menu.find_child("Changelog", true, false) != null, "the menu opens the changelog the first time after an update")
+	var labels: Array = menu.find_child("ChangelogScroll", true, false).find_children("*", "Label", true, false)
+	check(labels.size() > Changelog.ENTRIES.size() * 2, "the changelog lists the versions and their changes")
+	check(labels.any(func(label: Label) -> bool: return label.text == "V0.1"), "the changelog lists the oldest version too")
+	menu.find_child("ChangelogClose", true, false).pressed.emit()
+	await get_tree().process_frame
+	check(menu.find_child("Changelog", true, false) == null and not Session.should_show_changelog(), "closing the changelog marks the version as seen")
+	menu._open_settings()
+	await get_tree().process_frame
+	menu.find_child("ChangelogButton", true, false).pressed.emit()
+	await get_tree().process_frame
+	check(menu.find_child("Changelog", true, false) != null and menu.find_child("Settings", true, false) == null, "the settings open the changelog at any time")
+	free_node(menu)
+	DirAccess.remove_absolute(ProjectSettings.globalize_path("user://test_progress.cfg"))
+	Session.save_path = save
+	Session.load_progress()
+	Session.last_seen_version = Session.current_version()
+	done("test_changelog_menu")
+
+
+func test_changelog() -> void:
+	check(Changelog.ENTRIES[0]["version"] == Session.current_version(), "the changelog starts with the current version (add an entry for every release)")
+	var versions: Array = Changelog.ENTRIES.map(func(entry: Dictionary) -> String: return entry["version"])
+	check(versions.size() >= 12 and versions[versions.size() - 1] == "0.1", "the changelog covers every version since 0.1")
+	check(versions.size() == Dictionary(versions.reduce(func(seen: Dictionary, v: String) -> Dictionary: seen[v] = true; return seen, {})).size(), "no version is listed twice")
+	var save := Session.save_path
+	Session.save_path = "user://test_progress.cfg"
+	DirAccess.remove_absolute(ProjectSettings.globalize_path("user://test_progress.cfg"))
+	Session.load_progress()
+	check(not Session.should_show_changelog(), "a fresh install has nothing new to read")
+	Session.last_seen_version = "0.19.0"
+	Session.save_progress()
+	Session.load_progress()
+	check(Session.should_show_changelog(), "an update opens the changelog")
+	Session.mark_changelog_seen()
+	Session.load_progress()
+	check(not Session.should_show_changelog(), "the changelog is seen once per version")
+	DirAccess.remove_absolute(ProjectSettings.globalize_path("user://test_progress.cfg"))
+	Session.save_path = save
+	Session.load_progress()
+	done("test_changelog")
+
+
 func test_icon_safe_zone() -> void:
 	var layer := Image.load_from_file(ProjectSettings.globalize_path("res://assets/icon/adaptive_foreground.png"))
 	check(layer != null and layer.get_size() == Vector2i(432, 432), "the adaptive icon layer is 432 x 432")
