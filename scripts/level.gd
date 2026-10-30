@@ -8,6 +8,8 @@ signal victory
 signal defeat
 ## Emitted when an enemy dies, so the HUD can fly amino acid orbs to the counter.
 signal orbs_requested(world_position: Vector2, amount: int)
+## Emitted when a tower is built, so the HUD can fly amino acid orbs from the counter to it.
+signal tower_built(world_position: Vector2, cost: int)
 signal enemy_tapped(enemy: Enemy)
 signal slot_tapped(slot_index: int)
 signal tower_tapped(slot_index: int)
@@ -224,6 +226,7 @@ func build_tower(slot: int, tower_id: String) -> bool:
 	tower.setup(tower_data, slot, self)
 	towers[slot] = tower
 	_map.queue_redraw()
+	tower_built.emit(tower.position, tower_data.cost)
 	return true
 
 

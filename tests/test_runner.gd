@@ -667,8 +667,15 @@ func test_hud() -> void:
 	var orb_hud := Hud.new(orb_level)
 	get_tree().root.add_child(orb_hud)
 	await get_tree().process_frame
+	var built_signals: Array = []
+	orb_level.tower_built.connect(func(at: Vector2, cost: int) -> void: built_signals.append(cost))
+	orb_level.build_tower(1, "macrophage")
+	check(built_signals == [50], "building a tower announces its cost so amino acids can flow to it")
+	await get_tree().create_timer(1.0).timeout
+	Economy.reset(150)
 	orb_level.orbs_requested.emit(Vector2(100, 100), 7)
 	Economy.add(7)
+	await get_tree().process_frame
 	await get_tree().process_frame
 	check(orb_hud._amino_label.text == "150", "earned amino acids are not counted while their orbs fly")
 	await get_tree().create_timer(1.2).timeout

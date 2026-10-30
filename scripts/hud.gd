@@ -125,6 +125,7 @@ func _ready() -> void:
 	level.enemy_tapped.connect(_show_enemy_card)
 	level.nothing_tapped.connect(_dismiss_all)
 	level.orbs_requested.connect(_fly_orbs)
+	level.tower_built.connect(_fly_orbs_to_tower)
 	level.victory.connect(_show_result.bind(true))
 	level.defeat.connect(_show_result.bind(false))
 	level.speed_changed.connect(func(value: int) -> void: _speed_button.text = "%dX" % value)
@@ -374,6 +375,20 @@ func _fly_orbs(world_position: Vector2, amount: int) -> void:
 		tween.tween_interval(i * 0.06)
 		tween.tween_property(orb, "position", target, 0.55).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 		tween.tween_callback(_orb_arrived.bind(orb, share))
+
+
+## The cost of a new tower flows from the top bar into the tower (one orb per 20 amino acids, 2 to 6).
+func _fly_orbs_to_tower(world_position: Vector2, cost: int) -> void:
+	var count := clampi(cost / 20, 2, 6)
+	for i in count:
+		var orb := _icon("res://assets/ui/amino_acid_orb.png", Vector2(28, 28))
+		orb.position = _amino_icon.position + Vector2(randf_range(-6, 6), randf_range(-6, 6))
+		_root.add_child(orb)
+		var tween := create_tween().set_ignore_time_scale(true)
+		tween.tween_interval(i * 0.06)
+		tween.tween_property(orb, "position", level.world_to_screen(world_position) - Vector2(14, 14), 0.5).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		tween.tween_property(orb, "modulate:a", 0.0, 0.15)
+		tween.tween_callback(orb.queue_free)
 
 
 func _orb_arrived(orb: Control, share: int) -> void:
