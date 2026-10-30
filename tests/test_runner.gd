@@ -44,6 +44,7 @@ func _run() -> void:
 	await test_menu_and_results()
 	await test_splash()
 	test_localization()
+	test_icon_safe_zone()
 	test_campaign_simulation()
 	for section in ["test_enemy_roster", "test_tower_roster", "test_level_data", "test_validator_catches_problems",
 			"test_damage_calculator", "test_status_effects", "test_wave_scheduler", "test_economy",
@@ -1350,6 +1351,19 @@ func test_localization() -> void:
 	check(TranslationServer.translate("PLAY") == "PLAY", "English keeps the source text")
 	check(Localization.from_os() in Localization.codes(), "the phone language maps to a supported one")
 	done("test_localization")
+
+
+## The adaptive icon is masked by the launcher: its picture must stay inside the central circle Android guarantees.
+func test_icon_safe_zone() -> void:
+	var layer := Image.load_from_file(ProjectSettings.globalize_path("res://assets/icon/adaptive_foreground.png"))
+	check(layer != null and layer.get_size() == Vector2i(432, 432), "the adaptive icon layer is 432 x 432")
+	var centre := Vector2(215.5, 215.5)
+	var farthest := 0.0
+	for y in layer.get_height():
+		for x in layer.get_width():
+			if layer.get_pixel(x, y).a > 0.0:
+				farthest = maxf(farthest, Vector2(x, y).distance_to(centre))
+	check(farthest <= 144.0, "the icon picture stays inside the safe zone (farthest pixel %.0f px of 144)" % farthest)
 
 
 func test_splash() -> void:
