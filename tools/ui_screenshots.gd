@@ -15,6 +15,10 @@ func _ready() -> void:
 	var hud := Hud.new(level)
 	add_child(hud)
 	await _shot("1_start")
+	level.body_health = int(level.max_body_health * 0.4)
+	await get_tree().create_timer(0.4).timeout
+	await _shot("1b_infected")
+	level.body_health = level.max_body_health
 	level.slot_tapped.emit(1)
 	await _shot("2_build_menu")
 	hud._popup.get_node("BuildMenu").get_node("Card_macrophage").pressed.emit()

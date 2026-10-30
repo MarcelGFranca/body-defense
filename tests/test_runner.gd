@@ -392,6 +392,8 @@ func test_level_simulation() -> void:
 	check(level.body_health == 19, "an enemy at the exit lowers the body health by its damage")
 	check(Economy.balance() == balance_before, "an enemy that reaches the exit gives no amino acids")
 	check(not level.enemies.has(enemy), "the enemy is removed at the exit")
+	check(level._map.infection() > 0.0 and level._map.infection() < 1.0, "the tissue shows an infection once an enemy got through")
+	check(level._map._decor.size() > 0, "the tissue has shapes that move")
 	free_node(level)
 
 	level = new_level()
