@@ -38,6 +38,7 @@ var _pulse_age := -1.0
 var _pulse := 0.0
 ## How strength the mist is, from 0 (hidden) to 1; every attack refills it.
 var _mist_level := 0.0
+var _was_animated := false
 var _missing_art := false
 var _sprite: AnimatedSprite2D
 var _on_attack_done := Callable()
@@ -115,7 +116,16 @@ func step(delta: float) -> void:
 			_step_summon_marker(delta)
 		"summon_units":
 			_step_summon_units(delta)
-	queue_redraw()
+	_redraw_if_animated()
+
+
+## Redraws only while something drawn by the tower changes (aura, mist, ring, flash, shade, selection), and once more when it stops.
+func _redraw_if_animated() -> void:
+	var animated := selected or data.behavior.ends_with("_aura") or _pulse_age >= 0.0 or _flash > 0.0 \
+		or _mist_level > 0.0 or _disabled_for > 0.0 or _settling > 0.0
+	if animated or _was_animated:
+		queue_redraw()
+	_was_animated = animated
 
 
 ## Name of the animation being played, or an empty string for towers drawn as a still image.

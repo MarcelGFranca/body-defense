@@ -68,6 +68,7 @@ var _toast_tween: Tween
 var _scroll_track: Control
 ## Fingers on the map: touch index -> position, used to pinch-zoom.
 var _touches: Dictionary = {}
+var _track_clock := 0.0
 var _pressing := false
 var _dragging := false
 var _press_position := Vector2.ZERO
@@ -139,8 +140,11 @@ func _ready() -> void:
 	_refresh_values()
 
 
-func _process(_delta: float) -> void:
-	_scroll_track.queue_redraw()
+func _process(delta: float) -> void:
+	_track_clock += delta
+	if _track_clock >= 0.1:
+		_track_clock = 0.0
+		_scroll_track.queue_redraw()
 	_refresh_values()
 	_refresh_wave_info()
 	_refresh_enemy_card()
