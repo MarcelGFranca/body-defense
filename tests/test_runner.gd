@@ -41,12 +41,13 @@ func _run() -> void:
 	await test_new_towers()
 	test_session()
 	await test_menu_and_results()
+	await test_splash()
 	test_campaign_simulation()
 	for section in ["test_enemy_roster", "test_tower_roster", "test_level_data", "test_validator_catches_problems",
 			"test_damage_calculator", "test_status_effects", "test_wave_scheduler", "test_economy",
 			"test_level_simulation", "test_scrolling", "test_speed_and_pause", "test_hud", "test_audio",
 			"test_difficulty", "test_stats", "test_campaign_data", "test_enemy_traits", "test_new_towers", "test_session", "test_menu_and_results",
-			"test_campaign_simulation"]:
+			"test_splash", "test_campaign_simulation"]:
 		if not _done.has(section):
 			_failures += 1
 			printerr("FAIL: %s stopped before its end (a script error?)" % section)
@@ -1271,6 +1272,18 @@ func test_session() -> void:
 		Session.load_progress()
 		check(not Session.is_unlocked(2), "the open levels are not saved"))
 	done("test_session")
+
+
+func test_splash() -> void:
+	check(ProjectSettings.get_setting("application/run/main_scene") == "res://scenes/splash.tscn", "the game starts on the splash screen")
+	check(Splash.SECONDS == 5.0 and ResourceLoader.exists(Splash.LOGO_PATH), "the splash lasts 5 seconds and has the Apolo Software logo")
+	var splash: Control = load("res://scenes/splash.tscn").instantiate()
+	get_tree().root.add_child(splash)
+	await get_tree().process_frame
+	var texts: Array = splash.find_children("*", "Label", true, false).map(func(label: Label) -> String: return label.text)
+	check(texts == ["APOLO", "SOFTWARE"], "the splash names the company")
+	free_node(splash)
+	done("test_splash")
 
 
 func test_menu_and_results() -> void:
