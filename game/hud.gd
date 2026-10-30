@@ -151,14 +151,18 @@ func _process(delta: float) -> void:
 
 # --- layout -----------------------------------------------------------------
 
+## Extra height the top bar needs for a camera cutout. The game is centred in the window with black bars above and
+## below on tall phones, and those bars already cover the cutout: only the part of it that reaches into the game counts.
 func _safe_top() -> float:
 	if not OS.has_feature("android"):
 		return 0.0
-	var safe := DisplayServer.get_display_safe_area()
-	var window_width := DisplayServer.window_get_size().x
-	if window_width <= 0:
+	var window := Vector2(DisplayServer.window_get_size())
+	if window.x <= 0.0 or window.y <= 0.0:
 		return 0.0
-	return maxf(0.0, float(safe.position.y)) * SCREEN.x / float(window_width)
+	var scale := minf(window.x / SCREEN.x, window.y / SCREEN.y)
+	var black_bar := (window.y - SCREEN.y * scale) / 2.0
+	var cutout := maxf(0.0, float(DisplayServer.get_display_safe_area().position.y))
+	return maxf(0.0, cutout - black_bar) / scale
 
 
 func _build_top_bar() -> void:

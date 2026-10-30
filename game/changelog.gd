@@ -5,6 +5,24 @@ extends RefCounted
 
 const ENTRIES := [
 	{
+		"version": "0.22.1",
+		"items": [
+			"The top bar no longer wastes space above the title on phones with a camera cutout.",
+		],
+	},
+	{
+		"version": "0.22.0",
+		"items": [
+			"A changelog of every version, shown after each update and in the settings.",
+		],
+	},
+	{
+		"version": "0.21.0",
+		"items": [
+			"The Apolo Software logo glints with a spark and a chime on the splash screen.",
+		],
+	},
+	{
 		"version": "0.20.0",
 		"items": [
 			"New splash screen with the Apolo Software logo.",

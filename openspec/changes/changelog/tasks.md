@@ -7,3 +7,4 @@
 - [x] 1.5 a fresh install does not show it
 - [x] 1.6 A test fails when the current version has no changelog entry
 - [x] 1.7 Add tests, update docs, run the test runner (0 failures)
+- [x] Approved by the designer on 2026-10-30
