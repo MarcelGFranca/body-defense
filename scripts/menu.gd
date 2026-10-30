@@ -17,6 +17,8 @@ const COLOR_GOLD := Color("f4d35e")
 var _list: VBoxContainer
 var _scroll: ScrollContainer
 var _detail: Control
+var _settings: Control
+var _reset_armed := false
 var _levels: Array[LevelData] = []
 var _enemy_catalog: Dictionary = {}
 
@@ -84,10 +86,11 @@ func _build() -> void:
 	_list.add_theme_constant_override("separation", 14)
 	_scroll.add_child(_list)
 
-	var reset := _button("RESET PROGRESS", Vector2(300, 72), 14)
-	reset.position = Vector2(210, 1150)
-	reset.pressed.connect(func() -> void: Session.reset_progress())
-	add_child(reset)
+	var settings := _button("SETTINGS", Vector2(300, 72), 16)
+	settings.name = "SettingsButton"
+	settings.position = Vector2(210, 1150)
+	settings.pressed.connect(_open_settings)
+	add_child(settings)
 	_refresh()
 	# Start with the level to play next in view.
 	var next := Session.next_to_play()
@@ -141,7 +144,7 @@ func _level_card(data: LevelData) -> Button:
 	part.clip_text = true
 	card.add_child(part)
 	if Session.is_completed(data.number):
-		var best := _label("BEST %d/%d" % [Session.best_health[data.number], data.body_health], 14, COLOR_GOOD)
+		var best := _label("BEST %d" % Session.best_health[data.number], 14, COLOR_GOOD)
 		best.position = Vector2(132, 96)
 		best.size = Vector2(300, 20)
 		card.add_child(best)
@@ -198,7 +201,7 @@ func _open_detail(data: LevelData) -> void:
 	text.size = Vector2(540, 230)
 	text.add_theme_constant_override("line_spacing", 10)
 	panel.add_child(text)
-	var facts := _label("WAVES: %d     TOWERS: %d" % [data.waves.size(), data.tower_ids.size()], 16, COLOR_GOOD)
+	var facts := _label("WAVES: %d   TOWERS: %d   %s" % [data.waves.size(), data.tower_ids.size(), Session.difficulty.to_upper()], 14, COLOR_GOOD)
 	facts.position = Vector2(30, 400)
 	facts.size = Vector2(540, 22)
 	panel.add_child(facts)
@@ -238,8 +241,88 @@ func _add_enemy_row(panel: Control, data: LevelData, at: Vector2) -> void:
 		x += 76.0
 
 
+## The settings page: the difficulty, and a way to start over.
+func _open_settings() -> void:
+	_close_detail()
+	_close_settings()
+	_reset_armed = false
+	_settings = Control.new()
+	_settings.name = "Settings"
+	_settings.size = SCREEN
+	add_child(_settings)
+	var dim := ColorRect.new()
+	dim.color = Color(0, 0, 0, 0.7)
+	dim.size = SCREEN
+	_settings.add_child(dim)
+	var panel := _panel(Rect2(60, 230, 600, 780))
+	panel.name = "SettingsPanel"
+	_settings.add_child(panel)
+	var heading := _label("SETTINGS", 34, COLOR_TEXT)
+	heading.position = Vector2(30, 36)
+	heading.size = Vector2(540, 44)
+	panel.add_child(heading)
+	var sub := _label("DIFFICULTY", 18, COLOR_BORDER)
+	sub.position = Vector2(30, 112)
+	sub.size = Vector2(540, 24)
+	panel.add_child(sub)
+	var y := 150.0
+	for id in Session.DIFFICULTY_IDS:
+		var option: DifficultyData = Session.load_difficulty(id)
+		var button := _button(option.display_name.to_upper(), Vector2(540, MIN_TAP), 24)
+		button.name = "Difficulty_%s" % id
+		button.position = Vector2(30, y)
+		button.pressed.connect(func() -> void:
+			Session.set_difficulty(id)
+			_open_settings())
+		_mark_selected(button, Session.difficulty == id)
+		panel.add_child(button)
+		y += MIN_TAP + 14.0
+	var current: DifficultyData = Session.difficulty_data()
+	var text := _label(current.description, 16, Color("d9cce6"))
+	text.name = "DifficultyText"
+	text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	text.position = Vector2(30, y + 10.0)
+	text.size = Vector2(540, 130)
+	text.add_theme_constant_override("line_spacing", 8)
+	panel.add_child(text)
+	var reset := _button("RESET PROGRESS", Vector2(540, MIN_TAP), 20)
+	reset.name = "ResetButton"
+	reset.position = Vector2(30, 540)
+	reset.pressed.connect(func() -> void:
+		if not _reset_armed:
+			_reset_armed = true
+			reset.text = "TAP AGAIN TO CONFIRM"
+			return
+		Session.reset_progress()
+		_open_settings())
+	panel.add_child(reset)
+	var back := _button("BACK", Vector2(540, MIN_TAP), 22)
+	back.name = "BackButton"
+	back.position = Vector2(30, 660)
+	back.pressed.connect(_close_settings)
+	panel.add_child(back)
+
+
+func _close_settings() -> void:
+	if _settings != null:
+		remove_child(_settings)
+		_settings.queue_free()
+		_settings = null
+
+
+## The chosen option has a gold border and a lighter fill.
+func _mark_selected(button: Button, selected: bool) -> void:
+	for state in ["normal", "hover", "pressed", "disabled"]:
+		var style := StyleBoxFlat.new()
+		style.bg_color = Color("6a3a8f") if selected else Color("3a2552")
+		style.set_border_width_all(4)
+		style.border_color = COLOR_GOLD if selected else COLOR_BORDER
+		button.add_theme_stylebox_override(state, style)
+
+
 func _close_detail() -> void:
 	if _detail != null:
+		remove_child(_detail)
 		_detail.queue_free()
 		_detail = null
 

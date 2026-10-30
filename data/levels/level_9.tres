@@ -5,67 +5,67 @@
 
 [sub_resource type="Resource" id="Resource_cfvvt"]
 script = ExtResource("2_ksf5g")
-start_time = 5.0
+start_time = 20.0
 spawn_interval = 0.8
 entries = [{
-"count": 22,
+"count": 10,
 "enemy": "influenza"
 }, {
-"count": 13,
+"count": 6,
 "enemy": "sars-cov-2"
 }, {
-"count": 16,
+"count": 7,
 "enemy": "e-coli"
 }]
 
 [sub_resource type="Resource" id="Resource_fx7wk"]
 script = ExtResource("2_ksf5g")
-start_time = 50.0
+start_time = 65.0
 spawn_interval = 0.8
 entries = [{
-"count": 16,
+"count": 10,
 "enemy": "hpv"
 }, {
-"count": 16,
+"count": 10,
 "enemy": "herpes-simplex"
 }, {
-"count": 13,
+"count": 8,
 "enemy": "staphylococcus-aureus"
 }]
 
 [sub_resource type="Resource" id="Resource_qs7rn"]
 script = ExtResource("2_ksf5g")
-start_time = 100.0
+start_time = 115.0
 spawn_interval = 0.7
 entries = [{
-"count": 19,
+"count": 15,
 "enemy": "clostridioides-difficile"
 }, {
-"count": 16,
+"count": 12,
 "enemy": "helicobacter-pylori"
 }, {
-"count": 10,
+"count": 7,
 "enemy": "streptococcus-pyogenes"
 }]
 
 [sub_resource type="Resource" id="Resource_d5hj0"]
 script = ExtResource("2_ksf5g")
-start_time = 155.0
+start_time = 170.0
 spawn_interval = 0.7
 entries = [{
-"count": 19,
+"count": 17,
 "enemy": "sars-cov-2"
 }, {
-"count": 16,
+"count": 14,
 "enemy": "hpv"
 }, {
-"count": 16,
+"count": 14,
 "enemy": "staphylococcus-aureus"
 }]
 
 [sub_resource type="Resource" id="Resource_2oi71"]
 script = ExtResource("2_ksf5g")
-start_time = 210.0
+start_time = 225.0
 spawn_interval = 0.7
 entries = [{
 "count": 19,
@@ -80,19 +80,19 @@ entries = [{
 
 [sub_resource type="Resource" id="Resource_x1yif"]
 script = ExtResource("2_ksf5g")
-start_time = 265.0
+start_time = 280.0
 spawn_interval = 0.6
 entries = [{
-"count": 19,
+"count": 21,
 "enemy": "hpv"
 }, {
-"count": 19,
+"count": 21,
 "enemy": "staphylococcus-aureus"
 }, {
-"count": 16,
+"count": 17,
 "enemy": "sars-cov-2"
 }, {
-"count": 16,
+"count": 17,
 "enemy": "helicobacter-pylori"
 }]
 
@@ -113,7 +113,7 @@ music = "res://assets/audio/music/spleen.wav"
 map_size = Vector2(360, 960)
 path_points = PackedVector2Array(60, 40, 300, 40, 60, 220, 300, 220, 60, 400, 300, 400, 60, 580, 300, 580, 60, 760, 300, 760, 180, 900)
 slots = PackedVector2Array(230, 180, 230, 360, 230, 540, 180, 720, 180, 80, 130, 260, 130, 440, 130, 620, 210, 800, 120, 100)
-starting_amino_acids = 310
+starting_amino_acids = 380
 body_health = 20
 tower_ids = ["macrophage", "mucus-cell", "interferon", "neutrophil", "lysozyme", "platelet", "hypothalamus", "t-lymphocyte", "b-lymphocyte", "bone-marrow"]
 waves = Array[ExtResource("2_ksf5g")]([SubResource("Resource_cfvvt"), SubResource("Resource_fx7wk"), SubResource("Resource_qs7rn"), SubResource("Resource_d5hj0"), SubResource("Resource_2oi71"), SubResource("Resource_x1yif")])

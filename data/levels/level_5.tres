@@ -5,70 +5,70 @@
 
 [sub_resource type="Resource" id="Resource_3m3tp"]
 script = ExtResource("2_lk6lq")
-start_time = 5.0
-spawn_interval = 0.4
+start_time = 20.0
+spawn_interval = 0.8
 entries = [{
-"count": 24,
+"count": 1,
 "enemy": "helicobacter-pylori"
 }, {
-"count": 32,
+"count": 1,
 "enemy": "e-coli"
 }]
 
 [sub_resource type="Resource" id="Resource_vxq3o"]
 script = ExtResource("2_lk6lq")
-start_time = 23.0
-spawn_interval = 0.36000000000000004
+start_time = 56.0
+spawn_interval = 0.7200000000000001
 entries = [{
-"count": 32,
+"count": 2,
 "enemy": "helicobacter-pylori"
 }, {
-"count": 24,
+"count": 1,
 "enemy": "hpv"
 }]
 
 [sub_resource type="Resource" id="Resource_ak4u3"]
 script = ExtResource("2_lk6lq")
-start_time = 43.0
-spawn_interval = 0.36000000000000004
+start_time = 96.0
+spawn_interval = 0.7200000000000001
 entries = [{
-"count": 32,
+"count": 2,
 "enemy": "staphylococcus-aureus"
 }, {
-"count": 24,
+"count": 2,
 "enemy": "herpes-simplex"
 }, {
-"count": 32,
+"count": 2,
 "enemy": "e-coli"
 }]
 
 [sub_resource type="Resource" id="Resource_lin8g"]
 script = ExtResource("2_lk6lq")
-start_time = 63.0
-spawn_interval = 0.32000000000000006
+start_time = 136.0
+spawn_interval = 0.6400000000000001
 entries = [{
-"count": 40,
+"count": 3,
 "enemy": "helicobacter-pylori"
 }, {
-"count": 32,
+"count": 2,
 "enemy": "hpv"
 }, {
-"count": 24,
+"count": 2,
 "enemy": "staphylococcus-aureus"
 }]
 
 [sub_resource type="Resource" id="Resource_2pajy"]
 script = ExtResource("2_lk6lq")
-start_time = 85.0
-spawn_interval = 0.32000000000000006
+start_time = 180.0
+spawn_interval = 0.6400000000000001
 entries = [{
-"count": 40,
+"count": 3,
 "enemy": "helicobacter-pylori"
 }, {
-"count": 32,
+"count": 3,
 "enemy": "herpes-simplex"
 }, {
-"count": 32,
+"count": 3,
 "enemy": "hpv"
 }]
 
@@ -87,8 +87,8 @@ path_dash_color = Color(0.9019608, 0.8745098, 0.49019608, 1)
 music = "res://assets/audio/music/stomach.wav"
 map_size = Vector2(360, 900)
 path_points = PackedVector2Array(180, 40, 180, 100, 180, 300, 209.13431, 304.77115, 236.62334, 314.42865, 261.66666, 328.5492, 283.56024, 346.58173, 301.71594, 367.8682, 315.6773, 391.66666, 325.1303, 417.17688, 329.9096, 443.5669, 330, 470, 325.53268, 495.66135, 316.77747, 519.78296, 304.1303, 541.6667, 288.09738, 560.70447, 269.27606, 576.3951, 248.33334, 588.3568, 225.98271, 596.3364, 202.96014, 600.2135, 180, 600, 157.81161, 595.83655, 137.05746, 587.98364, 118.33333, 576.8098, 102.151276, 562.7765, 88.92583, 546.4203, 78.96371, 528.3333, 72.457405, 509.1423, 69.48269, 489.48718, 70, 470, 73.85961, 451.28458, 80.81022, 433.8979, 90.510704, 418.33334, 102.544395, 405.00702, 116.43545, 394.2467, 131.66667, 386.2842, 147.69809, 381.25125, 163.98578, 379.17883, 180, 380, 195.24245, 383.55576, 209.26172, 389.60406, 221.66667, 397.8312, 232.13722, 407.8653, 240.43239, 419.2912, 246.39528, 431.66666, 249.9549, 444.5385, 251.125, 457.45874, 250, 470, 246.74808, 481.7695, 241.60208, 492.42133, 234.84827, 501.66666, 226.81383, 509.28146, 217.85306, 515.1115, 208.33333, 519.07477, 198.6211, 521.161, 189.0683, 521.42883, 180, 520)
-slots = PackedVector2Array(180, 440, 230, 240, 140, 100, 330, 580, 130, 490, 320, 320)
-starting_amino_acids = 230
+slots = PackedVector2Array(180, 440, 230, 240, 140, 100, 330, 580, 130, 490, 320, 320, 150, 340, 160, 640)
+starting_amino_acids = 300
 body_health = 20
 tower_ids = ["macrophage", "mucus-cell", "interferon", "neutrophil", "lysozyme", "platelet", "hypothalamus", "t-lymphocyte", "b-lymphocyte"]
 waves = Array[ExtResource("2_lk6lq")]([SubResource("Resource_3m3tp"), SubResource("Resource_vxq3o"), SubResource("Resource_ak4u3"), SubResource("Resource_lin8g"), SubResource("Resource_2pajy")])

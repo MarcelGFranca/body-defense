@@ -5,45 +5,45 @@
 
 [sub_resource type="Resource" id="Resource_0d7y6"]
 script = ExtResource("2_4a8qo")
-start_time = 5.0
+start_time = 20.0
 entries = [{
-"count": 4,
+"count": 2,
 "enemy": "clostridioides-difficile"
 }, {
-"count": 6,
+"count": 3,
 "enemy": "e-coli"
 }]
 
 [sub_resource type="Resource" id="Resource_f4pfi"]
 script = ExtResource("2_4a8qo")
-start_time = 50.0
+start_time = 65.0
 spawn_interval = 0.9
 entries = [{
-"count": 5,
+"count": 3,
 "enemy": "clostridioides-difficile"
 }, {
-"count": 4,
+"count": 2,
 "enemy": "staphylococcus-aureus"
 }]
 
 [sub_resource type="Resource" id="Resource_ft5wt"]
 script = ExtResource("2_4a8qo")
-start_time = 100.0
+start_time = 115.0
 spawn_interval = 0.9
 entries = [{
-"count": 7,
+"count": 6,
 "enemy": "e-coli"
 }, {
-"count": 4,
+"count": 3,
 "enemy": "sars-cov-2"
 }, {
-"count": 4,
+"count": 3,
 "enemy": "helicobacter-pylori"
 }]
 
 [sub_resource type="Resource" id="Resource_0shc2"]
 script = ExtResource("2_4a8qo")
-start_time = 155.0
+start_time = 170.0
 spawn_interval = 0.8
 entries = [{
 "count": 6,
@@ -58,16 +58,16 @@ entries = [{
 
 [sub_resource type="Resource" id="Resource_0rl1b"]
 script = ExtResource("2_4a8qo")
-start_time = 210.0
+start_time = 225.0
 spawn_interval = 0.8
 entries = [{
-"count": 7,
+"count": 8,
 "enemy": "clostridioides-difficile"
 }, {
 "count": 5,
 "enemy": "staphylococcus-aureus"
 }, {
-"count": 6,
+"count": 7,
 "enemy": "e-coli"
 }]
 
@@ -88,7 +88,7 @@ music = "res://assets/audio/music/intestines.wav"
 map_size = Vector2(360, 1250)
 path_points = PackedVector2Array(180, 40, 180, 100, 50, 100, 50, 250, 310, 250, 310, 400, 50, 400, 50, 550, 310, 550, 310, 700, 50, 700, 50, 850, 310, 850, 310, 1000, 50, 1000, 50, 1150, 180, 1150, 180, 1210)
 slots = PackedVector2Array(90, 180, 270, 320, 90, 470, 270, 620, 90, 770, 270, 920, 90, 1070, 110, 1190, 110, 60)
-starting_amino_acids = 250
+starting_amino_acids = 320
 body_health = 20
 tower_ids = ["macrophage", "mucus-cell", "interferon", "neutrophil", "lysozyme", "platelet", "hypothalamus", "t-lymphocyte", "b-lymphocyte", "bone-marrow"]
 waves = Array[ExtResource("2_4a8qo")]([SubResource("Resource_0d7y6"), SubResource("Resource_f4pfi"), SubResource("Resource_ft5wt"), SubResource("Resource_0shc2"), SubResource("Resource_0rl1b")])

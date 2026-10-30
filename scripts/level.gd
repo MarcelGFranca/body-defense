@@ -17,6 +17,7 @@ signal scrolled
 
 const LEVEL_PATH := "res://data/levels/level_1.tres"
 const LEVEL_PATH_FORMAT := "res://data/levels/level_%d.tres"
+const DIFFICULTY_PATH_FORMAT := "res://data/difficulties/%s.tres"
 const DAMAGE_TABLE_PATH := "res://data/damage_table.tres"
 ## Screen pixels per map unit: the map is drawn at 360 x 640 and shown at 2x.
 const SHRINK := 2
@@ -27,6 +28,9 @@ const SAFE_TOP := 56.0
 const SAFE_BOTTOM := 100.0
 
 var data: LevelData
+var difficulty: DifficultyData
+var stats := GameStats.new()
+var max_body_health := 0
 var damage_table: DamageTable
 var enemy_catalog: Dictionary = {}
 var tower_catalog: Dictionary = {}
@@ -51,8 +55,9 @@ var _map: MapView
 var _camera: Camera2D
 
 
-func _init(level_data: LevelData = null) -> void:
+func _init(level_data: LevelData = null, difficulty_data: DifficultyData = null) -> void:
 	data = level_data
+	difficulty = difficulty_data
 
 
 func _ready() -> void:
@@ -60,6 +65,10 @@ func _ready() -> void:
 	get_tree().paused = false
 	if data == null:
 		data = load(LEVEL_PATH)
+	if difficulty == null:
+		difficulty = load(DIFFICULTY_PATH_FORMAT % "medium") as DifficultyData
+	if difficulty == null:
+		difficulty = DifficultyData.new()
 	damage_table = load(DAMAGE_TABLE_PATH)
 	enemy_catalog = DataLoader.load_all("res://data/enemies")
 	tower_catalog = DataLoader.load_all("res://data/towers")
@@ -67,12 +76,13 @@ func _ready() -> void:
 		curve.add_point(point)
 	_build_view()
 	set_scroll(Vector2(0.0, -SAFE_TOP))
-	scheduler = WaveScheduler.new(data.waves)
+	scheduler = WaveScheduler.new(data.waves, difficulty.wave_time)
 	scheduler.enemy_spawned.connect(_spawn_enemy)
 	scheduler.wave_started.connect(func(index: int) -> void: wave_started.emit(index + 1, data.waves.size()))
-	Economy.reset(data.starting_amino_acids)
-	body_health = data.body_health
-	body_health_changed.emit(body_health, data.body_health)
+	Economy.reset(roundi(data.starting_amino_acids * difficulty.start_amino))
+	max_body_health = maxi(1, roundi(data.body_health * difficulty.body_health))
+	body_health = max_body_health
+	body_health_changed.emit(body_health, max_body_health)
 	victory.connect(func() -> void: GameAudio.stop_music())
 	defeat.connect(func() -> void: GameAudio.stop_music())
 	GameAudio.play_music(data.music)
@@ -191,6 +201,7 @@ func build_tower(slot: int, tower_id: String) -> bool:
 	var tower_data: TowerData = tower_catalog[tower_id]
 	if not Economy.try_spend(tower_data.cost):
 		return false
+	stats.record_build(tower_id, tower_data.cost)
 	var tower := Tower.new()
 	tower.position = data.slots[slot]
 	_tower_layer.add_child(tower)
@@ -323,6 +334,9 @@ func add_enemy(enemy_data: EnemyData, options: Dictionary = {}) -> Enemy:
 	var enemy := Enemy.new()
 	_enemy_layer.add_child(enemy)
 	options["level"] = self
+	if not options.has("wave"):
+		options["wave"] = scheduler.spawning_wave
+	stats.record_spawn(int(options["wave"]), scheduler.clock)
 	enemy.setup(enemy_data, curve, damage_table, options)
 	enemy.died.connect(_on_enemy_died)
 	enemy.reached_exit.connect(_on_enemy_reached_exit)
@@ -346,6 +360,7 @@ func _spawn_chain(enemy_data: EnemyData) -> void:
 			"reward": maxi(1, roundi(float(enemy_data.amino_acid_reward) / segments)),
 			"damage": maxi(1, ceili(float(enemy_data.body_damage) / segments)),
 			"progress": -float(i) * float(enemy_data.trait_params.get("spacing", 16.0)),
+			"wave": scheduler.spawning_wave,
 		})
 
 
@@ -360,6 +375,8 @@ func _on_enemy_split(enemy: Enemy) -> void:
 			"progress": enemy.progress - float(i) * 10.0,
 			"scale": float(enemy.data.trait_params.get("scale", 0.75)),
 			"copy": true,
+			"final": true,
+			"wave": enemy.wave,
 		})
 
 
@@ -372,11 +389,13 @@ func _release_minions(enemy: Enemy) -> void:
 			"progress": enemy.progress - float(i) * 12.0,
 			"scale": float(enemy.data.trait_params.get("scale", 0.7)),
 			"copy": true,
+			"wave": enemy.wave,
 		})
 
 
 func _on_enemy_died(enemy: Enemy) -> void:
 	enemies.erase(enemy)
+	stats.record_kill(enemy.data.id, enemy.last_source if enemy.last_source != "" else "other", enemy.wave, scheduler.clock)
 	Economy.add(enemy.reward)
 	orbs_requested.emit(enemy.position, enemy.reward)
 	if enemy.has_trait("release_minions"):
@@ -386,8 +405,9 @@ func _on_enemy_died(enemy: Enemy) -> void:
 
 func _on_enemy_reached_exit(enemy: Enemy) -> void:
 	enemies.erase(enemy)
+	stats.record_leak(enemy.data.id, enemy.wave, scheduler.clock)
 	body_health = maxi(0, body_health - enemy.body_damage)
-	body_health_changed.emit(body_health, data.body_health)
+	body_health_changed.emit(body_health, max_body_health)
 	if body_health <= 0:
 		state = "lost"
 		defeat.emit()

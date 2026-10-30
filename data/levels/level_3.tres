@@ -5,51 +5,51 @@
 
 [sub_resource type="Resource" id="Resource_ruvs6"]
 script = ExtResource("2_f708c")
-start_time = 5.0
+start_time = 20.0
 entries = [{
-"count": 5,
+"count": 2,
 "enemy": "sars-cov-2"
 }, {
-"count": 4,
+"count": 1,
 "enemy": "staphylococcus-aureus"
 }]
 
 [sub_resource type="Resource" id="Resource_k2ehc"]
 script = ExtResource("2_f708c")
-start_time = 50.0
+start_time = 65.0
 spawn_interval = 0.9
 entries = [{
-"count": 10,
+"count": 5,
 "enemy": "influenza"
 }, {
-"count": 4,
+"count": 2,
 "enemy": "streptococcus-pyogenes"
 }]
 
 [sub_resource type="Resource" id="Resource_aq2lk"]
 script = ExtResource("2_f708c")
-start_time = 100.0
+start_time = 115.0
 spawn_interval = 0.9
 entries = [{
-"count": 6,
+"count": 4,
 "enemy": "sars-cov-2"
 }, {
-"count": 6,
+"count": 4,
 "enemy": "staphylococcus-aureus"
 }, {
-"count": 6,
+"count": 4,
 "enemy": "e-coli"
 }]
 
 [sub_resource type="Resource" id="Resource_l1sh6"]
 script = ExtResource("2_f708c")
-start_time = 165.0
+start_time = 180.0
 spawn_interval = 1.5
 entries = [{
-"count": 4,
+"count": 3,
 "enemy": "streptococcus-pyogenes"
 }, {
-"count": 4,
+"count": 3,
 "enemy": "sars-cov-2"
 }, {
 "count": 1,
@@ -74,7 +74,7 @@ music = "res://assets/audio/music/lungs.wav"
 map_size = Vector2(360, 820)
 path_points = PackedVector2Array(60, 40, 300, 40, 300, 760, 60, 760, 60, 160, 220, 160, 220, 640, 140, 640, 140, 300)
 slots = PackedVector2Array(180, 570, 230, 100, 260, 270, 100, 410, 260, 410, 120, 700, 240, 700, 100, 230)
-starting_amino_acids = 190
+starting_amino_acids = 270
 body_health = 20
 tower_ids = ["macrophage", "mucus-cell", "interferon", "neutrophil", "lysozyme", "platelet", "hypothalamus"]
 waves = Array[ExtResource("2_f708c")]([SubResource("Resource_ruvs6"), SubResource("Resource_k2ehc"), SubResource("Resource_aq2lk"), SubResource("Resource_l1sh6")])

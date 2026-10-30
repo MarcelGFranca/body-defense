@@ -15,6 +15,7 @@ var _root_ready_at: Dictionary = {}  # source -> time when it may root again
 var _dot_active := false
 var _dot_damage := 0.0
 var _dot_type := "thermal"
+var _dot_source := ""
 var _dot_until := 0.0
 var _dot_next_tick := 0.0
 var _mark_bonus := 0.0
@@ -30,7 +31,7 @@ func advance(delta: float) -> Array:
 	time += delta
 	var ticks: Array = []
 	while _dot_active and time >= _dot_next_tick and _dot_next_tick <= _dot_until + 0.000001:
-		ticks.append({"damage": _dot_damage, "type": _dot_type})
+		ticks.append({"damage": _dot_damage, "type": _dot_type, "source": _dot_source})
 		_dot_next_tick += 1.0
 	if _dot_active and time >= _dot_until:
 		_dot_active = false
@@ -85,12 +86,13 @@ func speed_multiplier() -> float:
 
 
 ## Damage over time does not stack: a new application only refreshes the duration.
-func apply_dot(damage_per_tick: float, damage_type: String, seconds: float) -> void:
+func apply_dot(damage_per_tick: float, damage_type: String, seconds: float, source: String = "") -> void:
 	if not _dot_active:
 		_dot_active = true
 		_dot_next_tick = time + 1.0
 	_dot_damage = damage_per_tick
 	_dot_type = damage_type
+	_dot_source = source
 	_dot_until = time + seconds
 
 

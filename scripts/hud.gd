@@ -287,7 +287,7 @@ func _button(text: String, button_size: Vector2, font_size: int) -> Button:
 # --- live values ------------------------------------------------------------
 
 func _refresh_values() -> void:
-	_health_label.text = "%d/%d" % [level.body_health, level.data.body_health]
+	_health_label.text = "%d/%d" % [level.body_health, level.max_body_health]
 	_amino_label.text = str(Economy.balance())
 	_wave_label.text = "WAVE %d/%d" % [level.scheduler.started_count(), level.scheduler.wave_count()]
 
@@ -557,7 +557,7 @@ func _refresh_enemy_card() -> void:
 	var data := _card_enemy.data
 	var lines := PackedStringArray()
 	lines.append("%s - %s" % [data.type.to_upper(), data.role.to_upper()])
-	lines.append("HP %d/%d" % [maxi(0, ceili(_card_enemy.health)), int(data.health)])
+	lines.append("HP %d/%d" % [maxi(0, ceili(_card_enemy.health)), int(_card_enemy.max_health)])
 	var weak: Array[String] = []
 	var resists: Array[String] = []
 	var immune: Array[String] = []

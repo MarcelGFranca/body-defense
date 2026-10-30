@@ -69,12 +69,28 @@ def bacterium_placeholder():
 
 
 def amino_acid_orb():
+    """An amino acid as a ball-and-stick molecule: a central carbon with an amine (blue), a carboxyl (red) and a side chain (green)."""
     img = new_canvas()
-    body = disc(16, 16, 6)
-    shade_ellipse(img, body, 16, 16, 6, 6, bands((255, 190, 70)))
-    for x, y in ((13, 13), (14, 12)):
-        put(img, x, y, (255, 250, 200, 255))
-    outline(img, body)
+    bond = (150, 128, 176, 255)
+    atoms = (  # (x, y, radius, color)
+        (16, 15.5, 3.0, (232, 232, 244)),  # central carbon
+        (11.5, 11, 2.5, (84, 144, 255)),  # nitrogen of the amine group
+        (20.5, 11, 2.5, (240, 76, 92)),  # oxygen of the carboxyl group
+        (16, 20.5, 2.5, (112, 214, 96)),  # side chain
+    )
+    for x, y, _, _ in atoms[1:]:
+        steps = 12
+        for k in range(steps + 1):
+            t = k / steps
+            put(img, round(16 + (x - 16) * t), round(15.5 + (y - 15.5) * t), bond)
+            put(img, round(16 + (x - 16) * t) + 1, round(15.5 + (y - 15.5) * t), bond)
+    filled = set()
+    for x, y, r, color in atoms:
+        body = disc(x, y, r)
+        shade_ellipse(img, body, x, y, r, r, bands(color))
+        put(img, round(x) - 1, round(y) - 1, (255, 255, 255, 255))
+        filled |= body
+    outline(img, filled | {(x, y) for x in range(32) for y in range(32) if img.getpixel((x, y))[3] > 0})
     return img.crop((8, 8, 24, 24))
 
 

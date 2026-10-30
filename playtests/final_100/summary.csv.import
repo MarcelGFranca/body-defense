@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://dsysbfcecrhbc"
+
+[deps]
+
+files=["res://playtests/final_100/summary.level.translation", "res://playtests/final_100/summary.strategy.translation", "res://playtests/final_100/summary.difficulty.translation", "res://playtests/final_100/summary.result.translation", "res://playtests/final_100/summary.health.translation", "res://playtests/final_100/summary.health.translation", "res://playtests/final_100/summary.time.translation", "res://playtests/final_100/summary.amino.translation", "res://playtests/final_100/summary.amino.translation", "res://playtests/final_100/summary.leaks.translation", "res://playtests/final_100/summary.first.translation"]
+
+source_file="res://playtests/final_100/summary.csv"
+dest_files=["res://playtests/final_100/summary.level.translation", "res://playtests/final_100/summary.strategy.translation", "res://playtests/final_100/summary.difficulty.translation", "res://playtests/final_100/summary.result.translation", "res://playtests/final_100/summary.health.translation", "res://playtests/final_100/summary.health.translation", "res://playtests/final_100/summary.time.translation", "res://playtests/final_100/summary.amino.translation", "res://playtests/final_100/summary.amino.translation", "res://playtests/final_100/summary.leaks.translation", "res://playtests/final_100/summary.first.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true

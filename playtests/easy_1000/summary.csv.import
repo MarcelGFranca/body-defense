@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://m6rv4r53pbqw"
+
+[deps]
+
+files=["res://playtests/easy_1000/summary.level.translation", "res://playtests/easy_1000/summary.strategy.translation", "res://playtests/easy_1000/summary.difficulty.translation", "res://playtests/easy_1000/summary.result.translation", "res://playtests/easy_1000/summary.health.translation", "res://playtests/easy_1000/summary.health.translation", "res://playtests/easy_1000/summary.time.translation", "res://playtests/easy_1000/summary.amino.translation", "res://playtests/easy_1000/summary.amino.translation", "res://playtests/easy_1000/summary.leaks.translation", "res://playtests/easy_1000/summary.first.translation"]
+
+source_file="res://playtests/easy_1000/summary.csv"
+dest_files=["res://playtests/easy_1000/summary.level.translation", "res://playtests/easy_1000/summary.strategy.translation", "res://playtests/easy_1000/summary.difficulty.translation", "res://playtests/easy_1000/summary.result.translation", "res://playtests/easy_1000/summary.health.translation", "res://playtests/easy_1000/summary.health.translation", "res://playtests/easy_1000/summary.time.translation", "res://playtests/easy_1000/summary.amino.translation", "res://playtests/easy_1000/summary.amino.translation", "res://playtests/easy_1000/summary.leaks.translation", "res://playtests/easy_1000/summary.first.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true

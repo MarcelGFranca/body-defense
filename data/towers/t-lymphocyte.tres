@@ -13,6 +13,6 @@ cost = 90
 mobility = "mobile"
 behavior = "single_target"
 range_px = 100.0
-attack_damage = 30.0
+attack_damage = 55.0
 attack_interval = 2.0
 sound_attack = "res://assets/audio/towers/t-lymphocyte/attack.wav"

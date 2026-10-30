@@ -17,6 +17,8 @@ The campaign has 10 levels through the body, with a boss in levels 3, 7 and 10. 
 | 9 | Spleen | |
 | 10 | Lymph Nodes | HIV |
 
+Settings (in the level menu) offer three difficulties: Easy, Medium and Hard.
+
 13 enemies (each with its own trait), 10 towers (unlocked little by little), timed waves, a 2x speed button and a HUD made for thumbs.
 
 ## Run
@@ -41,6 +43,13 @@ godot --headless --path . --fixed-fps 60 -- --autoplay --level 5
 
 # play every level with no towers and with the bot, to see how hard they are (add -- --level N for one)
 godot --headless --path . --fixed-fps 60 res://tools/balance_probe.tscn
+
+# play many games with bots that build in different ways, record them, and read the analysis
+godot --headless --path . --fixed-fps 60 res://tools/playtest.tscn -- --games 100 --out res://playtests/mine [--difficulty hard]
+python3 -I tools/analyze_playtests.py playtests/mine
+
+# find the wave size each level needs for its target difficulty (slow: plays 160 games per step)
+python3 -I tools/tune_waves.py [--apply]
 ```
 
 ## Data and art
@@ -58,9 +67,13 @@ python3 -I tools/generate_icon_options.py                     # the game icon an
 
 Run `godot --headless --path . --import` after adding or changing assets or scripts.
 
+## Documentation
+
+Start with `AGENTS.md`. Scope, architecture, game design, levels and the development guide are in `docs/`; all balance numbers are in `design/balance.md`.
+
 ## Planning
 
-Specs and tasks live in `openspec/`. The current changes are `add-enemy-roster-and-economy`, `add-tower-roster-and-damage`, `add-level-1-prototype`, `add-game-audio` and `add-levels-2-to-10`.
+Specs and tasks live in `openspec/`. The current changes are `add-enemy-roster-and-economy`, `add-tower-roster-and-damage`, `add-level-1-prototype`, `add-game-audio`, `add-levels-2-to-10` and `add-balance-and-difficulty`.
 
 ## Credits
 

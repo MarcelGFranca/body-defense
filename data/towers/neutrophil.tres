@@ -11,6 +11,6 @@ ability_description = "Attacks very fast with weak hits."
 damage_type = "physical"
 cost = 45
 behavior = "single_target"
-attack_damage = 4.0
+attack_damage = 5.0
 attack_interval = 0.4
 sound_attack = "res://assets/audio/towers/neutrophil/attack.wav"

@@ -1,3 +1,4 @@
 .godot/
 *.translation
 build/
+__pycache__/

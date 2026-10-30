@@ -5,6 +5,7 @@ extends SceneTree
 const ENEMY_DIR := "res://data/enemies"
 const TOWER_DIR := "res://data/towers"
 const LEVEL_DIR := "res://data/levels"
+const DIFFICULTY_DIR := "res://data/difficulties"
 
 # All numbers are provisional starting values, tuned during playtests.
 const ENEMIES := [
@@ -20,13 +21,13 @@ const ENEMIES := [
 		"trait": "Goes dormant and is immune to attacks for a few moments.", "health": 50, "speed": 50, "damage": 1, "reward": 4,
 		"params": {"period": 4.0, "seconds": 1.5}, "sprite": true},
 	{"id": "hpv", "name": "HPV", "type": "virus", "role": "resistant", "trait_id": "shell",
-		"trait": "Shell that reduces damage taken.", "health": 70, "speed": 40, "damage": 2, "reward": 5, "armor": 30, "sprite": true},
+		"trait": "Shell that reduces damage taken.", "health": 85, "speed": 40, "damage": 2, "reward": 5, "armor": 30, "sprite": true},
 	# Regular bacteria
 	{"id": "e-coli", "name": "E. coli", "type": "bacterium", "role": "basic", "trait_id": "basic",
-		"trait": "Default enemy with medium health and speed.", "health": 40, "speed": 55, "damage": 1, "reward": 3, "sprite": true},
+		"trait": "Default enemy with medium health and speed.", "health": 40, "speed": 50, "damage": 1, "reward": 3, "sprite": true},
 	{"id": "streptococcus-pyogenes", "name": "Streptococcus pyogenes", "type": "bacterium", "role": "chained", "trait_id": "chain",
 		"trait": "Moves as a chain of segments that die separately.",
-		"health": 80, "speed": 40, "damage": 2, "reward": 6, "sprite": true,
+		"health": 100, "speed": 40, "damage": 2, "reward": 6, "sprite": true,
 		"params": {"segments": 3, "spacing": 16.0, "segment_sprite": "res://assets/enemies/streptococcus-pyogenes-segment"}},
 	{"id": "staphylococcus-aureus", "name": "Staphylococcus aureus", "type": "bacterium", "role": "resistant", "trait_id": "gain_resistance",
 		"trait": "Gains resistance to one damage type along the path.", "health": 75, "speed": 45, "damage": 2, "reward": 6,
@@ -34,41 +35,51 @@ const ENEMIES := [
 	{"id": "helicobacter-pylori", "name": "Helicobacter pylori", "type": "bacterium", "role": "slow-immune", "trait_id": "slow_immune",
 		"trait": "Unaffected by slowing effects.", "health": 60, "speed": 45, "damage": 2, "reward": 5, "sprite": true},
 	{"id": "clostridioides-difficile", "name": "Clostridioides difficile", "type": "bacterium", "role": "spore", "trait_id": "revive",
-		"trait": "Comes back once after being defeated, with low health.", "health": 55, "speed": 45, "damage": 2, "reward": 5,
-		"overrides": {"thermal": 0.5, "chemical": 0.5}, "params": {"health": 0.25}, "sprite": true},
+		"trait": "Comes back once after being defeated, with low health.", "health": 45, "speed": 45, "damage": 2, "reward": 5,
+		"overrides": {"thermal": 0.5, "chemical": 0.5}, "params": {"health": 0.2}, "sprite": true},
 	# Bosses
 	{"id": "hiv", "name": "HIV", "type": "virus", "role": "boss", "trait_id": "tower_disable_aura",
 		"trait": "Very high health, disables nearby towers in an aura, and affects lymphocytes longer.",
-		"health": 350, "speed": 30, "damage": 10, "reward": 25, "params": {"radius": 70.0, "interval": 3.0}, "sprite": true},
+		"health": 400, "speed": 30, "damage": 10, "reward": 25, "params": {"radius": 65.0, "interval": 3.5}, "sprite": true},
 	{"id": "mycobacterium-tuberculosis", "name": "Mycobacterium tuberculosis", "type": "bacterium", "role": "boss", "trait_id": "heavy_armor",
-		"trait": "Very high health, very low speed, heavy armor.", "health": 450, "speed": 22, "damage": 10, "reward": 30, "armor": 40, "sprite": true},
+		"trait": "Very high health, very low speed, heavy armor.", "health": 300, "speed": 22, "damage": 8, "reward": 30, "armor": 30, "sprite": true},
 	{"id": "neisseria-meningitidis", "name": "Neisseria meningitidis", "type": "bacterium", "role": "boss", "trait_id": "split_at_half",
 		"trait": "High health, splits into two smaller copies when half of its health is gone.",
-		"health": 300, "speed": 35, "damage": 10, "reward": 25, "params": {"copies": 2, "scale": 0.75}, "sprite": true},
+		"health": 290, "speed": 35, "damage": 8, "reward": 25, "params": {"copies": 2, "scale": 0.75}, "sprite": true},
 ]
 
 const TOWERS := [
 	{"id": "macrophage", "ability": "Engulfs the first enemy in its range with a strong hit.", "name": "Macrophage", "role": "single-target", "damage_type": "physical", "cost": 50, "mobility": "fixed",
-		"proto": true, "behavior": "single_target", "range": 95, "damage": 12, "interval": 1.0},
+		"proto": true, "behavior": "single_target", "range": 95, "damage": 14, "interval": 1.0},
 	{"id": "neutrophil", "ability": "Attacks very fast with weak hits.", "name": "Neutrophil", "role": "rapid fire", "damage_type": "physical", "cost": 45, "mobility": "fixed",
-		"behavior": "single_target", "range": 80, "damage": 4, "interval": 0.4},
+		"behavior": "single_target", "range": 80, "damage": 5, "interval": 0.4},
 	{"id": "mucus-cell", "ability": "Throws mucus at the first enemy. The puddle slows enemies by 40% for 6 s.", "name": "Mucus Cell", "role": "slow", "damage_type": "none", "cost": 40, "mobility": "fixed",
 		"proto": true, "behavior": "slow_puddle", "range": 90, "interval": 3.0, "slow": 40, "puddle_radius": 24, "puddle_seconds": 6.0},
 	{"id": "platelet", "ability": "Roots an enemy for 1.2 s. Bosses are rooted for half the time.", "name": "Platelet", "role": "root", "damage_type": "none", "cost": 55, "mobility": "fixed",
 		"behavior": "root_aura", "range": 80, "root": 1.2, "root_cooldown": 3.0},
-	{"id": "hypothalamus", "ability": "Fever: burns enemies for 3 damage per second during 4 s.", "name": "Hypothalamus", "role": "damage over time", "damage_type": "thermal", "cost": 70, "mobility": "fixed",
+	{"id": "hypothalamus", "ability": "Fever: burns enemies for 3 damage per second during 4 s.", "name": "Hypothalamus", "role": "damage over time", "damage_type": "thermal", "cost": 90, "mobility": "fixed",
 		"behavior": "dot_aura", "range": 85, "dot": 3, "dot_seconds": 4},
-	{"id": "lysozyme", "ability": "Dissolves bacteria. Strong against bacteria, weak against viruses.", "name": "Lysozyme", "role": "area", "damage_type": "chemical", "cost": 60, "mobility": "fixed",
-		"behavior": "damage_aura", "range": 85, "damage": 6, "interval": 1.0},
-	{"id": "interferon", "ability": "Antiviral pulse that also slows viruses by 25%. Bacteria are immune.", "name": "Interferon", "role": "area", "damage_type": "antiviral", "cost": 60, "mobility": "fixed",
-		"proto": true, "behavior": "damage_aura", "range": 85, "damage": 6, "interval": 1.0, "slow": 25,
+	{"id": "lysozyme", "ability": "Dissolves bacteria. Strong against bacteria, weak against viruses.", "name": "Lysozyme", "role": "area", "damage_type": "chemical", "cost": 70, "mobility": "fixed",
+		"behavior": "damage_aura", "range": 85, "damage": 4, "interval": 1.0},
+	{"id": "interferon", "ability": "Antiviral pulse that also slows viruses by 25%. Bacteria are immune.", "name": "Interferon", "role": "area", "damage_type": "antiviral", "cost": 70, "mobility": "fixed",
+		"proto": true, "behavior": "damage_aura", "range": 85, "damage": 5, "interval": 1.0, "slow": 25,
 		"mist": Color(0.7, 0.95, 1.0)},
 	{"id": "t-lymphocyte", "ability": "Hits one enemy at a time and ignores armor. It moves.", "name": "T Lymphocyte", "role": "single-target", "damage_type": "immunological", "cost": 90, "mobility": "mobile",
-		"behavior": "single_target", "range": 100, "damage": 30, "interval": 2.0},
-	{"id": "b-lymphocyte", "ability": "Releases antibodies that mark enemies: 25% more damage for 5 s. It moves.", "name": "B Lymphocyte", "role": "summoner", "damage_type": "antiviral", "cost": 80, "mobility": "mobile",
-		"behavior": "summon_marker", "range": 100, "damage": 4, "interval": 4.0, "mark": 0.25, "mark_seconds": 5.0, "mark_targets": 3},
-	{"id": "bone-marrow", "ability": "Creates up to 3 neutrophils that block enemies.", "name": "Bone Marrow", "role": "summoner", "damage_type": "physical", "cost": 100, "mobility": "fixed",
-		"behavior": "summon_units", "range": 70, "summon_interval": 10.0, "summon_cap": 3, "unit_health": 25, "unit_damage": 4},
+		"behavior": "single_target", "range": 100, "damage": 55, "interval": 2.0},
+	{"id": "b-lymphocyte", "ability": "Releases antibodies that mark up to 4 enemies: 35% more damage for 5 s. It moves.", "name": "B Lymphocyte", "role": "summoner", "damage_type": "antiviral", "cost": 70, "mobility": "mobile",
+		"behavior": "summon_marker", "range": 100, "damage": 6, "interval": 3.5, "mark": 0.35, "mark_seconds": 5.0, "mark_targets": 4},
+	{"id": "bone-marrow", "ability": "Creates up to 3 neutrophils that block enemies.", "name": "Bone Marrow", "role": "summoner", "damage_type": "physical", "cost": 90, "mobility": "fixed",
+		"behavior": "summon_units", "range": 70, "summon_interval": 8.0, "summon_cap": 3, "unit_health": 40, "unit_damage": 8},
+]
+
+# The three difficulty settings. Medium is the balanced game; the others change these multipliers.
+const DIFFICULTIES := [
+	{"id": "easy", "name": "Easy", "desc": "More amino acids and body health, weaker and slower enemies, more time between waves.",
+		"start_amino": 1.3, "body_health": 1.5, "enemy_health": 0.8, "enemy_speed": 0.9, "reward": 1.15, "wave_time": 1.25},
+	{"id": "medium", "name": "Medium", "desc": "The game as it was designed.",
+		"start_amino": 1.0, "body_health": 1.0, "enemy_health": 1.0, "enemy_speed": 1.0, "reward": 1.0, "wave_time": 1.0},
+	{"id": "hard", "name": "Hard", "desc": "Less money and body health, tougher and faster enemies, waves come sooner.",
+		"start_amino": 0.95, "body_health": 0.8, "enemy_health": 1.12, "enemy_speed": 1.05, "reward": 0.95, "wave_time": 0.92},
 ]
 
 const FACTORS := {
@@ -101,6 +112,9 @@ func _initialize() -> void:
 	_make_dir(ENEMY_DIR)
 	_make_dir(TOWER_DIR)
 	_make_dir(LEVEL_DIR)
+	_make_dir(DIFFICULTY_DIR)
+	for row in DIFFICULTIES:
+		_save_difficulty(row)
 	for row in ENEMIES:
 		_save_enemy(row)
 	for row in TOWERS:
@@ -148,7 +162,7 @@ func _levels() -> Array:
 	path_4.append_array(_sine(180.0, 55.0, 170.0, 80.0, 930.0))
 	path_4.append(Vector2(180, 980))
 	return [
-		{"number": 1, "name": "Throat", "part": "Nose and throat",
+		{"number": 1, "name": "Throat", "part": "Nose and throat", "first": 1.0,
 			"desc": "Viruses come in through the nose. Hold the line before they reach the lungs.",
 			"music": "throat", "size": Vector2(360, 820), "path": LEVEL_1_PATH, "slots": LEVEL_1_SLOTS, "decor": "blobs",
 			"colors": ["3a1f2b", "4d2a3a", "7a1d2e", "c4364f", "e8667d"], "amino": 150, "health": 20,
@@ -158,13 +172,13 @@ func _levels() -> Array:
 				[50.0, 1.0, [["rhinovirus", 10], ["influenza", 4]]],
 				[150.0, 0.9, [["influenza", 6], ["streptococcus-pyogenes", 4]]],
 			]},
-		{"number": 2, "name": "Trachea", "part": "The windpipe", "scale": 2.4, "squeeze": 0.5,
+		{"number": 2, "name": "Trachea", "part": "The windpipe", "scale": 1.5, "squeeze": 0.8,
 			"desc": "A long tube with the first coronaviruses and a chain of strep bacteria. The neutrophil and lysozyme join the fight.",
 			"music": "trachea", "size": Vector2(360, 900),
 			"path": [Vector2(180, 40), Vector2(180, 100), Vector2(70, 160), Vector2(290, 320), Vector2(70, 480), Vector2(290, 640),
 				Vector2(70, 800), Vector2(180, 860)],
 			"slot_count": 7, "decor": "rings", "colors": ["2a2438", "3a3350", "5b3b78", "a56ad8", "d2a8f2"],
-			"amino": 170, "health": 20, "towers": ["macrophage", "mucus-cell", "interferon", "neutrophil", "lysozyme"],
+			"amino": 250, "health": 20, "towers": ["macrophage", "mucus-cell", "interferon", "neutrophil", "lysozyme"],
 			"disabled": [], "boss": "",
 			"waves": [
 				[5.0, 1.1, [["rhinovirus", 10], ["e-coli", 3]]],
@@ -172,13 +186,13 @@ func _levels() -> Array:
 				[95.0, 1.0, [["sars-cov-2", 4], ["streptococcus-pyogenes", 3]]],
 				[150.0, 0.9, [["influenza", 8], ["sars-cov-2", 5], ["streptococcus-pyogenes", 4]]],
 			]},
-		{"number": 3, "name": "Lungs", "part": "Lungs",
+		{"number": 3, "name": "Lungs", "part": "Lungs", "scale": 0.8,
 			"desc": "Tuberculosis hides in the alveoli. Beat its heavy armor with chemical and heat attacks. First boss.",
 			"music": "lungs", "size": Vector2(360, 820),
 			"path": [Vector2(60, 40), Vector2(300, 40), Vector2(300, 760), Vector2(60, 760), Vector2(60, 160), Vector2(220, 160),
 				Vector2(220, 640), Vector2(140, 640), Vector2(140, 300)],
 			"slot_count": 8, "decor": "rings", "colors": ["3a2431", "5a3447", "7b3552", "e07a9c", "f5b3c8"],
-			"amino": 190, "health": 20,
+			"amino": 270, "health": 20,
 			"towers": ["macrophage", "mucus-cell", "interferon", "neutrophil", "lysozyme", "platelet", "hypothalamus"],
 			"disabled": [], "boss": "mycobacterium-tuberculosis",
 			"waves": [
@@ -187,11 +201,11 @@ func _levels() -> Array:
 				[100.0, 0.9, [["sars-cov-2", 6], ["staphylococcus-aureus", 6], ["e-coli", 6]]],
 				[165.0, 1.5, [["streptococcus-pyogenes", 4], ["sars-cov-2", 4], ["mycobacterium-tuberculosis", 1]]],
 			]},
-		{"number": 4, "name": "Esophagus", "part": "The food pipe", "scale": 2.6, "squeeze": 0.5,
+		{"number": 4, "name": "Esophagus", "part": "The food pipe", "scale": 0.6, "squeeze": 0.8,
 			"desc": "A narrow, wavy tube. Herpes goes dormant and HPV wears a shell, so time your attacks. The T lymphocyte arrives.",
 			"music": "esophagus", "size": Vector2(360, 1020), "path": path_4,
 			"slot_count": 8, "decor": "stripes", "colors": ["3a2326", "52302f", "8a3b2e", "e0703f", "f4a77c"],
-			"amino": 210, "health": 20,
+			"amino": 290, "health": 20,
 			"towers": ["macrophage", "mucus-cell", "interferon", "neutrophil", "lysozyme", "platelet", "hypothalamus", "t-lymphocyte"],
 			"disabled": [], "boss": "",
 			"waves": [
@@ -200,11 +214,11 @@ func _levels() -> Array:
 				[100.0, 0.9, [["herpes-simplex", 8], ["hpv", 6], ["streptococcus-pyogenes", 4]]],
 				[155.0, 0.8, [["hpv", 8], ["herpes-simplex", 8], ["influenza", 8]]],
 			]},
-		{"number": 5, "name": "Stomach", "part": "The stomach", "scale": 4.0, "squeeze": 0.4,
+		{"number": 5, "name": "Stomach", "part": "The stomach", "scale": 0.33, "squeeze": 0.8,
 			"desc": "Acid everywhere. H. pylori laughs at slowing attacks, so build damage. The B lymphocyte joins.",
 			"music": "stomach", "size": Vector2(360, 900), "path": spiral_5,
-			"slot_count": 6, "decor": "blobs", "colors": ["35301c", "4a4424", "6f6a1d", "c8bd3b", "e6df7d"],
-			"amino": 230, "health": 20,
+			"slot_count": 8, "decor": "blobs", "colors": ["35301c", "4a4424", "6f6a1d", "c8bd3b", "e6df7d"],
+			"amino": 300, "health": 20,
 			"towers": ["macrophage", "mucus-cell", "interferon", "neutrophil", "lysozyme", "platelet", "hypothalamus", "t-lymphocyte", "b-lymphocyte"],
 			"disabled": [], "boss": "",
 			"waves": [
@@ -214,14 +228,14 @@ func _levels() -> Array:
 				[150.0, 0.8, [["helicobacter-pylori", 10], ["hpv", 8], ["staphylococcus-aureus", 6]]],
 				[205.0, 0.8, [["helicobacter-pylori", 10], ["herpes-simplex", 8], ["hpv", 8]]],
 			]},
-		{"number": 6, "name": "Intestines", "part": "The intestines", "scale": 0.6,
+		{"number": 6, "name": "Intestines", "part": "The intestines", "scale": 0.66,
 			"desc": "A long winding road. C. difficile spores come back from the dead. Bone Marrow now sends neutrophils to block the way.",
 			"music": "intestines", "size": Vector2(360, 1250),
 			"path": [Vector2(180, 40), Vector2(180, 100), Vector2(50, 100), Vector2(50, 250), Vector2(310, 250), Vector2(310, 400),
 				Vector2(50, 400), Vector2(50, 550), Vector2(310, 550), Vector2(310, 700), Vector2(50, 700), Vector2(50, 850),
 				Vector2(310, 850), Vector2(310, 1000), Vector2(50, 1000), Vector2(50, 1150), Vector2(180, 1150), Vector2(180, 1210)],
 			"slot_count": 9, "decor": "stripes", "colors": ["40281f", "5a3828", "7a4a24", "d78a45", "f2c28a"],
-			"amino": 250, "health": 20, "towers": ALL_TOWERS, "disabled": [], "boss": "",
+			"amino": 320, "health": 20, "towers": ALL_TOWERS, "disabled": [], "boss": "",
 			"waves": [
 				[5.0, 1.0, [["clostridioides-difficile", 6], ["e-coli", 10]]],
 				[50.0, 0.9, [["clostridioides-difficile", 8], ["staphylococcus-aureus", 6]]],
@@ -229,11 +243,11 @@ func _levels() -> Array:
 				[155.0, 0.8, [["clostridioides-difficile", 10], ["hpv", 6], ["streptococcus-pyogenes", 5]]],
 				[210.0, 0.8, [["clostridioides-difficile", 12], ["staphylococcus-aureus", 8], ["e-coli", 10]]],
 			]},
-		{"number": 7, "name": "Bloodstream", "part": "The blood",
+		{"number": 7, "name": "Bloodstream", "part": "The blood", "scale": 0.55,
 			"desc": "The fast lane to every organ. Meningococcus rides the blood and splits in two when it is hurt. Second boss.",
 			"music": "bloodstream", "size": Vector2(360, 1060), "path": _sine(180.0, 110.0, 440.0, 40.0, 1000.0),
 			"slot_count": 9, "decor": "blobs", "colors": ["2f1620", "45202e", "8a1020", "e0243c", "ff8a98"],
-			"amino": 270, "health": 20, "towers": ALL_TOWERS, "disabled": [], "boss": "neisseria-meningitidis",
+			"amino": 340, "health": 20, "towers": ALL_TOWERS, "disabled": [], "boss": "neisseria-meningitidis",
 			"waves": [
 				[5.0, 0.9, [["staphylococcus-aureus", 8], ["influenza", 10]]],
 				[50.0, 0.9, [["sars-cov-2", 8], ["hpv", 6]]],
@@ -241,12 +255,12 @@ func _levels() -> Array:
 				[155.0, 0.8, [["staphylococcus-aureus", 10], ["sars-cov-2", 8], ["streptococcus-pyogenes", 5]]],
 				[215.0, 1.4, [["hpv", 6], ["herpes-simplex", 6], ["neisseria-meningitidis", 1]]],
 			]},
-		{"number": 8, "name": "Liver", "part": "The liver", "scale": 1.7,
+		{"number": 8, "name": "Liver", "part": "The liver", "scale": 1.4,
 			"desc": "Three long lanes through the liver. Expect a bit of everything, in numbers.",
 			"music": "liver", "size": Vector2(360, 920),
 			"path": [Vector2(60, 40), Vector2(60, 820), Vector2(180, 820), Vector2(180, 100), Vector2(300, 100), Vector2(300, 880)],
 			"slot_count": 10, "decor": "blobs", "colors": ["2c1b1b", "4a2a22", "5a2418", "a8472f", "e08a6a"],
-			"amino": 290, "health": 20, "towers": ALL_TOWERS, "disabled": [], "boss": "",
+			"amino": 360, "health": 20, "towers": ALL_TOWERS, "disabled": [], "boss": "",
 			"waves": [
 				[5.0, 0.8, [["rhinovirus", 16], ["e-coli", 10], ["helicobacter-pylori", 6]]],
 				[50.0, 0.8, [["herpes-simplex", 10], ["hpv", 8], ["staphylococcus-aureus", 6]]],
@@ -254,13 +268,13 @@ func _levels() -> Array:
 				[155.0, 0.7, [["staphylococcus-aureus", 10], ["hpv", 10], ["streptococcus-pyogenes", 6]]],
 				[215.0, 0.7, [["clostridioides-difficile", 12], ["herpes-simplex", 10], ["helicobacter-pylori", 10]]],
 			]},
-		{"number": 9, "name": "Spleen", "part": "The spleen", "scale": 1.6,
+		{"number": 9, "name": "Spleen", "part": "The spleen", "scale": 1.73,
 			"desc": "The immune system's filter is under siege. Every kind of invader attacks at once.",
 			"music": "spleen", "size": Vector2(360, 960),
 			"path": [Vector2(60, 40), Vector2(300, 40), Vector2(60, 220), Vector2(300, 220), Vector2(60, 400), Vector2(300, 400),
 				Vector2(60, 580), Vector2(300, 580), Vector2(60, 760), Vector2(300, 760), Vector2(180, 900)],
 			"slot_count": 10, "decor": "rings", "colors": ["2c1d3b", "40285a", "5a2a8a", "9a5ad8", "cfa8f5"],
-			"amino": 310, "health": 20, "towers": ALL_TOWERS, "disabled": [], "boss": "",
+			"amino": 380, "health": 20, "towers": ALL_TOWERS, "disabled": [], "boss": "",
 			"waves": [
 				[5.0, 0.8, [["influenza", 14], ["sars-cov-2", 8], ["e-coli", 10]]],
 				[50.0, 0.8, [["hpv", 10], ["herpes-simplex", 10], ["staphylococcus-aureus", 8]]],
@@ -269,11 +283,11 @@ func _levels() -> Array:
 				[210.0, 0.7, [["herpes-simplex", 12], ["clostridioides-difficile", 12], ["influenza", 14]]],
 				[265.0, 0.6, [["hpv", 12], ["staphylococcus-aureus", 12], ["sars-cov-2", 10], ["helicobacter-pylori", 10]]],
 			]},
-		{"number": 10, "name": "Lymph Nodes", "part": "The lymphatic system", "scale": 0.8,
+		{"number": 10, "name": "Lymph Nodes", "part": "The lymphatic system", "scale": 0.99,
 			"desc": "The last stand. HIV attacks the defenders themselves and switches off towers around it. Final boss.",
 			"music": "lymph-nodes", "size": Vector2(360, 1360), "path": path_10,
 			"slot_count": 11, "decor": "rings", "colors": ["1d2b33", "27414d", "1f6f8a", "46c0d8", "9be9f5"],
-			"amino": 340, "health": 20, "towers": ALL_TOWERS, "disabled": [], "boss": "hiv",
+			"amino": 400, "health": 20, "towers": ALL_TOWERS, "disabled": [], "boss": "hiv",
 			"waves": [
 				[5.0, 0.8, [["sars-cov-2", 10], ["staphylococcus-aureus", 10], ["e-coli", 10]]],
 				[55.0, 0.7, [["hpv", 12], ["herpes-simplex", 12], ["influenza", 12]]],
@@ -350,6 +364,20 @@ func _save_tower(row: Dictionary) -> void:
 	_save(t, "%s/%s.tres" % [TOWER_DIR, row["id"]])
 
 
+func _save_difficulty(row: Dictionary) -> void:
+	var d := DifficultyData.new()
+	d.id = row["id"]
+	d.display_name = row["name"]
+	d.description = row["desc"]
+	d.start_amino = row["start_amino"]
+	d.body_health = row["body_health"]
+	d.enemy_health = row["enemy_health"]
+	d.enemy_speed = row["enemy_speed"]
+	d.reward = row["reward"]
+	d.wave_time = row["wave_time"]
+	_save(d, "%s/%s.tres" % [DIFFICULTY_DIR, row["id"]])
+
+
 func _save_damage_table() -> void:
 	var table := DamageTable.new()
 	table.factors = FACTORS.duplicate(true)
@@ -399,14 +427,25 @@ func _save_level(row: Dictionary) -> void:
 	level.boss_id = row["boss"]
 	var waves: Array[WaveData] = []
 	var scale: float = row.get("scale", 1.0)
+	# The wave tuner (tools/tune_waves.py) sweeps this to find the scale each level needs.
+	if OS.get_environment("BD_SCALE_MULT") != "" and level.number > 1:
+		scale *= float(OS.get_environment("BD_SCALE_MULT"))
 	## Squeezes the schedule: waves start sooner and release their enemies faster, so they overlap more.
 	var squeeze: float = row.get("squeeze", 1.0)
-	for entry in row["waves"]:
+	## The first wave of levels 2 to 10 comes a little later, so there is time to build.
+	var delay: float = row.get("delay", 15.0 if level.number > 1 else 0.0)
+	var wave_total: int = row["waves"].size()
+	## The first wave is a share of the full size and the waves grow to 100% by the last one, so the
+	## player has time to build before the field fills up.
+	var first_share: float = row.get("first", 0.4)
+	for wave_index in wave_total:
+		var entry: Array = row["waves"][wave_index]
+		var ramp := first_share + (1.0 - first_share) * pow(float(wave_index) / maxf(1.0, wave_total - 1.0), 0.7)
 		var entries: Array = []
 		for pair in entry[2]:
-			var count: int = pair[1] if _is_boss(pair[0]) else maxi(1, roundi(pair[1] * scale))
+			var count: int = pair[1] if _is_boss(pair[0]) else maxi(1, roundi(pair[1] * scale * ramp))
 			entries.append({"enemy": pair[0], "count": count})
-		waves.append(_wave(5.0 + (entry[0] - 5.0) * squeeze, entry[1] * squeeze, entries))
+		waves.append(_wave(5.0 + delay + (entry[0] - 5.0) * squeeze, maxf(0.6, entry[1] * squeeze), entries))
 	level.waves = waves
 	_save(level, "%s/level_%d.tres" % [LEVEL_DIR, level.number])
 

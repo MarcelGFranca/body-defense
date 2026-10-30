@@ -8,6 +8,10 @@ signal enemy_spawned(enemy_id: String)
 enum State { WAITING, SPAWNING, DONE }
 
 var clock := 0.0
+## Index of the wave that released the enemy being spawned right now (readable in `enemy_spawned` handlers).
+var spawning_wave := -1
+## Multiplies start times and spawn intervals (the difficulty).
+var time_scale := 1.0
 
 var _waves: Array[WaveData]
 var _states: Array[int] = []
@@ -15,8 +19,9 @@ var _queues: Array = []
 var _timers: Array[float] = []
 
 
-func _init(wave_list: Array[WaveData]) -> void:
+func _init(wave_list: Array[WaveData], wave_time_scale: float = 1.0) -> void:
 	_waves = wave_list
+	time_scale = wave_time_scale
 	for wave in _waves:
 		_states.append(State.WAITING)
 		_timers.append(0.0)
@@ -30,7 +35,7 @@ func _init(wave_list: Array[WaveData]) -> void:
 func tick(delta: float) -> void:
 	clock += delta
 	for i in _waves.size():
-		if _states[i] == State.WAITING and clock >= _waves[i].start_time:
+		if _states[i] == State.WAITING and clock >= _waves[i].start_time * time_scale:
 			_start(i)
 	for i in _waves.size():
 		if _states[i] == State.SPAWNING:
@@ -83,7 +88,7 @@ func time_to_next_wave() -> float:
 	var i := next_wave_index()
 	if i == -1:
 		return -1.0
-	return maxf(0.0, _waves[i].start_time - clock)
+	return maxf(0.0, _waves[i].start_time * time_scale - clock)
 
 
 func enemy_ids_of(index: int) -> Array:
@@ -103,8 +108,9 @@ func _start(index: int) -> void:
 func _spawn_step(index: int, delta: float) -> void:
 	var queue: Array = _queues[index]
 	while not queue.is_empty() and _timers[index] <= 0.0:
+		spawning_wave = index
 		enemy_spawned.emit(queue.pop_front())
-		_timers[index] += _waves[index].spawn_interval
+		_timers[index] += _waves[index].spawn_interval * time_scale
 	if queue.is_empty():
 		_states[index] = State.DONE
 	else:

@@ -14,9 +14,9 @@ trait_params = {
 "copies": 2,
 "scale": 0.75
 }
-health = 300.0
+health = 290.0
 speed = 35.0
-body_damage = 10
+body_damage = 8
 amino_acid_reward = 25
 sprite_dir = "res://assets/enemies/neisseria-meningitidis"
 sound_hit = "res://assets/audio/enemies/neisseria-meningitidis/hit.wav"

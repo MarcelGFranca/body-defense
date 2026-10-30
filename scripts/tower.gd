@@ -141,7 +141,7 @@ func _step_single_target(delta: float) -> void:
 	var target := _first_enemy()
 	if target == null:
 		return
-	target.take_damage(data.attack_damage, data.damage_type)
+	target.take_damage(data.attack_damage, data.damage_type, data.id)
 	_cooldown = data.attack_interval
 	_flash = FLASH_SECONDS
 	_flash_target = target.position - position
@@ -159,7 +159,7 @@ func _step_damage_aura(delta: float) -> void:
 	if targets.is_empty():
 		return
 	for enemy: Enemy in targets:
-		enemy.take_damage(data.attack_damage, data.damage_type)
+		enemy.take_damage(data.attack_damage, data.damage_type, data.id)
 	_cooldown = data.attack_interval
 	play_attack()
 	GameAudio.play_sfx(data.sound_attack)
@@ -206,7 +206,7 @@ func _step_root_aura() -> void:
 func _step_dot_aura() -> void:
 	for enemy: Enemy in _enemies():
 		var was_burning := enemy.status.has_dot()
-		enemy.status.apply_dot(data.dot_damage, data.damage_type, data.dot_seconds)
+		enemy.status.apply_dot(data.dot_damage, data.damage_type, data.dot_seconds, data.id)
 		if not was_burning:
 			GameAudio.play_sfx(data.sound_attack)
 
@@ -222,7 +222,7 @@ func _step_summon_marker(delta: float) -> void:
 	targets.sort_custom(func(a: Enemy, b: Enemy) -> bool: return a.progress > b.progress)
 	for enemy: Enemy in targets.slice(0, maxi(1, data.mark_targets)):
 		enemy.status.apply_mark(data.mark_bonus, data.mark_seconds)
-		enemy.take_damage(data.attack_damage, data.damage_type)
+		enemy.take_damage(data.attack_damage, data.damage_type, data.id)
 	_cooldown = data.attack_interval
 	_flash = FLASH_SECONDS
 	_flash_target = targets[0].position - position

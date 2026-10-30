@@ -86,6 +86,6 @@ static func _bacteria_share(game_level: Level) -> float:
 
 func _report(result: String) -> void:
 	print("%s at level time %.1f s, body health %d/%d, amino acids %d" % [
-		result, level.scheduler.clock, level.body_health, level.data.body_health, Economy.balance()])
+		result, level.scheduler.clock, level.body_health, level.max_body_health, Economy.balance()])
 	if "--autoplay" in OS.get_cmdline_user_args():
 		get_tree().quit()

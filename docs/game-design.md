@@ -1,0 +1,86 @@
+# Game design
+
+Numbers here are the current values. The source of truth is `tools/generate_data.gd`; the full table with before and after is `design/balance.md`.
+
+## Loop
+
+1. Pick a level in the menu (locked until the previous one is won).
+2. Build towers on slots with amino acids. Enemies come in timed waves along the path.
+3. Each enemy that reaches the exit takes body health. At 0 body health the level is lost.
+4. Defeat every wave to win. The best body health left is saved.
+
+Enemies drop amino acids when they die. Selling a tower returns part of its cost. The player can call the next wave early and switch to 2x speed.
+
+## Towers
+
+| Tower | Role | Damage type | Cost | Behaviour |
+|---|---|---|---|---|
+| Macrophage | single target | physical | 50 | 14 damage per second to the first enemy in range |
+| Neutrophil | rapid fire | physical | 45 | 5 damage every 0.4 s |
+| Mucus Cell | slow | none | 40 | Mucus puddle slows 40% for 6 s |
+| Platelet | root | none | 55 | Roots an enemy 1.2 s (half for bosses) |
+| Hypothalamus | damage over time | thermal | 90 | Fever: 3 damage per second for 4 s |
+| Lysozyme | area | chemical | 70 | 4 per second; strong on bacteria, weak on viruses |
+| Interferon | area | antiviral | 70 | 5 per second, slows viruses 25%; bacteria immune |
+| T Lymphocyte | single target, mobile | immunological | 90 | 55 damage every 2 s, ignores armor |
+| B Lymphocyte | summoner, mobile | antiviral | 70 | Antibodies mark up to 4 enemies: +35% damage for 5 s |
+| Bone Marrow | summoner | physical | 90 | Up to 3 neutrophils that block enemies |
+
+Mobile towers can be moved to another slot.
+
+## Damage types
+
+| Type | vs virus | vs bacterium |
+|---|---|---|
+| physical | 1.0 | 1.0 |
+| thermal | 1.0 | 1.0 |
+| chemical | 0.5 | 1.5 |
+| antiviral | 1.5 | 0.0 |
+| immunological | 1.0 | 1.0 |
+
+Armor (percent) reduces physical, thermal, chemical and antiviral damage; immunological ignores it. Some enemies override the table (C. difficile takes half from thermal and chemical).
+
+## Enemies
+
+| Enemy | Type | Health | Speed | Trait |
+|---|---|---|---|---|
+| Rhinovirus | virus | 20 | 45 | Appears in large groups |
+| Influenza | virus | 30 | 79 | Fast |
+| SARS-CoV-2 | virus | 60 | 45 | Releases 2 small rhinoviruses on death |
+| Herpes Simplex | virus | 50 | 50 | Goes dormant (immune) 1.5 s every 4 s |
+| HPV | virus | 85 | 40 | 30% armor |
+| E. coli | bacterium | 40 | 50 | Basic |
+| Streptococcus pyogenes | bacterium | 100 | 40 | Chain of 3 segments that die separately |
+| Staphylococcus aureus | bacterium | 75 | 45 | Gains 50% resistance to one damage type at 40% of the path |
+| Helicobacter pylori | bacterium | 60 | 45 | Immune to slowing |
+| Clostridioides difficile | bacterium | 45 | 45 | Revives once with 20% health |
+| HIV (boss) | virus | 400 | 30 | Aura disables nearby towers; affects lymphocytes longer |
+| Mycobacterium tuberculosis (boss) | bacterium | 300 | 22 | 30% armor, very slow |
+| Neisseria meningitidis (boss) | bacterium | 290 | 35 | Splits into 2 smaller copies at half health |
+
+Body damage is 1 to 2 for regular enemies and 8 to 10 for bosses.
+
+## Waves
+
+Each level has 3 to 6 waves. A wave is a start time, an interval and a list of enemy groups. The first wave of levels above 1 starts after a 15 s delay; the spawn interval has a floor of 0.6 s; wave sizes ramp up inside a level. Bosses come in the last wave of levels 3, 7 and 10.
+
+## Difficulty
+
+| | Easy | Medium | Hard |
+|---|---|---|---|
+| Starting amino acids | x1.3 | x1 | x0.95 |
+| Body health | x1.5 | x1 | x0.8 |
+| Enemy health | x0.8 | x1 | x1.12 |
+| Enemy speed | x0.9 | x1 | x1.05 |
+| Amino acids dropped | x1.15 | x1 | x0.95 |
+| Time between waves | x1.25 | x1 | x0.92 |
+
+Measured win rate with the 10 bot strategies: Easy 87%, Medium 65%, Hard 42%.
+
+## Progress
+
+Level n+1 opens when level n is won. The menu shows the best body health per level ("BEST n"). Difficulty is chosen in Settings and applies to every level.
+
+## Audio
+
+One music loop per level (about 50 s, three instruments) and one sound set per tower and enemy. At most 8 sounds play at once.

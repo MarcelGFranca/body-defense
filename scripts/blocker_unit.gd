@@ -41,7 +41,7 @@ func fight(enemy: Enemy, delta: float) -> void:
 	health -= ENEMY_DPS * enemy.body_damage * delta
 	if _clock >= HIT_INTERVAL:
 		_clock -= HIT_INTERVAL
-		enemy.take_damage(damage, "physical")
+		enemy.take_damage(damage, "physical", "bone-marrow")
 	queue_redraw()
 	if health <= 0.0:
 		died.emit(self)

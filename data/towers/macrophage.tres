@@ -13,5 +13,5 @@ cost = 50
 in_prototype = true
 behavior = "single_target"
 range_px = 95.0
-attack_damage = 12.0
+attack_damage = 14.0
 sound_attack = "res://assets/audio/towers/macrophage/attack.wav"

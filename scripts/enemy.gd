@@ -21,6 +21,10 @@ var progress := 0.0
 var reward := 0
 var body_damage := 1
 var is_copy := false
+## Index of the wave that sent this enemy, and the tower that hurt it last (for the stats).
+var wave := -1
+var last_source := ""
+var speed := 0.0
 ## Set by the level so traits can reach the towers and spawn other enemies.
 var level: Level
 ## True once the enemy has died or reached the exit.
@@ -45,12 +49,19 @@ var _blocked_by: BlockerUnit
 ## `options` may hold "health", "reward", "damage", "scale", "progress", "copy" and "level".
 func setup(enemy_data: EnemyData, curve: Curve2D, table: DamageTable, options: Dictionary = {}) -> void:
 	data = enemy_data
-	health = float(options.get("health", data.health))
+	level = options.get("level", null)
+	# Health and reward come from the roster, scaled by the difficulty, unless they were worked out from
+	# an enemy that was already scaled (the copies of a split).
+	var difficulty: DifficultyData = level.difficulty if level != null else null
+	var health_scale := 1.0 if difficulty == null or bool(options.get("final", false)) else difficulty.enemy_health
+	var reward_scale := 1.0 if difficulty == null or bool(options.get("final", false)) else difficulty.reward
+	health = ceilf(float(options.get("health", data.health)) * health_scale)
 	max_health = health
-	reward = int(options.get("reward", data.amino_acid_reward))
+	reward = maxi(1, roundi(float(options.get("reward", data.amino_acid_reward)) * reward_scale))
+	speed = data.speed * (difficulty.enemy_speed if difficulty != null else 1.0)
+	wave = int(options.get("wave", -1))
 	body_damage = int(options.get("damage", data.body_damage))
 	is_copy = bool(options.get("copy", false))
-	level = options.get("level", null)
 	progress = float(options.get("progress", 0.0))
 	status = EnemyStatus.new(data)
 	_curve = curve
@@ -88,14 +99,14 @@ func step(delta: float) -> void:
 	_hit_cooldown -= delta
 	_slow_cooldown -= delta
 	for tick in status.advance(delta):
-		take_damage(float(tick["damage"]), String(tick["type"]))
+		take_damage(float(tick["damage"]), String(tick["type"]), String(tick["source"]))
 		if finished:
 			return
 	_sprite.modulate.a = 0.4 if is_dormant() else 1.0
 	_step_aura(delta)
 	_update_blocker(delta)
 	var speed_factor := 0.0 if _blocked_by != null else status.speed_multiplier()
-	progress += data.speed * speed_factor * delta
+	progress += speed * speed_factor * delta
 	_sprite.speed_scale = maxf(0.3, status.speed_multiplier())
 	position = _curve.sample_baked(clampf(progress, 0.0, _length))
 	if progress >= _length:
@@ -130,12 +141,16 @@ func _update_blocker(delta: float) -> void:
 
 
 ## Applies an attack. Returns the damage that was actually dealt.
-func take_damage(amount: float, damage_type: String) -> int:
+func take_damage(amount: float, damage_type: String, source: String = "") -> int:
 	if finished or is_dormant():
 		return 0
 	_update_resistance()
 	var resistance := param("factor", 0.5) if damage_type == _resisted_type and _resisted_type != "" else 1.0
 	var dealt := DamageCalculator.resolve(amount, damage_type, data, _table, status.mark_bonus(), resistance)
+	if source != "":
+		last_source = source
+	if level != null:
+		level.stats.record_damage(source if source != "" else "other", minf(float(dealt), maxf(health, 0.0)))
 	health -= dealt
 	_damage_taken[damage_type] = float(_damage_taken.get(damage_type, 0.0)) + dealt
 	queue_redraw()
@@ -192,7 +207,7 @@ func resisted_type() -> String:
 
 
 func _should_split() -> bool:
-	return has_trait("split_at_half") and not is_copy and not _split_done and health <= data.health * 0.5
+	return has_trait("split_at_half") and not is_copy and not _split_done and health <= max_health * 0.5
 
 
 ## Neisseria meningitidis breaks into smaller copies when half of its health is gone.
@@ -207,7 +222,7 @@ func _split_in_two() -> void:
 ## Clostridioides difficile comes back once, as a spore with little health.
 func _revive() -> void:
 	_revived = true
-	health = data.health * param("health", 0.25)
+	health = ceilf(max_health * param("health", 0.25))
 	_damage_taken.clear()
 	queue_redraw()
 	if _sprite != null:

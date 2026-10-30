@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="DifficultyData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/difficulty_data.gd" id="1_uj01j"]
+
+[resource]
+script = ExtResource("1_uj01j")
+id = "easy"
+display_name = "Easy"
+description = "More amino acids and body health, weaker and slower enemies, more time between waves."
+start_amino = 1.3
+body_health = 1.5
+enemy_health = 0.8
+enemy_speed = 0.9
+reward = 1.15
+wave_time = 1.25

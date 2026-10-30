@@ -11,7 +11,9 @@ func _ready() -> void:
 		var at := args.find("--level")
 		if at + 1 < args.size():
 			Session.current_level = int(args[at + 1])
-	level = Level.new(Session.load_level(Session.current_level))
+	if "--difficulty" in args and args.find("--difficulty") + 1 < args.size():
+		Session.difficulty = args[args.find("--difficulty") + 1]
+	level = Level.new(Session.load_level(Session.current_level), Session.difficulty_data())
 	add_child(level)
 	level.victory.connect(func() -> void: Session.record_victory(level.data.number, level.body_health))
 	hud = Hud.new(level)

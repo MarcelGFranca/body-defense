@@ -34,6 +34,8 @@ func _run() -> void:
 	await test_speed_and_pause()
 	await test_hud()
 	await test_audio()
+	test_difficulty()
+	test_stats()
 	test_campaign_data()
 	test_enemy_traits()
 	test_new_towers()
@@ -43,7 +45,7 @@ func _run() -> void:
 	for section in ["test_enemy_roster", "test_tower_roster", "test_level_data", "test_validator_catches_problems",
 			"test_damage_calculator", "test_status_effects", "test_wave_scheduler", "test_economy",
 			"test_level_simulation", "test_scrolling", "test_speed_and_pause", "test_hud", "test_audio",
-			"test_campaign_data", "test_enemy_traits", "test_new_towers", "test_session", "test_menu_and_results",
+			"test_difficulty", "test_stats", "test_campaign_data", "test_enemy_traits", "test_new_towers", "test_session", "test_menu_and_results",
 			"test_campaign_simulation"]:
 		if not _done.has(section):
 			_failures += 1
@@ -145,7 +147,7 @@ func test_tower_roster() -> void:
 		check(_towers[id].ability_description != "", "%s has an ability description" % id)
 	var hud_texts := Hud.new(null)
 	check(hud_texts._damage_text(_towers["mucus-cell"]) == "DAMAGE: NONE", "a tower without damage says so")
-	check(hud_texts._damage_text(_towers["interferon"]) == "DAMAGE: 6/S (ANTIVIRAL)", "an area tower shows its damage per second")
+	check(hud_texts._damage_text(_towers["interferon"]) == "DAMAGE: 5/S (ANTIVIRAL)", "an area tower shows its damage per second")
 	check(hud_texts._damage_text(_towers["hypothalamus"]) == "DAMAGE: 3/S (THERMAL)", "a damage over time tower shows its damage per second")
 	hud_texts.free()
 	done("test_tower_roster")
@@ -209,7 +211,7 @@ func test_damage_calculator() -> void:
 	check(resolve.call(12, "physical", "hpv") == 8, "physical 12 on HPV (30% armor) deals 8")
 	check(resolve.call(10, "chemical", "mycobacterium-tuberculosis") == 15, "armor does not reduce chemical damage")
 	check(resolve.call(30, "immunological", "mycobacterium-tuberculosis") == 30, "immunological ignores armor")
-	check(resolve.call(12, "physical", "mycobacterium-tuberculosis") == 7, "physical 12 on tuberculosis (40% armor) deals 7")
+	check(resolve.call(12, "physical", "mycobacterium-tuberculosis") == 8, "physical 12 on tuberculosis (30% armor) deals 8")
 	check(resolve.call(4, "thermal", "clostridioides-difficile") == 2, "the spore takes half thermal damage")
 	check(resolve.call(3, "thermal", "clostridioides-difficile") == 1, "a fever tick on the spore deals 1")
 	check(resolve.call(12, "physical", "rhinovirus", 0.25) == 15, "a mark adds 25% damage")
@@ -439,7 +441,7 @@ func test_level_simulation() -> void:
 	level.build_tower(2, "macrophage")
 	var target := spawn_at(level, "rhinovirus", 850.0)
 	level.step(0.05)
-	check(target.health == 8.0, "a macrophage hits an enemy in range for 12")
+	check(target.health == 6.0, "a macrophage hits an enemy in range for 14")
 	free_node(level)
 
 	level = new_level()
@@ -466,8 +468,8 @@ func test_level_simulation() -> void:
 	var virus := spawn_at(level, "rhinovirus", 850.0)
 	var bacterium := spawn_at(level, "streptococcus-pyogenes", 850.0)
 	level.step(0.05)
-	check(virus.health == 11.0, "interferon hits a virus for 9")
-	check(bacterium.health == 80.0, "interferon does not hurt a bacterium")
+	check(virus.health == 13.0, "interferon hits a virus for 7")
+	check(bacterium.health == 100.0, "interferon does not hurt a bacterium")
 	free_node(level)
 
 	for id in ["macrophage", "mucus-cell", "interferon"]:
@@ -607,7 +609,7 @@ func test_hud() -> void:
 	level.tower_tapped.emit(1)
 	var card := hud._popup.get_node("TowerCard")
 	check(card.get_node("Name").text == "MACROPHAGE", "the tower card shows the tower name")
-	check(card.get_node("Damage").text == "DAMAGE: 12/S (PHYSICAL)", "the tower card shows the damage")
+	check(card.get_node("Damage").text == "DAMAGE: 14/S (PHYSICAL)", "the tower card shows the damage")
 	check(card.get_node("Ability").text == _towers["macrophage"].ability_description and card.get_node("Ability").text != "", "the tower card shows the ability")
 	var ability_box: Label = card.get_node("Ability")
 	check(ability_box.size.x <= card.size.x - 32.0 + 0.5, "the ability text wraps inside the card (%.0f px wide)" % ability_box.size.x)
@@ -638,7 +640,7 @@ func test_hud() -> void:
 	level._spawn_enemy("streptococcus-pyogenes")
 	level.enemy_tapped.emit(level.enemies[0])
 	check(hud._enemy_card.visible and hud._card_lines.text.contains("IMMUNE: ANTIVIRAL"), "the enemy card of a bacterium lists antiviral as an immunity")
-	check(hud._card_lines.text.contains("HP 80/80"), "the enemy card shows health")
+	check(hud._card_lines.text.contains("HP 100/100"), "the enemy card shows health")
 	level.nothing_tapped.emit()
 	check(not hud._enemy_card.visible, "the enemy card closes when the player taps elsewhere")
 
@@ -877,7 +879,7 @@ func test_enemy_traits() -> void:
 	level = campaign_level(2)
 	level._spawn_enemy("streptococcus-pyogenes")
 	check(level.enemies.size() == 3, "a strep chain walks as three segments")
-	check(level.enemies[0].health == 27.0 and level.enemies[0].reward == 2 and level.enemies[1].progress < level.enemies[0].progress,
+	check(level.enemies[0].health == 34.0 and level.enemies[0].reward == 2 and level.enemies[1].progress < level.enemies[0].progress,
 		"each segment has a third of the health and reward, and they follow one another")
 	balance = Economy.balance()
 	for segment in level.enemies.duplicate():
@@ -886,7 +888,7 @@ func test_enemy_traits() -> void:
 	free_node(level)
 	level = new_level()
 	level._spawn_enemy("streptococcus-pyogenes")
-	check(level.enemies.size() == 1 and level.enemies[0].health == 80.0, "level 1 keeps the strep chain turned off")
+	check(level.enemies.size() == 1 and level.enemies[0].health == 100.0, "level 1 keeps the strep chain turned off")
 	free_node(level)
 
 	level = campaign_level(4)
@@ -906,7 +908,7 @@ func test_enemy_traits() -> void:
 	check(staph.take_damage(10.0, "physical") == 5 and staph.resisted_type() == "physical", "staph resists the damage type that hurt it most")
 	check(staph.take_damage(10.0, "chemical") == 15, "staph is not resistant to other types")
 	var tb := spawn_at(level, "mycobacterium-tuberculosis", 10.0)
-	check(tb.take_damage(12.0, "physical") == 7, "tuberculosis armor takes 40% of a macrophage hit")
+	check(tb.take_damage(12.0, "physical") == 8, "tuberculosis armor takes 30% of a macrophage hit")
 	check(tb.take_damage(30.0, "immunological") == 30, "armor does not stop immunological damage")
 	free_node(level)
 
@@ -914,8 +916,8 @@ func test_enemy_traits() -> void:
 	balance = Economy.balance()
 	var spore := spawn_at(level, "clostridioides-difficile", 100.0)
 	kill(spore)
-	check(not spore.finished and level.enemies.has(spore) and Economy.balance() == balance and absf(spore.health - 13.75) < 0.01,
-		"C. difficile comes back once with a quarter of its health")
+	check(not spore.finished and level.enemies.has(spore) and Economy.balance() == balance and spore.health == 9.0,
+		"C. difficile comes back once with a fifth of its health")
 	kill(spore)
 	check(spore.finished and not level.enemies.has(spore) and Economy.balance() == balance + 5, "the second death is final and pays")
 	free_node(level)
@@ -928,7 +930,7 @@ func test_enemy_traits() -> void:
 	meningitis.take_damage(60.0, "physical")
 	check(level.enemies.size() == 2 and not level.enemies.has(meningitis), "meningitis splits in two at half health")
 	for copy: Enemy in level.enemies:
-		check(copy.is_copy and copy.health == 70.0 and copy.reward == 13 and approx(copy.progress, 200.0, 12.0), "a copy has half of what is left")
+		check(copy.is_copy and copy.health == 65.0 and copy.reward == 13 and approx(copy.progress, 200.0, 12.0), "a copy has half of what is left")
 		copy.take_damage(40.0, "physical")
 	check(level.enemies.size() == 2, "a copy does not split again")
 	balance = Economy.balance()
@@ -942,12 +944,12 @@ func test_enemy_traits() -> void:
 	level.build_tower(0, "macrophage")
 	var tower: Tower = level.towers[0]
 	var hiv := spawn_at(level, "hiv", level.curve.get_closest_offset(tower.position))
-	level.step(3.1)
+	level.step(3.6)
 	check(tower.is_disabled(), "HIV switches off the towers around it")
 	hiv.progress = 0.0
 	hiv.step(0.0)
 	tower._disabled_for = 0.0
-	level.step(3.1)
+	level.step(3.6)
 	check(not tower.is_disabled(), "a tower out of the aura keeps working")
 	free_node(level)
 	done("test_enemy_traits")
@@ -989,12 +991,12 @@ func test_new_towers() -> void:
 	var slot := level.data.slots[0]
 	var offset := level.curve.get_closest_offset(slot)
 	var targets: Array[Enemy] = []
-	for i in 4:
+	for i in 5:
 		targets.append(spawn_at(level, "rhinovirus", offset - 6.0 * i))
 	level.step(0.1)
 	var marked := targets.filter(func(e: Enemy) -> bool: return e.status.mark_bonus() > 0.0)
-	check(marked.size() == 3 and marked.has(targets[0]), "a B lymphocyte marks the three enemies that are furthest along")
-	check(approx(targets[0].status.mark_bonus(), 0.25) and targets[0].health < 20.0, "a mark adds 25% and the antibodies hurt a little")
+	check(marked.size() == 4 and marked.has(targets[0]) and not marked.has(targets[4]), "a B lymphocyte marks the four enemies that are furthest along")
+	check(approx(targets[0].status.mark_bonus(), 0.35) and targets[0].health < 20.0, "a mark adds 35% and the antibodies hurt a little")
 	free_node(level)
 
 	level = campaign_level(4)
@@ -1005,14 +1007,14 @@ func test_new_towers() -> void:
 	check(not level.move_tower(2, 3) and not level.move_tower(0, 2) and not level.move_tower(1, 3), "only a mobile tower can move, and only to an empty slot")
 	check(level.move_tower(0, 1) and level.towers.has(1) and not level.towers.has(0) and t_cell.slot_index == 1, "a lymphocyte moves to another slot")
 	check(t_cell.position == level.data.slots[1] and t_cell.is_settling(), "it stands on the new slot and needs a moment to settle")
-	var victim := spawn_at(level, "e-coli", level.curve.get_closest_offset(t_cell.position))
+	var victim := spawn_at(level, "hpv", level.curve.get_closest_offset(t_cell.position))
 	victim.status.apply_root("test", 30.0, 0.0)
 	for i in 10:
 		level.step(0.1)
-	check(victim.health == 40.0, "a lymphocyte does not attack while it settles")
+	check(victim.health == 85.0, "a lymphocyte does not attack while it settles")
 	for i in 10:
 		level.step(0.1)
-	check(victim.health == 10.0, "and attacks again afterwards, ignoring armor")
+	check(victim.health == 30.0, "and attacks again afterwards, ignoring armor")
 	free_node(level)
 
 	level = campaign_level(2)
@@ -1020,10 +1022,10 @@ func test_new_towers() -> void:
 	level.build_tower(0, "lysozyme")
 	var coli := spawn_at(level, "e-coli", level.curve.get_closest_offset(level.data.slots[0]))
 	level.step(0.1)
-	check(coli.health == 31.0, "lysozyme hurts bacteria with 1.5 times its chemical damage")
+	check(coli.health == 34.0, "lysozyme hurts bacteria with 1.5 times its chemical damage")
 	var virus := spawn_at(level, "influenza", level.curve.get_closest_offset(level.data.slots[0]))
 	level.step(1.1)
-	check(virus.health == 27.0, "and only half of it against viruses")
+	check(virus.health == 28.0, "and only half of it against viruses")
 	free_node(level)
 	done("test_new_towers")
 
@@ -1077,6 +1079,19 @@ func test_menu_and_results() -> void:
 	await get_tree().process_frame
 	var detail := menu.find_child("Detail", true, false)
 	check(detail != null and detail.find_child("PlayButton", true, false) != null, "an open level shows its page with a play button")
+	var settings_button: Button = menu.find_child("SettingsButton", true, false)
+	check(settings_button != null and menu.find_child("Settings", true, false) == null, "the menu has a settings button")
+	settings_button.pressed.emit()
+	await get_tree().process_frame
+	check(menu.find_child("Settings", true, false) != null and menu.find_children("Difficulty_*", "Button", true, false).size() == 3,
+		"settings offer three difficulties")
+	menu.find_child("Difficulty_hard", true, false).pressed.emit()
+	await get_tree().process_frame
+	check(Session.difficulty == "hard" and menu.find_child("Settings", true, false) != null, "tapping a difficulty chooses it")
+	menu.find_child("Difficulty_medium", true, false).pressed.emit()
+	await get_tree().process_frame
+	menu.find_child("BackButton", true, false).pressed.emit()
+	await get_tree().process_frame
 	var boss_card: Button = menu.find_child("Level_3", true, false)
 	check(boss_card.find_children("*", "TextureRect", true, false).size() == 1, "a boss level shows its boss")
 	Session.record_victory(1, 10)
@@ -1146,3 +1161,90 @@ func test_campaign_simulation() -> void:
 		check(level.state == "lost", "level %d is lost without towers" % number)
 		free_node(level)
 	done("test_campaign_simulation")
+
+
+# --- difficulty and stats ---------------------------------------------------
+
+func test_difficulty() -> void:
+	var easy: DifficultyData = Session.load_difficulty("easy")
+	var medium: DifficultyData = Session.load_difficulty("medium")
+	var hard: DifficultyData = Session.load_difficulty("hard")
+	check(easy != null and medium != null and hard != null, "there are three difficulties")
+	check(medium.start_amino == 1.0 and medium.body_health == 1.0 and medium.enemy_health == 1.0 and medium.enemy_speed == 1.0
+		and medium.reward == 1.0 and medium.wave_time == 1.0, "medium changes nothing")
+	check(easy.start_amino > 1.0 and easy.body_health > 1.0 and easy.enemy_health < 1.0 and easy.enemy_speed < 1.0
+		and easy.reward > 1.0 and easy.wave_time > 1.0, "easy gives more and asks less")
+	check(hard.start_amino < 1.0 and hard.body_health < 1.0 and hard.enemy_health > 1.0 and hard.enemy_speed > 1.0
+		and hard.reward < 1.0 and hard.wave_time < 1.0, "hard gives less and asks more")
+	check(easy.display_name == "Easy" and medium.display_name == "Medium" and hard.display_name == "Hard", "the three are called Easy, Medium and Hard")
+
+	var base := Level.new(Session.load_level(1))
+	get_tree().root.add_child(base)
+	check(base.difficulty.id == "medium" and Economy.balance() == 150 and base.max_body_health == 20, "a level without a difficulty plays on medium")
+	var rhino_base := spawn_at(base, "rhinovirus", 0.0)
+	check(rhino_base.health == 20.0 and rhino_base.reward == 2 and rhino_base.speed == 45.0, "an enemy keeps its roster numbers on medium")
+	free_node(base)
+
+	var easy_level := Level.new(Session.load_level(1), easy)
+	get_tree().root.add_child(easy_level)
+	check(Economy.balance() == roundi(150 * easy.start_amino) and easy_level.max_body_health == roundi(20 * easy.body_health)
+		and easy_level.body_health == easy_level.max_body_health, "easy starts with more amino acids and body health")
+	var rhino_easy := spawn_at(easy_level, "rhinovirus", 0.0)
+	check(rhino_easy.health == ceilf(20.0 * easy.enemy_health) and approx(rhino_easy.speed, 45.0 * easy.enemy_speed)
+		and rhino_easy.reward == roundi(2 * easy.reward), "easy enemies are weaker, slower and drop a little more")
+	check(approx(easy_level.scheduler.time_to_next_wave(), 5.0 * easy.wave_time), "easy waves start later")
+	check(approx(easy_level.scheduler.time_scale, easy.wave_time), "the scheduler knows the wave time")
+	free_node(easy_level)
+
+	var hard_level := Level.new(Session.load_level(1), hard)
+	get_tree().root.add_child(hard_level)
+	check(Economy.balance() == roundi(150 * hard.start_amino) and hard_level.max_body_health == roundi(20 * hard.body_health), "hard starts with less")
+	var rhino_hard := spawn_at(hard_level, "rhinovirus", 0.0)
+	check(rhino_hard.health == ceilf(20.0 * hard.enemy_health) and approx(rhino_hard.speed, 45.0 * hard.enemy_speed), "hard enemies are tougher and faster")
+	check(approx(hard_level.scheduler.time_to_next_wave(), 5.0 * hard.wave_time), "hard waves come sooner")
+	free_node(hard_level)
+
+	var hard_boss_level := Level.new(Session.load_level(7), hard)
+	get_tree().root.add_child(hard_boss_level)
+	var boss := spawn_at(hard_boss_level, "neisseria-meningitidis", 100.0)
+	var boss_health := boss.health
+	boss.take_damage(boss_health * 0.55, "immunological")
+	check(hard_boss_level.enemies.size() == 2, "a boss still splits on hard")
+	for copy: Enemy in hard_boss_level.enemies:
+		check(absf(copy.health - ceilf((boss_health - ceilf(boss_health * 0.55)) / 2.0)) <= 1.0, "the copies of a split are not scaled twice")
+	free_node(hard_boss_level)
+
+	var real_path: String = Session.save_path
+	Session.save_path = "user://test_progress.cfg"
+	Session.best_health.clear()
+	Session.set_difficulty("hard")
+	Session.set_difficulty("nonsense")
+	check(Session.difficulty == "hard" and Session.difficulty_data().id == "hard", "the difficulty is set, and a wrong name is ignored")
+	Session.difficulty = "medium"
+	Session.load_progress()
+	check(Session.difficulty == "hard", "the difficulty is saved on the device")
+	Session.reset_progress()
+	check(Session.difficulty == "hard", "starting over keeps the difficulty")
+	DirAccess.remove_absolute(ProjectSettings.globalize_path("user://test_progress.cfg"))
+	Session.save_path = real_path
+	Session.load_progress()
+	done("test_difficulty")
+
+
+func test_stats() -> void:
+	var level := new_level()
+	Economy.reset(500)
+	level.build_tower(2, "macrophage")
+	var target := spawn_at(level, "rhinovirus", 850.0)
+	level.step(0.05)
+	check(level.stats.damage_by_source.get("macrophage", 0.0) == 14.0 or level.stats.damage_by_source.get("macrophage", 0.0) == 20.0,
+		"the stats count the damage of a tower, without the overkill")
+	level.step(1.05)
+	check(level.stats.kills.get("rhinovirus", 0) == 1 and level.stats.kills_by_source.get("macrophage", 0) == 1, "the stats count the kill and who made it")
+	check(level.stats.towers_built.get("macrophage", 0) == 1 and level.stats.amino_spent == 50, "the stats count what was built and spent")
+	var runner := spawn_at(level, "influenza", level.curve.get_baked_length() - 1.0)
+	level.step(0.1)
+	check(level.stats.leaks.get("influenza", 0) == 1 and level.stats.first_leak_time > 0.0, "the stats count a leak and when it happened")
+	check(target.finished and runner.finished, "both enemies are done")
+	free_node(level)
+	done("test_stats")

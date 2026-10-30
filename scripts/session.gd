@@ -7,6 +7,8 @@ signal progress_changed
 const LEVEL_COUNT := 10
 const LEVEL_PATH_FORMAT := "res://data/levels/level_%d.tres"
 const SAVE_PATH := "user://progress.cfg"
+const DIFFICULTY_IDS := ["easy", "medium", "hard"]
+const DIFFICULTY_PATH_FORMAT := "res://data/difficulties/%s.tres"
 const LEVEL_SCENE := "res://scenes/main.tscn"
 const MENU_SCENE := "res://scenes/menu.tscn"
 
@@ -14,6 +16,8 @@ var current_level := 1
 ## Level number -> the most body health left after winning it.
 var best_health: Dictionary = {}
 var save_path := SAVE_PATH
+## "easy", "medium" or "hard": chosen in the settings and saved on the device.
+var difficulty := "medium"
 
 
 func _ready() -> void:
@@ -22,6 +26,22 @@ func _ready() -> void:
 
 func load_level(number: int) -> LevelData:
 	return load(LEVEL_PATH_FORMAT % clampi(number, 1, LEVEL_COUNT)) as LevelData
+
+
+func difficulty_data() -> DifficultyData:
+	return load_difficulty(difficulty)
+
+
+func load_difficulty(id: String) -> DifficultyData:
+	return load(DIFFICULTY_PATH_FORMAT % id) as DifficultyData
+
+
+func set_difficulty(id: String) -> void:
+	if not DIFFICULTY_IDS.has(id):
+		return
+	difficulty = id
+	save_progress()
+	progress_changed.emit()
 
 
 func is_completed(number: int) -> bool:
@@ -60,14 +80,18 @@ func save_progress() -> void:
 	var file := ConfigFile.new()
 	for number in best_health:
 		file.set_value("best_health", str(number), int(best_health[number]))
+	file.set_value("settings", "difficulty", difficulty)
 	file.save(save_path)
 
 
 func load_progress() -> void:
 	best_health.clear()
+	difficulty = "medium"
 	var file := ConfigFile.new()
 	if file.load(save_path) != OK:
 		return
+	var saved := String(file.get_value("settings", "difficulty", "medium"))
+	difficulty = saved if DIFFICULTY_IDS.has(saved) else "medium"
 	if file.has_section("best_health"):
 		for key in file.get_section_keys("best_health"):
 			best_health[int(key)] = int(file.get_value("best_health", key))

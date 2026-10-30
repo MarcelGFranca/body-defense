@@ -10,10 +10,10 @@ role = "boss"
 trait_id = "tower_disable_aura"
 trait_description = "Very high health, disables nearby towers in an aura, and affects lymphocytes longer."
 trait_params = {
-"interval": 3.0,
-"radius": 70.0
+"interval": 3.5,
+"radius": 65.0
 }
-health = 350.0
+health = 400.0
 speed = 30.0
 body_damage = 10
 amino_acid_reward = 25

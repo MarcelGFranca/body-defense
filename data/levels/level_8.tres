@@ -5,76 +5,76 @@
 
 [sub_resource type="Resource" id="Resource_epuu3"]
 script = ExtResource("2_pcr0t")
-start_time = 5.0
+start_time = 20.0
 spawn_interval = 0.8
 entries = [{
-"count": 27,
+"count": 9,
 "enemy": "rhinovirus"
 }, {
-"count": 17,
+"count": 6,
 "enemy": "e-coli"
 }, {
-"count": 10,
+"count": 3,
 "enemy": "helicobacter-pylori"
 }]
 
 [sub_resource type="Resource" id="Resource_03dem"]
 script = ExtResource("2_pcr0t")
-start_time = 50.0
+start_time = 65.0
 spawn_interval = 0.8
 entries = [{
-"count": 17,
+"count": 9,
 "enemy": "herpes-simplex"
 }, {
-"count": 14,
+"count": 7,
 "enemy": "hpv"
 }, {
-"count": 10,
+"count": 5,
 "enemy": "staphylococcus-aureus"
 }]
 
 [sub_resource type="Resource" id="Resource_5axjy"]
 script = ExtResource("2_pcr0t")
-start_time = 100.0
+start_time = 115.0
+spawn_interval = 0.7
+entries = [{
+"count": 11,
+"enemy": "clostridioides-difficile"
+}, {
+"count": 9,
+"enemy": "sars-cov-2"
+}, {
+"count": 11,
+"enemy": "influenza"
+}]
+
+[sub_resource type="Resource" id="Resource_52q4o"]
+script = ExtResource("2_pcr0t")
+start_time = 170.0
+spawn_interval = 0.7
+entries = [{
+"count": 12,
+"enemy": "staphylococcus-aureus"
+}, {
+"count": 12,
+"enemy": "hpv"
+}, {
+"count": 7,
+"enemy": "streptococcus-pyogenes"
+}]
+
+[sub_resource type="Resource" id="Resource_kjkkj"]
+script = ExtResource("2_pcr0t")
+start_time = 230.0
 spawn_interval = 0.7
 entries = [{
 "count": 17,
 "enemy": "clostridioides-difficile"
 }, {
 "count": 14,
-"enemy": "sars-cov-2"
-}, {
-"count": 17,
-"enemy": "influenza"
-}]
-
-[sub_resource type="Resource" id="Resource_52q4o"]
-script = ExtResource("2_pcr0t")
-start_time = 155.0
-spawn_interval = 0.7
-entries = [{
-"count": 17,
-"enemy": "staphylococcus-aureus"
-}, {
-"count": 17,
-"enemy": "hpv"
-}, {
-"count": 10,
-"enemy": "streptococcus-pyogenes"
-}]
-
-[sub_resource type="Resource" id="Resource_kjkkj"]
-script = ExtResource("2_pcr0t")
-start_time = 215.0
-spawn_interval = 0.7
-entries = [{
-"count": 20,
-"enemy": "clostridioides-difficile"
-}, {
-"count": 17,
 "enemy": "herpes-simplex"
 }, {
-"count": 17,
+"count": 14,
 "enemy": "helicobacter-pylori"
 }]
 
@@ -94,7 +94,7 @@ music = "res://assets/audio/music/liver.wav"
 map_size = Vector2(360, 920)
 path_points = PackedVector2Array(60, 40, 60, 820, 180, 820, 180, 100, 300, 100, 300, 880)
 slots = PackedVector2Array(240, 160, 120, 760, 120, 340, 120, 520, 240, 640, 240, 400, 120, 220, 250, 780, 240, 520, 120, 640)
-starting_amino_acids = 290
+starting_amino_acids = 360
 body_health = 20
 tower_ids = ["macrophage", "mucus-cell", "interferon", "neutrophil", "lysozyme", "platelet", "hypothalamus", "t-lymphocyte", "b-lymphocyte", "bone-marrow"]
 waves = Array[ExtResource("2_pcr0t")]([SubResource("Resource_epuu3"), SubResource("Resource_03dem"), SubResource("Resource_5axjy"), SubResource("Resource_52q4o"), SubResource("Resource_kjkkj")])

@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="DifficultyData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/difficulty_data.gd" id="1_md5ng"]
+
+[resource]
+script = ExtResource("1_md5ng")
+id = "hard"
+display_name = "Hard"
+description = "Less money and body health, tougher and faster enemies, waves come sooner."
+start_amino = 0.95
+body_health = 0.8
+enemy_health = 1.12
+enemy_speed = 1.05
+reward = 0.95
+wave_time = 0.92

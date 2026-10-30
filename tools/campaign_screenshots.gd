@@ -17,6 +17,8 @@ func _ready() -> void:
 	await _shot("menu")
 	menu.find_child("Level_4", true, false).pressed.emit()
 	await _shot("menu_detail")
+	menu.find_child("SettingsButton", true, false).pressed.emit()
+	await _shot("menu_settings")
 	menu.queue_free()
 	for number in [2, 3, 5, 7, 8, 10]:
 		await _play(number)
