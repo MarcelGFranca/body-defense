@@ -13,7 +13,7 @@ godot --headless --path . --fixed-fps 60 res://tests/test_runner.tscn   # about 
 godot --headless --path . --script res://tools/validate_data.gd
 ```
 
-`tests/test_runner.gd` has one `test_*` function per feature (data, damage, waves, economy, level, HUD, menu, difficulty, stats, audio). Add checks to the matching section. One audio test ("no more than 8 sounds play at once") failed once when the machine was busy; rerun before assuming a regression.
+`tests/test_runner.gd` has one `test_*` function per feature (data, damage, waves, economy, level, HUD, menu, difficulty, stats, audio). Add checks to the matching section. The secret level-select code (enemy x3, tower x2, enemy x1 on the menu) opens every level for manual testing.
 
 ## Bots and playtests
 

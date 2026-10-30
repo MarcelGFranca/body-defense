@@ -5,6 +5,9 @@ extends Control
 const SCREEN := Vector2(720, 1280)
 const CARD_SIZE := Vector2(640, 128)
 const MIN_TAP := 96.0
+const HERO_ROW_Y := 252.0
+## Secret code on the two fighters: enemy three times, tower twice, enemy once. It opens every level.
+const SECRET_CODE := ["enemy", "enemy", "enemy", "tower", "tower", "enemy"]
 const FONT_PATH := "res://assets/fonts/PressStart2P-Regular.ttf"
 const COLOR_BG := Color("2b1b3a")
 const COLOR_BORDER := Color("ffb3c7")
@@ -17,8 +20,10 @@ const COLOR_GOLD := Color("f4d35e")
 var _list: VBoxContainer
 var _scroll: ScrollContainer
 var _detail: Control
+
 var _settings: Control
 var _reset_armed := false
+var _taps: Array[String] = []
 var _levels: Array[LevelData] = []
 var _enemy_catalog: Dictionary = {}
 
@@ -59,19 +64,20 @@ func _build() -> void:
 	background.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(background)
 	var title := _label("BODY DEFENSE", 44, COLOR_GOLD)
-	title.position = Vector2(0, 70)
+	title.position = Vector2(0, 60)
 	title.size = Vector2(SCREEN.x, 56)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	add_child(title)
 	var tagline := _label("DEFEND THE HUMAN BODY", 18, COLOR_BORDER)
-	tagline.position = Vector2(0, 142)
+	tagline.position = Vector2(0, 136)
 	tagline.size = Vector2(SCREEN.x, 26)
 	tagline.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	add_child(tagline)
-	_add_hero("res://assets/towers/macrophage.png", Vector2(150, 180))
-	_add_hero("res://assets/enemies/rhinovirus/rhinovirus_sprite.png", Vector2(450, 180), true)
+	# The two fighters and "VS" share one row: equal gaps from the screen edges and from "VS".
+	_add_hero("res://assets/towers/macrophage.png", Vector2(180, HERO_ROW_Y), "tower")
+	_add_hero("res://assets/enemies/rhinovirus/rhinovirus_sprite.png", Vector2(540, HERO_ROW_Y), "enemy", true)
 	var bolt := _label("VS", 30, COLOR_GOLD)
-	bolt.position = Vector2(0, 232)
+	bolt.position = Vector2(0, HERO_ROW_Y - 20)
 	bolt.size = Vector2(SCREEN.x, 40)
 	bolt.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	add_child(bolt)
@@ -101,17 +107,31 @@ func _scroll_to(number: int) -> void:
 	_scroll.scroll_vertical = maxi(0, int((number - 2) * (CARD_SIZE.y + 14.0)))
 
 
-func _add_hero(path: String, at: Vector2, flip := false) -> void:
+func _add_hero(path: String, at: Vector2, kind: String, flip := false) -> void:
 	var icon := TextureRect.new()
 	icon.texture = load(path)
 	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	icon.stretch_mode = TextureRect.STRETCH_SCALE
 	icon.size = Vector2(128, 128)
-	icon.position = at - Vector2(64, 40)
+	icon.position = at - icon.size / 2.0
 	icon.flip_h = flip
 	icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	icon.name = "Hero_%s" % kind
+	icon.mouse_filter = Control.MOUSE_FILTER_STOP
+	icon.gui_input.connect(func(event: InputEvent) -> void:
+		if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+			tap_hero(kind))
 	add_child(icon)
+
+
+## Counts taps on the fighters; the last taps matching `SECRET_CODE` open every level until the game is closed.
+func tap_hero(kind: String) -> void:
+	_taps.append(kind)
+	if _taps.size() > SECRET_CODE.size():
+		_taps.pop_front()
+	if _taps == SECRET_CODE and not Session.all_levels_open:
+		Session.open_all_levels()
+		GameAudio.play_sfx(GameAudio.config.unlock_sound)
 
 
 func _refresh() -> void:

@@ -184,6 +184,16 @@ def blocked_sound():
     return ping * decay(d, 0.045, 0.001)
 
 
+def unlock_sound():
+    """A rising four-note chime: the secret code was accepted."""
+    parts = []
+    for name, d in (("C5", 0.09), ("E5", 0.09), ("G5", 0.09), ("C6", 0.34)):
+        f = note(name)
+        tone = square(np.full(int(SR * d), f), 0.5) * 0.5 + triangle(np.full(int(SR * d), f * 2)) * 0.3
+        parts.append(tone * decay(d, d * 0.8, 0.002))
+    return np.concatenate(parts)
+
+
 # --- music -------------------------------------------------------------------
 
 NOTE_INDEX = {"C": 0, "D": 2, "E": 4, "F": 5, "G": 7, "A": 9, "B": 11}
@@ -483,6 +493,7 @@ def generate():
         save(path, tower_sound(tower))
         files[path] = (tower, "attack", False)
     save(os.path.join(ROOT, "common", "block.wav"), blocked_sound())
+    save(os.path.join(ROOT, "common", "unlock.wav"), unlock_sound())
     save(os.path.join(ROOT, "music", "throat.wav"), music(), peak=0.7)
     for name in TRACKS:
         save(os.path.join(ROOT, "music", "%s.wav" % name), compose(name), peak=0.7)

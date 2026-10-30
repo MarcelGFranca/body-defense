@@ -16,6 +16,7 @@ Body Defense is a single-player, offline, portrait tower defense for Android. Th
 - Level menu with unlocking (winning a level opens the next) and best body health per level.
 - Timed waves with a call-next-wave-early button, 2x speed button, pause, sell and build menus, enemy cards.
 - **Three difficulties** (Easy, Medium, Hard) in a Settings page, plus reset of progress.
+- Secret tap code on the start screen that opens every level until the game is closed (testing aid).
 - Local save (`user://progress.cfg`): progress, best health, difficulty.
 - Music per level (50 s loop) and sound effects.
 - Launcher icon (adaptive).

@@ -6,3 +6,5 @@ extends Resource
 @export var music_volume_db: float = -14.0
 ## Played instead of an enemy's hit sound when an attack does nothing because the enemy is immune.
 @export var blocked_sound: String = ""
+## Played when the secret tap code in the menu opens every level.
+@export var unlock_sound: String = ""

@@ -395,6 +395,7 @@ func _save_audio() -> void:
 	config.sfx_volume_db = -6.0
 	config.music_volume_db = -14.0
 	config.blocked_sound = "res://assets/audio/common/block.wav"
+	config.unlock_sound = "res://assets/audio/common/unlock.wav"
 	_save(config, "res://data/audio.tres")
 
 

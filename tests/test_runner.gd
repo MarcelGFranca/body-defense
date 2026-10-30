@@ -762,7 +762,8 @@ func test_audio() -> void:
 		for sound in [_enemies[id].sound_hit, _enemies[id].sound_attack, _enemies[id].sound_death]:
 			if GameAudio.play_sfx(sound):
 				started += 1
-	check(started == GameAudio.VOICES and GameAudio.voices_in_use() <= GameAudio.VOICES, "no more than 8 sounds play at once (%d started)" % started)
+	# Short sounds can finish while the loop loads the rest and free a voice, so more than 8 may start; never more than 8 at a time.
+	check(started >= GameAudio.VOICES and GameAudio.voices_in_use() <= GameAudio.VOICES, "no more than 8 sounds play at once (%d started)" % started)
 
 	var level := new_level()
 	GameAudio.reset()
@@ -1056,7 +1057,13 @@ func test_session() -> void:
 		check(Session.best_health.get(1, 0) == 12, "progress is saved on the device")
 		check(not Session.has_next(10) and Session.has_next(9), "level 10 is the last one")
 		Session.reset_progress()
-		check(not Session.is_unlocked(2) and Session.best_health.is_empty(), "reset closes the levels again"))
+		check(not Session.is_unlocked(2) and Session.best_health.is_empty(), "reset closes the levels again")
+		Session.open_all_levels()
+		check(Session.is_unlocked(10) and Session.best_health.is_empty(), "opening every level does not change the progress")
+		Session.save_progress()
+		Session.all_levels_open = false
+		Session.load_progress()
+		check(not Session.is_unlocked(2), "the open levels are not saved"))
 	done("test_session")
 
 
@@ -1075,6 +1082,30 @@ func test_menu_and_results() -> void:
 	check(first.modulate.a == 1.0 and second.modulate.a < 1.0, "locked levels look dimmed")
 	second.pressed.emit()
 	check(menu.find_child("Detail", true, false) == null, "a locked level does not open")
+	# The secret tap code: enemy x3, tower x2, enemy x1.
+	GameAudio.reset()
+	GameAudio.record = true
+	for kind in ["enemy", "enemy", "tower", "enemy", "enemy", "tower", "enemy"]:
+		menu.tap_hero(kind)
+	check(not Session.all_levels_open, "a wrong order of taps opens nothing")
+	for kind in ["enemy", "enemy", "enemy", "tower", "tower", "enemy"]:
+		menu.tap_hero(kind)
+	check(Session.all_levels_open, "enemy three times, tower twice, enemy once opens every level")
+	check(GameAudio.play_log == [GameAudio.config.unlock_sound], "the code plays its sound")
+	check(ResourceLoader.exists(GameAudio.config.unlock_sound), "the unlock sound exists")
+	await get_tree().process_frame
+	check(menu.find_child("Level_2", true, false).modulate.a == 1.0, "every level looks open after the code")
+	menu.find_child("Level_9", true, false).pressed.emit()
+	check(menu.find_child("Detail", true, false) != null, "a level that was locked can be opened after the code")
+	menu.call("_close_detail")
+	Session.all_levels_open = false
+	GameAudio.record = false
+	GameAudio.reset()
+	Session.progress_changed.emit()
+	await get_tree().process_frame
+	first = menu.find_child("Level_1", true, false)
+	second = menu.find_child("Level_2", true, false)
+	check(second.modulate.a < 1.0, "levels close again when the code is gone")
 	first.pressed.emit()
 	await get_tree().process_frame
 	var detail := menu.find_child("Detail", true, false)

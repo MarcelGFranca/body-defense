@@ -18,6 +18,8 @@ var best_health: Dictionary = {}
 var save_path := SAVE_PATH
 ## "easy", "medium" or "hard": chosen in the settings and saved on the device.
 var difficulty := "medium"
+## Set by the secret tap code in the menu. It is not saved: it lasts until the game is closed.
+var all_levels_open := false
 
 
 func _ready() -> void:
@@ -49,7 +51,12 @@ func is_completed(number: int) -> bool:
 
 
 func is_unlocked(number: int) -> bool:
-	return number == 1 or is_completed(number - 1)
+	return all_levels_open or number == 1 or is_completed(number - 1)
+
+
+func open_all_levels() -> void:
+	all_levels_open = true
+	progress_changed.emit()
 
 
 ## The level after the highest one that was won, or the last level once the game is done.

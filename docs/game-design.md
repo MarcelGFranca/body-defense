@@ -81,6 +81,8 @@ Measured win rate with the 10 bot strategies: Easy 87%, Medium 65%, Hard 42%.
 
 Level n+1 opens when level n is won. The menu shows the best body health per level ("BEST n"). Difficulty is chosen in Settings and applies to every level.
 
+**Secret code (for testing):** on the start screen, tap the enemy 3 times, the tower 2 times, then the enemy once. A chime plays and every level opens. It is not saved: it lasts until the game is closed.
+
 ## Audio
 
 One music loop per level (about 50 s, three instruments) and one sound set per tower and enemy. At most 8 sounds play at once.
