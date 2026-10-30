@@ -532,6 +532,12 @@ func test_level_simulation() -> void:
 	check(level.towers[2].current_animation() == "attack", "the interferon plays its attack animation when it pulses")
 	free_node(level)
 
+	level = new_level()
+	var tinted := spawn_at(level, "e-coli", 300.0)
+	tinted.take_damage(1.0, "chemical", "test")
+	check(tinted._sprite.self_modulate != Color.WHITE, "a chemical hit flashes its colour on the enemy")
+	free_node(level)
+
 	level = level_with_tower("hypothalamus")
 	level.step(2.0)
 	check(level.towers[2].current_animation() == "idle", "the hypothalamus idles while nothing is in range")

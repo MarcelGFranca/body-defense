@@ -10,6 +10,12 @@ signal split(enemy: Enemy)
 const HIT_COOLDOWN := 1.4
 const SLOW_ANIMATION_COOLDOWN := 3.0
 const BAR_SIZE := Vector2(20, 3)
+## Colour flashed on the sprite when a type without its own hit animation hurts it.
+const HIT_TINTS := {
+	"thermal": Color(1.0, 0.6, 0.35),
+	"chemical": Color(0.6, 1.0, 0.45),
+	"immunological": Color(0.85, 0.6, 1.0),
+}
 const MARK_SHADER := "res://assets/shaders/mark_tint.gdshader"
 
 var data: EnemyData
@@ -37,6 +43,7 @@ var _table: DamageTable
 var _sprite: AnimatedSprite2D
 var _one_shot_playing := false
 var _on_done := Callable()
+var _tint_tween: Tween
 var _hit_cooldown := 0.0
 var _slow_cooldown := 0.0
 var _revived := false
@@ -211,7 +218,20 @@ func take_damage(amount: float, damage_type: String, source: String = "") -> int
 		if _hit_cooldown <= 0.0 and (not _one_shot_playing or _unit_attack_playing):
 			_hit_cooldown = HIT_COOLDOWN
 			_play_once(_hit_animation(damage_type, dealt))
+		if dealt > 0:
+			_tint_hit(damage_type)
 	return dealt
+
+
+## Types without their own hit animation flash their colour on the sprite.
+func _tint_hit(damage_type: String) -> void:
+	if _sprite == null or not HIT_TINTS.has(damage_type):
+		return
+	if _tint_tween != null:
+		_tint_tween.kill()
+	_sprite.self_modulate = HIT_TINTS[damage_type]
+	_tint_tween = create_tween()
+	_tint_tween.tween_property(_sprite, "self_modulate", Color.WHITE, 0.25)
 
 
 ## Plays the slowed reaction the first time a slow reaches the enemy.
