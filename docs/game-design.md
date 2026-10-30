@@ -9,7 +9,7 @@ Numbers here are the current values. The source of truth is `tools/generate_data
 3. Each enemy that reaches the exit takes body health. At 0 body health the level is lost.
 4. Defeat every wave to win. The best body health left is saved.
 
-Enemies drop amino acids when they die. Selling a tower returns part of its cost. The player can call the next wave early and switch to 2x speed.
+Enemies drop amino acids when they die. Selling a tower returns part of its cost. The player can call the next wave early and switch to 2x speed. The top bar adds the reward only when the flying amino acid orbs reach it.
 
 ## Towers
 

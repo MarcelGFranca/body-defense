@@ -663,6 +663,20 @@ func test_speed_and_pause() -> void:
 # --- HUD --------------------------------------------------------------------
 
 func test_hud() -> void:
+	var orb_level := new_level()
+	var orb_hud := Hud.new(orb_level)
+	get_tree().root.add_child(orb_hud)
+	await get_tree().process_frame
+	orb_level.orbs_requested.emit(Vector2(100, 100), 7)
+	Economy.add(7)
+	await get_tree().process_frame
+	check(orb_hud._amino_label.text == "150", "earned amino acids are not counted while their orbs fly")
+	await get_tree().create_timer(1.2).timeout
+	check(orb_hud._amino_label.text == "157", "the bar counts the amino acids when the orbs arrive")
+	free_node(orb_hud)
+	free_node(orb_level)
+	Economy.reset(150)
+
 	var level := new_level()
 	var hud := Hud.new(level)
 	get_tree().root.add_child(hud)

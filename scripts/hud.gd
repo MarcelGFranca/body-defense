@@ -47,6 +47,8 @@ var _countdown_label: Label
 var _preview_box: Control
 var _call_button: Button
 var _amino_icon: TextureRect
+## Amino acids already earned whose orbs have not reached the top bar yet.
+var _orbs_in_flight := 0
 var _enemy_card: Panel
 var _card_enemy: Enemy
 var _card_lines: Label
@@ -304,7 +306,7 @@ func _button(text: String, button_size: Vector2, font_size: int) -> Button:
 
 func _refresh_values() -> void:
 	_health_label.text = "%d/%d" % [level.body_health, level.max_body_health]
-	_amino_label.text = str(Economy.balance())
+	_amino_label.text = str(shown_amino_acids())
 	_wave_label.text = "WAVE %d/%d" % [level.scheduler.started_count(), level.scheduler.wave_count()]
 
 
@@ -353,16 +355,31 @@ func show_toast(text: String) -> void:
 	_toast_tween.tween_property(_toast, "modulate:a", 0.0, 0.4)
 
 
+## The balance as the top bar shows it: amino acids still flying towards the bar are not counted yet.
+func shown_amino_acids() -> int:
+	return maxi(0, Economy.balance() - _orbs_in_flight)
+
+
+## Sends orbs to the top bar. The bar counts each orb's share only when that orb arrives.
 func _fly_orbs(world_position: Vector2, amount: int) -> void:
 	var target := _amino_icon.position + Vector2(8, 8)
-	for i in mini(amount, 5):
+	var count := mini(amount, 5)
+	_orbs_in_flight += amount
+	for i in count:
+		var share := amount / count + (amount % count if i == 0 else 0)
 		var orb := _icon("res://assets/ui/amino_acid_orb.png", Vector2(28, 28))
 		orb.position = level.world_to_screen(world_position) - Vector2(14, 14) + Vector2(randf_range(-14, 14), randf_range(-14, 14))
 		_root.add_child(orb)
 		var tween := create_tween().set_ignore_time_scale(true)
 		tween.tween_interval(i * 0.06)
 		tween.tween_property(orb, "position", target, 0.55).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-		tween.tween_callback(orb.queue_free)
+		tween.tween_callback(_orb_arrived.bind(orb, share))
+
+
+func _orb_arrived(orb: Control, share: int) -> void:
+	orb.queue_free()
+	_orbs_in_flight -= share
+	_refresh_values()
 
 
 # --- taps and menus ---------------------------------------------------------
