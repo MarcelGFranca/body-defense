@@ -186,7 +186,7 @@ def main():
         dps_b = scalar(b, "attack_damage") / max(0.01, scalar(b, "attack_interval", 1.0)) or scalar(b, "dot_damage")
         dps_a = scalar(a, "attack_damage") / max(0.01, scalar(a, "attack_interval", 1.0)) or scalar(a, "dot_damage")
         other = []
-        for key, label in (("slow_percent", "slow %"), ("root_seconds", "root s"), ("dot_damage", "dot/s"), ("dot_seconds", "dot s"),
+        for key, label in (("slow_percent", "slow %"), ("root_seconds", "root s"), ("root_targets", "root targets"), ("dot_damage", "dot/s"), ("dot_seconds", "dot s"),
                            ("mark_bonus", "mark"), ("mark_seconds", "mark s"), ("mark_targets", "mark targets"),
                            ("summon_interval", "summon every s"), ("summon_cap", "units max"), ("unit_health", "unit health"), ("unit_damage", "unit dps")):
             if scalar(a, key) or scalar(b, key):

@@ -18,7 +18,7 @@ Enemies drop amino acids when they die. Selling a tower returns part of its cost
 | Macrophage | single target | physical | 50 | 14 damage per second to the first enemy in range |
 | Neutrophil | rapid fire | physical | 45 | 5 damage every 0.4 s |
 | Mucus Cell | slow | none | 40 | Mucus puddle slows 40% for 6 s |
-| Platelet | root | none | 55 | Roots an enemy 1.2 s (half for bosses) |
+| Platelet | root | none | 55 | Holds up to 3 enemies for 1.2 s each (half for bosses), one tendril per enemy |
 | Hypothalamus | damage over time | thermal | 90 | Fever: 3 damage per second for 4 s |
 | Lysozyme | area | chemical | 70 | 4 per second; strong on bacteria, weak on viruses |
 | Interferon | area | antiviral | 70 | 5 per second, slows viruses 25%; bacteria immune |
@@ -30,7 +30,7 @@ Mobile towers can be moved to another slot.
 
 **Tower information.** Holding a build card or a built tower for 0.3 s shows its attributes (role, cost, range, damage, ability) and which enemies of the current level it is good, weak or useless against. Releasing closes the panel and does not build or open the sell card. A quick tap builds or opens the sell card as before.
 
-**Attack feedback.** Every tower plays an attack animation when it attacks. Area towers (lysozyme, interferon) also send a ring from the tower to the edge of its range in 0.6 s, coloured by damage type.
+**Attack feedback.** Every tower plays an attack animation when it attacks. Area towers (lysozyme, interferon) also send a ring from the tower to the edge of its range in 0.6 s, coloured by damage type. The platelet grows one tendril to each enemy it roots (up to 3); the tendril holds the enemy for as long as it is paralysed and then disappears.
 
 ## Damage types
 

@@ -22,6 +22,8 @@ extends Resource
 @export var puddle_seconds: float = 0.0
 @export var root_seconds: float = 0.0
 @export var root_cooldown: float = 0.0
+## Enemies a "root_aura" tower can hold at the same time.
+@export var root_targets: int = 0
 @export var dot_damage: float = 0.0
 @export var dot_seconds: float = 0.0
 @export var mark_bonus: float = 0.0

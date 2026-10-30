@@ -8,6 +8,14 @@ const FLASH_SECONDS := 0.15
 const SETTLE_SECONDS := 1.5
 ## How often a slowing tower plays its secreting animation while enemies are in range.
 const SECRETE_INTERVAL := 2.0
+## An area attack sends a ring from the tower out to the edge of its range in this time.
+const PULSE_SECONDS := 0.6
+const PULSE_COLORS := {
+	"chemical": Color("aaff78"),
+	"antiviral": Color("7fe8ff"),
+	"thermal": Color("ff9a5c"),
+	"physical": Color("ffffff"),
+}
 
 var data: TowerData
 var slot_index := -1
@@ -23,12 +31,16 @@ var _cooldown := 0.0
 var _disabled_for := 0.0
 var _flash := 0.0
 var _flash_target := Vector2.ZERO
+## Seconds since the last area attack, or -1 when no ring is spreading.
+var _pulse_age := -1.0
 var _pulse := 0.0
 var _missing_art := false
 var _sprite: AnimatedSprite2D
 var _on_attack_done := Callable()
 var _settling := 0.0
 var _units: Array[BlockerUnit] = []
+## Enemies this tower is holding: {"enemy": Enemy, "age": seconds since it was caught}.
+var _holds: Array[Dictionary] = []
 
 
 func setup(tower_data: TowerData, slot: int, level: Level) -> void:
@@ -49,12 +61,19 @@ func setup(tower_data: TowerData, slot: int, level: Level) -> void:
 		add_child(sprite)
 	else:
 		_missing_art = true
+	if data.behavior == "root_aura":
+		var tendrils := RootTendrils.new()
+		tendrils.setup(self)
+		add_child(tendrils)
 
 
 ## Advanced by the level every frame, so tests can step the simulation by hand.
 func step(delta: float) -> void:
 	_pulse += delta
+	_update_holds(delta)
 	_flash = maxf(0.0, _flash - delta)
+	if _pulse_age >= 0.0:
+		_pulse_age = _pulse_age + delta if _pulse_age + delta < PULSE_SECONDS else -1.0
 	if _settling > 0.0:
 		_settling -= delta
 		queue_redraw()
@@ -161,6 +180,7 @@ func _step_damage_aura(delta: float) -> void:
 	for enemy: Enemy in targets:
 		enemy.take_damage(data.attack_damage, data.damage_type, data.id)
 	_cooldown = data.attack_interval
+	_pulse_age = 0.0
 	play_attack()
 	GameAudio.play_sfx(data.sound_attack)
 
@@ -197,10 +217,38 @@ func _step_slow_aura(delta: float) -> void:
 		play_attack()
 
 
+## The enemies held by tendrils right now.
+func holds() -> Array[Dictionary]:
+	return _holds
+
+
+func _update_holds(delta: float) -> void:
+	_holds = _holds.filter(func(hold: Dictionary) -> bool:
+		var enemy: Enemy = hold["enemy"]
+		return is_instance_valid(enemy) and not enemy.finished and enemy.status.is_rooted())
+	for hold in _holds:
+		hold["age"] = float(hold["age"]) + delta
+
+
+## Sticks the enemies in range that are ready to be rooted, the ones furthest along the path first, up to
+## `root_targets` at the same time; the tower reacts once per release.
 func _step_root_aura() -> void:
-	for enemy: Enemy in _enemies():
+	var free := data.root_targets - _holds.size()
+	if free <= 0:
+		return
+	var released := false
+	var targets := _enemies()
+	targets.sort_custom(func(a: Enemy, b: Enemy) -> bool: return a.progress > b.progress)
+	for enemy: Enemy in targets:
+		if free <= 0:
+			break
 		if enemy.status.apply_root(str(get_instance_id()), data.root_seconds, data.root_cooldown):
+			free -= 1
 			GameAudio.play_sfx(data.sound_attack)
+			_holds.append({"enemy": enemy, "age": 0.0})
+			if not released:
+				released = true
+				play_attack(enemy.position.x - position.x)
 
 
 func _step_dot_aura() -> void:
@@ -277,6 +325,10 @@ func _draw() -> void:
 		draw_arc(Vector2.ZERO, data.range_px, 0.0, TAU, 48, Color(1, 1, 1, 0.5), 1.0)
 	if selected and is_aura:
 		draw_arc(Vector2.ZERO, data.range_px, 0.0, TAU, 48, Color(1, 1, 1, 0.8), 2.0)
+	if _pulse_age >= 0.0:
+		var fraction := _pulse_age / PULSE_SECONDS
+		var color: Color = PULSE_COLORS.get(data.damage_type, Color.WHITE)
+		draw_arc(Vector2.ZERO, data.range_px * fraction, 0.0, TAU, 48, Color(color, 0.8 * (1.0 - fraction)), 3.0)
 	if _flash > 0.0:
 		draw_line(Vector2.ZERO, _flash_target, Color("ffb3c7"), 3.0)
 	if _disabled_for > 0.0 or _settling > 0.0:

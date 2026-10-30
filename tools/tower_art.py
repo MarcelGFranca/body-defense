@@ -423,10 +423,14 @@ class Lysozyme(BlobTower):
                     img.putpixel((x, y), (210, 255, 200, 255))
 
     def effect(self, f):
-        for i, r in ((2, 12), (3, 14), (4, 15)):
-            ring_solid(f[i], 16, 18, r, ACID, skip=2)
+        # Two solid rings that spread out of the body and thin out, so the pulse reads at a glance.
+        for i, r in ((1, 11), (2, 12), (3, 13), (4, 14), (5, 15)):
+            ring_solid(f[i], 16, 17, r, ACID if i % 2 else WHITE)
+        for i, r in ((3, 10), (4, 11), (5, 12), (6, 14)):
+            ring_solid(f[i], 16, 17, r, ACID, skip=2)
         dots(f[3], ((4, 8), (27, 9), (3, 22), (28, 23), (16, 2)), ACID)
-        dots(f[4], ((6, 5), (25, 6), (2, 16), (29, 17)), WHITE)
+        dots(f[4], ((6, 5), (25, 6), (2, 16), (29, 17), (16, 31)), WHITE)
+        dots(f[5], ((3, 4), (28, 5), (1, 27), (30, 28)), ACID)
 
 
 class TLymphocyte(BlobTower):

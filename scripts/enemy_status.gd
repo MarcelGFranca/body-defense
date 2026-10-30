@@ -75,6 +75,10 @@ func apply_root(source: String, seconds: float, cooldown: float) -> bool:
 	return true
 
 
+func root_remaining() -> float:
+	return maxf(0.0, _root_until - time)
+
+
 func is_rooted() -> bool:
 	return time < _root_until
 

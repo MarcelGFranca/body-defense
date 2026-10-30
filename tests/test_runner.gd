@@ -76,6 +76,16 @@ func new_level() -> Level:
 	return level
 
 
+## A prototype level with `tower_id` built on slot 2, even when the prototype does not offer that tower.
+func level_with_tower(tower_id: String) -> Level:
+	var level := new_level()
+	var prototype_towers: Array = level.data.tower_ids.duplicate()
+	level.data.tower_ids.append(tower_id)
+	level.build_tower(2, tower_id)
+	level.data.tower_ids = prototype_towers
+	return level
+
+
 func mouse_button(position: Vector2, pressed: bool) -> InputEventMouseButton:
 	var event := InputEventMouseButton.new()
 	event.button_index = MOUSE_BUTTON_LEFT
@@ -492,6 +502,32 @@ func test_level_simulation() -> void:
 	spawn_at(level, "rhinovirus", 850.0)
 	level.step(0.05)
 	check(level.towers[2].current_animation() == "attack", "the interferon plays its attack animation when it pulses")
+	free_node(level)
+
+	level = level_with_tower("platelet")
+	spawn_at(level, "rhinovirus", 850.0)
+	level.step(0.05)
+	check(level.towers[2].current_animation() == "attack", "the platelet plays its attack animation when it roots an enemy")
+	check(level.towers[2].holds().size() == 1, "the platelet holds the rooted enemy with tendrils")
+	for i in 25:
+		level.step(0.1)
+	check(level.towers[2].holds().is_empty(), "the tendrils are gone once the enemy is free")
+	free_node(level)
+
+	level = level_with_tower("platelet")
+	for i in 5:
+		spawn_at(level, "rhinovirus", 850.0 + i * 3.0)
+	level.step(0.05)
+	check(level.towers[2].holds().size() == 3, "the platelet holds at most 3 enemies at once (one tendril each)")
+	free_node(level)
+
+	level = level_with_tower("lysozyme")
+	spawn_at(level, "e-coli", 850.0)
+	level.step(0.05)
+	check(level.towers[2].current_animation() == "attack", "the lysozyme plays its attack animation when it dissolves")
+	check(level.towers[2]._pulse_age >= 0.0, "an area attack sends a visible ring across the range")
+	level.step(Tower.PULSE_SECONDS + 0.1)
+	check(level.towers[2]._pulse_age < 0.0 or level.towers[2]._pulse_age < Tower.PULSE_SECONDS, "the ring ends or restarts with the next attack")
 	free_node(level)
 
 	level = new_level()

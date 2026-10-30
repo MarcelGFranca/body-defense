@@ -28,6 +28,7 @@ main.tscn (scripts/main.gd)  -- builds Level + Hud for that level and the chosen
 | `enemy.gd` | Movement along the path, health, traits, rewards, damage taken |
 | `enemy_status.gd` | Slow, root, damage over time, mark, resistances on one enemy |
 | `enemy_sprites.gd`, `tower_sprites.gd` | Load sprites and animations |
+| `root_tendrils.gd` | Tendrils drawn by a platelet on the enemies it holds |
 | `tower.gd` | All tower behaviours (single target, aura, slow puddle, root, DOT, marker, summoner) |
 | `blocker_unit.gd` | Neutrophils summoned by Bone Marrow |
 | `mucus_glob.gd`, `mucus_puddle.gd` | Mucus Cell projectile and slowing puddle |

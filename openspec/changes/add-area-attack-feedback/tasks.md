@@ -5,4 +5,4 @@
 
 ## 2. Check
 
-- [ ] 2.1 Verify on the emulator that the lysozyme attack is visible (waiting for the designer)
+- [x] 2.1 Verify on the emulator that the lysozyme attack is visible
