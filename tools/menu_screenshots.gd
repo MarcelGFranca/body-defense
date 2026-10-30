@@ -23,6 +23,14 @@ func _ready() -> void:
 	await _shot("menu_4_tutorial_last")
 	menu._open_settings()
 	await _shot("menu_2_settings")
+	Session.language = "ja"
+	Localization.apply("ja")
+	menu._open_languages()
+	await _shot("menu_5_languages")
+	menu._close_languages()
+	menu._open_tutorial(1)
+	await _shot("menu_6_tutorial_ja")
+	Localization.apply("en")
 	get_tree().quit()
 
 

@@ -18,6 +18,8 @@ var best_health: Dictionary = {}
 var save_path := SAVE_PATH
 ## "easy", "medium" or "hard": chosen in the settings and saved on the device.
 var difficulty := "medium"
+## A code from Localization.LANGUAGES, chosen on the start screen and saved on the device.
+var language := "en"
 ## Set by the secret tap code in the menu. It is not saved: it lasts until the game is closed.
 var all_levels_open := false
 ## The secret tap code also turns on the debug aids (the FPS readout).
@@ -27,7 +29,12 @@ var debug_mode: bool:
 
 
 func _ready() -> void:
+	Localization.prepare_font()
+	var first_run := not FileAccess.file_exists(save_path)
 	load_progress()
+	if first_run:
+		language = Localization.from_os()
+	Localization.apply(language)
 
 
 func load_level(number: int) -> LevelData:
@@ -46,6 +53,15 @@ func set_difficulty(id: String) -> void:
 	if not DIFFICULTY_IDS.has(id):
 		return
 	difficulty = id
+	save_progress()
+	progress_changed.emit()
+
+
+func set_language(code: String) -> void:
+	if not Localization.is_supported(code):
+		return
+	language = code
+	Localization.apply(code)
 	save_progress()
 	progress_changed.emit()
 
@@ -92,6 +108,7 @@ func save_progress() -> void:
 	for number in best_health:
 		file.set_value("best_health", str(number), int(best_health[number]))
 	file.set_value("settings", "difficulty", difficulty)
+	file.set_value("settings", "language", language)
 	file.set_value("settings", "music_volume", GameAudio.music_volume)
 	file.set_value("settings", "sfx_volume", GameAudio.sfx_volume)
 	file.set_value("settings", "muted", GameAudio.muted)
@@ -101,12 +118,15 @@ func save_progress() -> void:
 func load_progress() -> void:
 	best_health.clear()
 	difficulty = "medium"
+	language = "en"
 	GameAudio.set_music_volume(1.0)
 	GameAudio.set_sfx_volume(1.0)
 	GameAudio.set_muted(false)
 	var file := ConfigFile.new()
 	if file.load(save_path) != OK:
 		return
+	var saved_language := String(file.get_value("settings", "language", "en"))
+	language = saved_language if Localization.is_supported(saved_language) else "en"
 	GameAudio.set_music_volume(float(file.get_value("settings", "music_volume", 1.0)))
 	GameAudio.set_sfx_volume(float(file.get_value("settings", "sfx_volume", 1.0)))
 	GameAudio.set_muted(bool(file.get_value("settings", "muted", false)))

@@ -167,7 +167,7 @@ func _build_top_bar() -> void:
 	var bar := _panel(Rect2(0, 0, SCREEN.x, TOP_BAR_HEIGHT + top))
 	bar.name = "TopBar"
 	_root.add_child(bar)
-	_level_label = _label(level.data.display_name.to_upper(), 22, COLOR_BORDER)
+	_level_label = _label(tr(level.data.display_name).to_upper(), 22, COLOR_BORDER)
 	_level_label.name = "LevelName"
 	_level_label.position = Vector2(16, top + 12)
 	_level_label.size = Vector2(290, 30)
@@ -215,7 +215,7 @@ func _build_bottom_bar() -> void:
 	_preview_box.size = Vector2(360, 80)
 	_preview_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_root.add_child(_preview_box)
-	_call_button = _button("CALL WAVE", Vector2(290, MIN_TAP), 22)
+	_call_button = _button(tr("CALL WAVE"), Vector2(290, MIN_TAP), 22)
 	_call_button.name = "CallWaveButton"
 	_call_button.position = Vector2(SCREEN.x - 290 - 16, top + 56)
 	_call_button.pressed.connect(func() -> void: level.call_next_wave())
@@ -333,7 +333,7 @@ func _button(text: String, button_size: Vector2, font_size: int) -> Button:
 func _refresh_values() -> void:
 	_health_label.text = "%d/%d" % [level.body_health, level.max_body_health]
 	_amino_label.text = str(shown_amino_acids())
-	_wave_label.text = "WAVE %d/%d" % [level.scheduler.started_count(), level.scheduler.wave_count()]
+	_wave_label.text = tr("WAVE %d/%d") % [level.scheduler.started_count(), level.scheduler.wave_count()]
 
 
 func _refresh_wave_info() -> void:
@@ -341,9 +341,9 @@ func _refresh_wave_info() -> void:
 	var next_index := scheduler.next_wave_index()
 	_call_button.visible = next_index != -1 and level.state == "running"
 	if next_index == -1:
-		_countdown_label.text = "ALL WAVES STARTED"
+		_countdown_label.text = tr("ALL WAVES STARTED")
 	else:
-		_countdown_label.text = "NEXT WAVE IN %dS" % ceili(scheduler.time_to_next_wave())
+		_countdown_label.text = tr("NEXT WAVE IN %dS") % ceili(scheduler.time_to_next_wave())
 	if next_index != _preview_index:
 		_preview_index = next_index
 		_rebuild_preview(next_index)
@@ -368,7 +368,7 @@ func _rebuild_preview(next_index: int) -> void:
 		icon.gui_input.connect(func(event: InputEvent) -> void:
 			if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 				_show_enemy_kind_card(enemy_data))
-		var mark := _label("V" if enemy_data.type == "virus" else "B", 16, COLOR_GOOD if enemy_data.type == "virus" else COLOR_BORDER)
+		var mark := _label(tr("V") if enemy_data.type == "virus" else tr("B"), 16, COLOR_GOOD if enemy_data.type == "virus" else COLOR_BORDER)
 		mark.position = Vector2(46, 52)
 		icon.add_child(mark)
 		_preview_box.add_child(icon)
@@ -553,7 +553,7 @@ func _on_slot_tapped(slot: int) -> void:
 		var from := _move_from
 		_move_from = -1
 		if not level.move_tower(from, slot):
-			show_toast("CANNOT MOVE THERE")
+			show_toast(tr("CANNOT MOVE THERE"))
 		return
 	_open_build_menu(slot)
 
@@ -584,7 +584,7 @@ func _tower_card(tower_data: TowerData, at: Vector2) -> Button:
 	icon.position = Vector2(12, 20)
 	icon.modulate = Color.WHITE if affordable else Color(1, 1, 1, 0.35)
 	card.add_child(icon)
-	var title := _label(tower_data.display_name.to_upper(), 18, COLOR_TEXT if affordable else COLOR_DIM)
+	var title := _label(tr(tower_data.display_name).to_upper(), 18, COLOR_TEXT if affordable else COLOR_DIM)
 	title.position = Vector2(88, 22)
 	card.add_child(title)
 	var cost := _label(str(tower_data.cost), 22, COLOR_GOOD if affordable else COLOR_BAD)
@@ -614,7 +614,7 @@ func _on_card_pressed(tower_data: TowerData) -> void:
 	if _card_held:
 		return
 	if Economy.balance() < tower_data.cost:
-		show_toast("NOT ENOUGH AMINO ACIDS")
+		show_toast(tr("NOT ENOUGH AMINO ACIDS"))
 		return
 	if level.build_tower(_slot_for_menu, tower_data.id):
 		_close_popups()
@@ -626,7 +626,7 @@ func _show_tower_info(tower_data: TowerData) -> void:
 	var panel := _panel(Rect2((SCREEN - INFO_SIZE) / 2.0, INFO_SIZE))
 	panel.name = "TowerInfo"
 	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var title := _label(tower_data.display_name.to_upper(), 24, COLOR_BORDER)
+	var title := _label(tr(tower_data.display_name).to_upper(), 24, COLOR_BORDER)
 	title.position = Vector2(20, 16)
 	panel.add_child(title)
 	var body := _label(_tower_info_text(tower_data), 20, COLOR_TEXT)
@@ -647,12 +647,12 @@ func _hide_tower_info() -> void:
 
 func _tower_info_text(tower_data: TowerData) -> String:
 	var lines := PackedStringArray()
-	lines.append("%s - %s" % [tower_data.role.to_upper(), tower_data.mobility.to_upper()])
-	lines.append("COST: %d   RANGE: %d" % [tower_data.cost, int(tower_data.range_px)])
+	lines.append("%s - %s" % [tr(tower_data.role).to_upper(), tr(tower_data.mobility).to_upper()])
+	lines.append(tr("COST: %d   RANGE: %d") % [tower_data.cost, int(tower_data.range_px)])
 	lines.append(_damage_text(tower_data))
-	lines.append(tower_data.ability_description)
+	lines.append(tr(tower_data.ability_description))
 	if tower_data.damage_type == "none" or _damage_per_second(tower_data) <= 0.0:
-		lines.append("SUPPORT: IT HELPS THE OTHER TOWERS.")
+		lines.append(tr("SUPPORT: IT HELPS THE OTHER TOWERS."))
 		return "\n\n".join(lines)
 	var good: Array[String] = []
 	var weak: Array[String] = []
@@ -662,7 +662,7 @@ func _tower_info_text(tower_data: TowerData) -> String:
 		var factor := DamageCalculator.factor_for(tower_data.damage_type, enemy_data, level.damage_table)
 		if tower_data.damage_type == DamageCalculator.PHYSICAL:
 			factor *= 1.0 - enemy_data.armor_percent / 100.0
-		var label := enemy_data.display_name.to_upper()
+		var label := tr(enemy_data.display_name).to_upper()
 		if factor <= 0.0:
 			immune.append(label)
 		elif factor > 1.0 or (tower_data.damage_type == DamageCalculator.IMMUNOLOGICAL and enemy_data.armor_percent > 0.0):
@@ -670,15 +670,22 @@ func _tower_info_text(tower_data: TowerData) -> String:
 		elif factor < 0.8:
 			weak.append(label)
 	if not good.is_empty():
-		lines.append("GOOD AGAINST: %s" % ", ".join(good))
+		lines.append(tr("GOOD AGAINST: %s") % ", ".join(good))
 	if not weak.is_empty():
-		lines.append("WEAK AGAINST: %s" % ", ".join(weak))
+		lines.append(tr("WEAK AGAINST: %s") % ", ".join(weak))
 	if not immune.is_empty():
-		lines.append("USELESS AGAINST: %s" % ", ".join(immune))
+		lines.append(tr("USELESS AGAINST: %s") % ", ".join(immune))
 	return "\n\n".join(lines)
 
 
 ## Ids of the enemies that appear in this level, in order of first appearance.
+func _translated(words: Array[String]) -> Array[String]:
+	var result: Array[String] = []
+	for word in words:
+		result.append(tr(word))
+	return result
+
+
 func _level_enemy_ids() -> Array:
 	var ids: Array = []
 	for wave in level.data.waves:
@@ -700,7 +707,7 @@ func _open_tower_card(slot: int) -> void:
 	card.name = "TowerCard"
 	card.clip_contents = true
 	_popup.add_child(card)
-	var title := _label(tower.data.display_name.to_upper(), 24, COLOR_BORDER)
+	var title := _label(tr(tower.data.display_name).to_upper(), 24, COLOR_BORDER)
 	title.name = "Name"
 	title.position = Vector2(16, 16)
 	title.size = Vector2(CARD_WIDTH - 32, 30)
@@ -711,7 +718,7 @@ func _open_tower_card(slot: int) -> void:
 	damage.position = Vector2(16, 58)
 	damage.size = Vector2(CARD_WIDTH - 32, 26)
 	card.add_child(damage)
-	var ability := _label(tower.data.ability_description, 18, Color("d9cce6"))
+	var ability := _label(tr(tower.data.ability_description), 18, Color("d9cce6"))
 	ability.name = "Ability"
 	ability.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	ability.custom_minimum_size = Vector2(CARD_WIDTH - 32, 0)
@@ -721,7 +728,7 @@ func _open_tower_card(slot: int) -> void:
 	ability.add_theme_constant_override("line_spacing", 8)
 	card.add_child(ability)
 	var mobile := tower.data.mobility == "mobile"
-	var sell := _button("SELL +%d" % refund, Vector2(190 if mobile else 220, MIN_TAP), 20)
+	var sell := _button(tr("SELL +%d") % refund, Vector2(190 if mobile else 220, MIN_TAP), 20)
 	sell.name = "SellButton"
 	sell.position = Vector2(CARD_WIDTH - 206.0 if mobile else (CARD_WIDTH - 220.0) / 2.0, 260)
 	sell.pressed.connect(func() -> void:
@@ -729,13 +736,13 @@ func _open_tower_card(slot: int) -> void:
 		_close_popups())
 	card.add_child(sell)
 	if mobile:
-		var move := _button("MOVE", Vector2(190, MIN_TAP), 20)
+		var move := _button(tr("MOVE"), Vector2(190, MIN_TAP), 20)
 		move.name = "MoveButton"
 		move.position = Vector2(16, 260)
 		move.pressed.connect(func() -> void:
 			_close_popups()
 			_move_from = slot
-			show_toast("TAP AN EMPTY SLOT"))
+			show_toast(tr("TAP AN EMPTY SLOT")))
 		card.add_child(move)
 
 
@@ -749,9 +756,9 @@ func _damage_per_second(tower_data: TowerData) -> float:
 func _damage_text(tower_data: TowerData) -> String:
 	var per_second := _damage_per_second(tower_data)
 	if per_second <= 0.0 or tower_data.damage_type == "none":
-		return "DAMAGE: NONE"
+		return tr("DAMAGE: NONE")
 	var amount := "%d" % int(per_second) if is_equal_approx(per_second, roundf(per_second)) else "%.1f" % per_second
-	return "DAMAGE: %s/S (%s)" % [amount, tower_data.damage_type.to_upper()]
+	return tr("DAMAGE: %s/S (%s)") % [amount, tr(tower_data.damage_type).to_upper()]
 
 
 # --- enemy card -------------------------------------------------------------
@@ -761,7 +768,7 @@ func _show_enemy_card(enemy: Enemy) -> void:
 	_card_enemy = enemy
 	_card_data = null
 	_enemy_card.visible = true
-	_card_title.text = enemy.data.display_name.to_upper()
+	_card_title.text = tr(enemy.data.display_name).to_upper()
 	_refresh_enemy_card()
 
 
@@ -771,7 +778,7 @@ func _show_enemy_kind_card(data: EnemyData) -> void:
 	_card_enemy = null
 	_card_data = data
 	_enemy_card.visible = true
-	_card_title.text = data.display_name.to_upper()
+	_card_title.text = tr(data.display_name).to_upper()
 	_refresh_enemy_card()
 
 
@@ -785,11 +792,11 @@ func _refresh_enemy_card() -> void:
 			_dismiss_all()
 			return
 		data = _card_enemy.data
-	lines.append("%s - %s" % [data.type.to_upper(), data.role.to_upper()])
+	lines.append("%s - %s" % [tr(data.type).to_upper(), tr(data.role).to_upper()])
 	if _card_data == null:
-		lines.append("HP %d/%d" % [maxi(0, ceili(_card_enemy.health)), int(_card_enemy.max_health)])
+		lines.append(tr("HP %d/%d") % [maxi(0, ceili(_card_enemy.health)), int(_card_enemy.max_health)])
 	else:
-		lines.append("HP %d" % roundi(data.health * level.difficulty.enemy_health))
+		lines.append(tr("HP %d") % roundi(data.health * level.difficulty.enemy_health))
 	var weak: Array[String] = []
 	var resists: Array[String] = []
 	var immune: Array[String] = []
@@ -802,13 +809,13 @@ func _refresh_enemy_card() -> void:
 		elif factor < 1.0:
 			resists.append(damage_type)
 	if data.armor_percent > 0.0:
-		resists.append("physical %d%%" % int(data.armor_percent))
+		resists.append(tr("physical %d%%") % int(data.armor_percent))
 	if not weak.is_empty():
-		lines.append("WEAK: %s" % ", ".join(weak).to_upper())
+		lines.append(tr("WEAK: %s") % ", ".join(_translated(weak)).to_upper())
 	if not resists.is_empty():
-		lines.append("RESISTS: %s" % ", ".join(resists).to_upper())
+		lines.append(tr("RESISTS: %s") % ", ".join(_translated(resists)).to_upper())
 	if not immune.is_empty():
-		lines.append("IMMUNE: %s" % ", ".join(immune).to_upper())
+		lines.append(tr("IMMUNE: %s") % ", ".join(_translated(immune)).to_upper())
 	_card_lines.text = "\n".join(lines)
 
 
@@ -819,7 +826,7 @@ func _on_pause_pressed() -> void:
 		return
 	_dismiss_all()
 	level.set_paused(true)
-	_show_overlay("PAUSED", [["RESUME", _resume], ["RESTART", _restart], ["MENU", _to_menu]])
+	_show_overlay(tr("PAUSED"), [[tr("RESUME"), _resume], [tr("RESTART"), _restart], [tr("MENU"), _to_menu]])
 
 
 func _resume() -> void:
@@ -844,11 +851,11 @@ func _next_level() -> void:
 func _show_result(won: bool) -> void:
 	_dismiss_all()
 	if not won:
-		_show_overlay("DEFEAT", [["RETRY", _restart], ["MENU", _to_menu]])
+		_show_overlay(tr("DEFEAT"), [[tr("RETRY"), _restart], [tr("MENU"), _to_menu]])
 	elif Session.has_next(level.data.number):
-		_show_overlay("VICTORY!", [["NEXT LEVEL", _next_level], ["RESTART", _restart], ["MENU", _to_menu]])
+		_show_overlay(tr("VICTORY!"), [[tr("NEXT LEVEL"), _next_level], [tr("RESTART"), _restart], [tr("MENU"), _to_menu]])
 	else:
-		_show_overlay("BODY SAVED!", [["RESTART", _restart], ["MENU", _to_menu]])
+		_show_overlay(tr("BODY SAVED!"), [[tr("RESTART"), _restart], [tr("MENU"), _to_menu]])
 
 
 func _clear_overlay() -> void:

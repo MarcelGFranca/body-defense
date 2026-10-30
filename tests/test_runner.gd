@@ -21,6 +21,7 @@ func _ready() -> void:
 
 
 func _run() -> void:
+	Localization.apply("en")
 	test_enemy_roster()
 	test_tower_roster()
 	test_level_data()
@@ -42,12 +43,13 @@ func _run() -> void:
 	test_session()
 	await test_menu_and_results()
 	await test_splash()
+	test_localization()
 	test_campaign_simulation()
 	for section in ["test_enemy_roster", "test_tower_roster", "test_level_data", "test_validator_catches_problems",
 			"test_damage_calculator", "test_status_effects", "test_wave_scheduler", "test_economy",
 			"test_level_simulation", "test_scrolling", "test_speed_and_pause", "test_hud", "test_audio",
 			"test_difficulty", "test_stats", "test_campaign_data", "test_enemy_traits", "test_new_towers", "test_session", "test_menu_and_results",
-			"test_splash", "test_campaign_simulation"]:
+			"test_splash", "test_localization", "test_campaign_simulation"]:
 		if not _done.has(section):
 			_failures += 1
 			printerr("FAIL: %s stopped before its end (a script error?)" % section)
@@ -1311,6 +1313,59 @@ func test_session() -> void:
 	done("test_session")
 
 
+## Names of microbes that keep their scientific name in every language.
+const UNTRANSLATED := ["Clostridioides difficile", "E. coli", "HIV", "HPV", "Helicobacter pylori", "Mycobacterium tuberculosis",
+	"Neisseria meningitidis", "SARS-CoV-2", "Staphylococcus aureus", "Streptococcus pyogenes", "Streptococcus pyogenes segment"]
+
+
+func test_localization() -> void:
+	var file := FileAccess.open("res://localization/translations.csv", FileAccess.READ)
+	var header := file.get_csv_line()
+	check(header.size() == 1 + Localization.LANGUAGES.size() and header[0] == "keys", "the translation table has one column per language")
+	var keys := {}
+	var complete := true
+	while not file.eof_reached():
+		var row := file.get_csv_line()
+		if row.size() < header.size():
+			continue
+		keys[row[0]] = true
+		for column in row:
+			complete = complete and column != ""
+	check(complete, "every text has a translation in every language")
+	var missing: Array[String] = []
+	# every literal passed to tr() in the code
+	var pattern := RegEx.create_from_string("tr\\(\"([^\"]+)\"\\)")
+	for script_file in DirAccess.get_files_at("res://scripts"):
+		if script_file.ends_with(".gd"):
+			for hit in pattern.search_all(FileAccess.get_file_as_string("res://scripts/" + script_file)):
+				if not keys.has(hit.get_string(1)):
+					missing.append(hit.get_string(1))
+	# the tutorial
+	for page in TutorialPages.PAGES:
+		for text in [page["title"]] + page["paragraphs"]:
+			if not keys.has(text):
+				missing.append(text)
+	# the texts stored in data
+	for dir in ["enemies", "towers", "levels", "difficulties"]:
+		for data_file in DirAccess.get_files_at("res://data/" + dir):
+			if not data_file.ends_with(".tres"):
+				continue
+			var resource := load("res://data/%s/%s" % [dir, data_file])
+			for property in ["display_name", "role", "ability_description", "description", "body_part", "type", "mobility", "damage_type"]:
+				if property in resource and String(resource.get(property)) != "" and String(resource.get(property)) != "none" \
+						and not keys.has(String(resource.get(property))) and not UNTRANSLATED.has(String(resource.get(property))):
+					missing.append(String(resource.get(property)))
+	check(missing.is_empty(), "every text shown to the player has a translation: %s" % ", ".join(missing))
+	TranslationServer.set_locale("pt_BR")
+	check(TranslationServer.translate("PLAY") == "JOGAR", "the locale selects the translation")
+	TranslationServer.set_locale("ja")
+	check(TranslationServer.translate("PLAY") == "プレイ", "Japanese is available")
+	TranslationServer.set_locale("en")
+	check(TranslationServer.translate("PLAY") == "PLAY", "English keeps the source text")
+	check(Localization.from_os() in Localization.codes(), "the phone language maps to a supported one")
+	done("test_localization")
+
+
 func test_splash() -> void:
 	check(ProjectSettings.get_setting("application/run/main_scene") == "res://scenes/splash.tscn", "the game starts on the splash screen")
 	check(Splash.SECONDS == 5.0 and ResourceLoader.exists(Splash.LOGO_PATH), "the splash lasts 5 seconds and has the Apolo Software logo")
@@ -1406,7 +1461,7 @@ func test_menu_and_results() -> void:
 	check(menu.find_child("Tutorial", true, false) == null, "the last page closes the tutorial")
 	var mentions_amino := false
 	for page in TutorialPages.PAGES:
-		mentions_amino = mentions_amino or String(page["text"]).contains("Amino acids are the building blocks")
+		mentions_amino = mentions_amino or " ".join(page["paragraphs"]).contains("Amino acids are the building blocks")
 	check(mentions_amino, "the tutorial explains what amino acids are for")
 	var scroll_before: int = menu._scroll.scroll_vertical
 	menu._input(mouse_button(Vector2(360, 800), true))

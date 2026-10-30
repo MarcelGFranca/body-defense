@@ -25,6 +25,7 @@ var _detail: Control
 
 var _settings: Control
 var _tutorial: Control
+var _languages: Control
 ## Dragging the level list: the buttons inside it swallow touches, so the menu scrolls it by hand.
 var _press_in_list := false
 var _dragging := false
@@ -75,7 +76,7 @@ func _build() -> void:
 	title.size = Vector2(SCREEN.x, 56)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	add_child(title)
-	var tagline := _label("DEFEND THE HUMAN BODY", 18, COLOR_BORDER)
+	var tagline := _label(tr("DEFEND THE HUMAN BODY"), 18, COLOR_BORDER)
 	tagline.position = Vector2(0, 136)
 	tagline.size = Vector2(SCREEN.x, 26)
 	tagline.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -83,7 +84,7 @@ func _build() -> void:
 	# The two fighters and "VS" share one row: equal gaps from the screen edges and from "VS".
 	_add_hero("res://assets/towers/macrophage.png", Vector2(180, HERO_ROW_Y), "tower")
 	_add_hero("res://assets/enemies/rhinovirus/rhinovirus_sprite.png", Vector2(540, HERO_ROW_Y), "enemy", true)
-	var bolt := _label("VS", 30, COLOR_GOLD)
+	var bolt := _label(tr("VS"), 30, COLOR_GOLD)
 	bolt.position = Vector2(0, HERO_ROW_Y - 20)
 	bolt.size = Vector2(SCREEN.x, 40)
 	bolt.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -99,12 +100,12 @@ func _build() -> void:
 	_list.add_theme_constant_override("separation", 14)
 	_scroll.add_child(_list)
 
-	var tutorial := _button("HOW TO PLAY", Vector2(300, 72), 16)
+	var tutorial := _button(tr("HOW TO PLAY"), Vector2(300, 72), 16)
 	tutorial.name = "TutorialButton"
 	tutorial.position = Vector2(40, 1150)
 	tutorial.pressed.connect(_open_tutorial.bind(0))
 	add_child(tutorial)
-	var settings := _button("SETTINGS", Vector2(300, 72), 16)
+	var settings := _button(tr("SETTINGS"), Vector2(300, 72), 16)
 	settings.name = "SettingsButton"
 	settings.position = Vector2(380, 1150)
 	settings.pressed.connect(_open_settings)
@@ -115,6 +116,11 @@ func _build() -> void:
 	version.size = Vector2(SCREEN.x, 16)
 	version.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	add_child(version)
+	var language := _button(Localization.name_of(Session.language), Vector2(220, 52), 16)
+	language.name = "LanguageButton"
+	language.position = Vector2(16, 4)
+	language.pressed.connect(_open_languages)
+	add_child(language)
 	var fps := FpsCounter.new()
 	fps.place_top_right(SCREEN.x, 8.0)
 	add_child(fps)
@@ -192,18 +198,18 @@ func _level_card(data: LevelData) -> Button:
 	number.size = Vector2(96, 56)
 	number.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	card.add_child(number)
-	var title := _label(data.display_name.to_upper(), 24, COLOR_TEXT if unlocked else COLOR_DIM)
+	var title := _label(tr(data.display_name).to_upper(), 24, COLOR_TEXT if unlocked else COLOR_DIM)
 	title.position = Vector2(132, 24)
 	title.size = Vector2(380, 30)
 	title.clip_text = true
 	card.add_child(title)
-	var part := _label(data.body_part.to_upper() if unlocked else "LOCKED", 14, COLOR_BORDER if unlocked else COLOR_DIM)
+	var part := _label(tr(data.body_part).to_upper() if unlocked else tr("LOCKED"), 14, COLOR_BORDER if unlocked else COLOR_DIM)
 	part.position = Vector2(132, 70)
 	part.size = Vector2(380, 20)
 	part.clip_text = true
 	card.add_child(part)
 	if Session.is_completed(data.number):
-		var best := _label("BEST %d" % Session.best_health[data.number], 14, COLOR_GOOD)
+		var best := _label(tr("BEST %d") % Session.best_health[data.number], 14, COLOR_GOOD)
 		best.position = Vector2(132, 96)
 		best.size = Vector2(300, 20)
 		card.add_child(best)
@@ -218,7 +224,7 @@ func _level_card(data: LevelData) -> Button:
 		icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		card.add_child(icon)
-		var tag := _label("BOSS", 12, COLOR_BAD)
+		var tag := _label(tr("BOSS"), 12, COLOR_BAD)
 		tag.position = Vector2(540, 98)
 		tag.size = Vector2(80, 16)
 		tag.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -247,32 +253,32 @@ func _open_detail(data: LevelData) -> void:
 	_detail.add_child(dim)
 	var panel := _panel(Rect2(60, 250, 600, 700))
 	_detail.add_child(panel)
-	var heading := _label("LEVEL %d" % data.number, 20, COLOR_BORDER)
+	var heading := _label(tr("LEVEL %d") % data.number, 20, COLOR_BORDER)
 	heading.position = Vector2(30, 30)
 	heading.size = Vector2(540, 26)
 	panel.add_child(heading)
-	var name_label := _label(data.display_name.to_upper(), 34, COLOR_TEXT)
+	var name_label := _label(tr(data.display_name).to_upper(), 34, COLOR_TEXT)
 	name_label.position = Vector2(30, 70)
 	name_label.size = Vector2(540, 44)
 	name_label.clip_text = true
 	panel.add_child(name_label)
-	var text := _label(data.description, 18, Color("d9cce6"))
+	var text := _label(tr(data.description), 18, Color("d9cce6"))
 	text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	text.position = Vector2(30, 140)
 	text.size = Vector2(540, 230)
 	text.add_theme_constant_override("line_spacing", 10)
 	panel.add_child(text)
-	var facts := _label("WAVES: %d   TOWERS: %d   %s" % [data.waves.size(), data.tower_ids.size(), Session.difficulty.to_upper()], 14, COLOR_GOOD)
+	var facts := _label(tr("WAVES: %d   TOWERS: %d   %s") % [data.waves.size(), data.tower_ids.size(), tr(Session.difficulty_data().display_name).to_upper()], 14, COLOR_GOOD)
 	facts.position = Vector2(30, 400)
 	facts.size = Vector2(540, 22)
 	panel.add_child(facts)
 	_add_enemy_row(panel, data, Vector2(30, 450))
-	var play := _button("PLAY", Vector2(260, MIN_TAP), 26)
+	var play := _button(tr("PLAY"), Vector2(260, MIN_TAP), 26)
 	play.name = "PlayButton"
 	play.position = Vector2(30, 574)
 	play.pressed.connect(func() -> void: Session.start_level(data.number))
 	panel.add_child(play)
-	var back := _button("BACK", Vector2(260, MIN_TAP), 22)
+	var back := _button(tr("BACK"), Vector2(260, MIN_TAP), 22)
 	back.position = Vector2(310, 574)
 	back.pressed.connect(_close_detail)
 	panel.add_child(back)
@@ -306,6 +312,7 @@ func _add_enemy_row(panel: Control, data: LevelData, at: Vector2) -> void:
 func _open_tutorial(index: int) -> void:
 	_close_detail()
 	_close_settings()
+	_close_languages()
 	_close_tutorial()
 	var pages := TutorialPages.PAGES
 	index = clampi(index, 0, pages.size() - 1)
@@ -319,7 +326,7 @@ func _open_tutorial(index: int) -> void:
 	_tutorial.add_child(dim)
 	var panel := _panel(Rect2(40, 140, 640, 940))
 	_tutorial.add_child(panel)
-	var heading := _label(pages[index]["title"], 28, COLOR_GOLD)
+	var heading := _label(tr(pages[index]["title"]), 28, COLOR_GOLD)
 	heading.name = "TutorialTitle"
 	heading.position = Vector2(30, 36)
 	heading.size = Vector2(580, 40)
@@ -329,30 +336,77 @@ func _open_tutorial(index: int) -> void:
 	counter.position = Vector2(30, 90)
 	counter.size = Vector2(580, 22)
 	panel.add_child(counter)
-	var text := _label(pages[index]["text"], 18, Color("d9cce6"))
+	var text := _label("\n\n".join(pages[index]["paragraphs"].map(func(paragraph: String) -> String: return tr(paragraph))), 18, Color("d9cce6"))
 	text.name = "TutorialText"
 	text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	text.position = Vector2(30, 140)
 	text.size = Vector2(580, 560)
 	text.add_theme_constant_override("line_spacing", 10)
 	panel.add_child(text)
-	var back := _button("BACK", Vector2(280, MIN_TAP), 22)
+	var back := _button(tr("BACK"), Vector2(280, MIN_TAP), 22)
 	back.name = "TutorialBack"
 	back.position = Vector2(30, 720)
 	back.disabled = index == 0
 	back.pressed.connect(_open_tutorial.bind(index - 1))
 	panel.add_child(back)
 	var last := index == pages.size() - 1
-	var forward := _button("DONE" if last else "NEXT", Vector2(280, MIN_TAP), 22)
+	var forward := _button(tr("DONE") if last else tr("NEXT"), Vector2(280, MIN_TAP), 22)
 	forward.name = "TutorialNext"
 	forward.position = Vector2(330, 720)
 	forward.pressed.connect(_close_tutorial if last else _open_tutorial.bind(index + 1))
 	panel.add_child(forward)
-	var close := _button("CLOSE", Vector2(580, MIN_TAP), 22)
+	var close := _button(tr("CLOSE"), Vector2(580, MIN_TAP), 22)
 	close.name = "TutorialClose"
 	close.position = Vector2(30, 824)
 	close.pressed.connect(_close_tutorial)
 	panel.add_child(close)
+
+
+## The language page: one button per language, each written in its own language.
+func _open_languages() -> void:
+	_close_detail()
+	_close_settings()
+	_close_tutorial()
+	_close_languages()
+	_languages = Control.new()
+	_languages.name = "Languages"
+	_languages.size = SCREEN
+	add_child(_languages)
+	var dim := ColorRect.new()
+	dim.color = Color(0, 0, 0, 0.7)
+	dim.size = SCREEN
+	_languages.add_child(dim)
+	var rows: int = Localization.LANGUAGES.size()
+	var panel := _panel(Rect2(60, 140, 600, 100.0 + rows * MIN_TAP + 10.0 + (MIN_TAP - 8.0) + 30.0))
+	_languages.add_child(panel)
+	var heading := _label(tr("LANGUAGE"), 30, COLOR_TEXT)
+	heading.position = Vector2(30, 30)
+	heading.size = Vector2(540, 40)
+	panel.add_child(heading)
+	var y := 100.0
+	for entry in Localization.LANGUAGES:
+		var code: String = entry["code"]
+		var button := _button(entry["name"], Vector2(540, MIN_TAP - 8.0), 26)
+		button.name = "Language_%s" % code
+		button.position = Vector2(30, y)
+		_mark_selected(button, Session.language == code)
+		button.pressed.connect(func() -> void:
+			Session.set_language(code)
+			get_tree().reload_current_scene())
+		panel.add_child(button)
+		y += MIN_TAP
+	var back := _button(tr("BACK"), Vector2(540, MIN_TAP - 8.0), 22)
+	back.name = "LanguageBack"
+	back.position = Vector2(30, y + 10.0)
+	back.pressed.connect(_close_languages)
+	panel.add_child(back)
+
+
+func _close_languages() -> void:
+	if _languages != null:
+		remove_child(_languages)
+		_languages.queue_free()
+		_languages = null
 
 
 func _close_tutorial() -> void:
@@ -366,6 +420,7 @@ func _close_tutorial() -> void:
 func _open_settings() -> void:
 	_close_detail()
 	_close_tutorial()
+	_close_languages()
 	_close_settings()
 	_reset_armed = false
 	_settings = Control.new()
@@ -379,18 +434,18 @@ func _open_settings() -> void:
 	var panel := _panel(Rect2(60, 100, 600, 1080))
 	panel.name = "SettingsPanel"
 	_settings.add_child(panel)
-	var heading := _label("SETTINGS", 34, COLOR_TEXT)
+	var heading := _label(tr("SETTINGS"), 34, COLOR_TEXT)
 	heading.position = Vector2(30, 24)
 	heading.size = Vector2(540, 44)
 	panel.add_child(heading)
-	var sub := _label("DIFFICULTY", 18, COLOR_BORDER)
+	var sub := _label(tr("DIFFICULTY"), 18, COLOR_BORDER)
 	sub.position = Vector2(30, 76)
 	sub.size = Vector2(540, 24)
 	panel.add_child(sub)
 	var y := 104.0
 	for id in Session.DIFFICULTY_IDS:
 		var option: DifficultyData = Session.load_difficulty(id)
-		var button := _button(option.display_name.to_upper(), Vector2(540, MIN_TAP), 24)
+		var button := _button(tr(option.display_name).to_upper(), Vector2(540, MIN_TAP), 24)
 		button.name = "Difficulty_%s" % id
 		button.position = Vector2(30, y)
 		button.pressed.connect(func() -> void:
@@ -400,7 +455,7 @@ func _open_settings() -> void:
 		panel.add_child(button)
 		y += MIN_TAP + 8.0
 	var current: DifficultyData = Session.difficulty_data()
-	var text := _label(current.description, 16, Color("d9cce6"))
+	var text := _label(tr(current.description), 16, Color("d9cce6"))
 	text.name = "DifficultyText"
 	text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	text.position = Vector2(30, y + 4.0)
@@ -408,18 +463,18 @@ func _open_settings() -> void:
 	text.add_theme_constant_override("line_spacing", 8)
 	panel.add_child(text)
 	_add_sound_controls(panel, 530.0)
-	var reset := _button("RESET PROGRESS", Vector2(540, MIN_TAP), 20)
+	var reset := _button(tr("RESET PROGRESS"), Vector2(540, MIN_TAP), 20)
 	reset.name = "ResetButton"
 	reset.position = Vector2(30, 852)
 	reset.pressed.connect(func() -> void:
 		if not _reset_armed:
 			_reset_armed = true
-			reset.text = "TAP AGAIN TO CONFIRM"
+			reset.text = tr("TAP AGAIN TO CONFIRM")
 			return
 		Session.reset_progress()
 		_open_settings())
 	panel.add_child(reset)
-	var back := _button("BACK", Vector2(540, MIN_TAP), 22)
+	var back := _button(tr("BACK"), Vector2(540, MIN_TAP), 22)
 	back.name = "BackButton"
 	back.position = Vector2(30, 956)
 	back.pressed.connect(_close_settings)
@@ -428,11 +483,11 @@ func _open_settings() -> void:
 
 ## The sound section: a mute switch and a volume bar each for the music and the effects.
 func _add_sound_controls(panel: Control, top: float) -> void:
-	var sub := _label("SOUND", 18, COLOR_BORDER)
+	var sub := _label(tr("SOUND"), 18, COLOR_BORDER)
 	sub.position = Vector2(30, top)
 	sub.size = Vector2(540, 24)
 	panel.add_child(sub)
-	var mute := _button("SOUND ON" if not GameAudio.muted else "SOUND OFF", Vector2(540, MIN_TAP), 22)
+	var mute := _button(tr("SOUND ON") if not GameAudio.muted else tr("SOUND OFF"), Vector2(540, MIN_TAP), 22)
 	mute.name = "MuteButton"
 	mute.position = Vector2(30, top + 26.0)
 	_mark_selected(mute, not GameAudio.muted)
@@ -441,10 +496,10 @@ func _add_sound_controls(panel: Control, top: float) -> void:
 		Session.save_progress()
 		_open_settings())
 	panel.add_child(mute)
-	_add_volume_row(panel, "MusicVolume", "MUSIC", top + 134.0, GameAudio.music_volume, func(value: float) -> void:
+	_add_volume_row(panel, "MusicVolume", tr("MUSIC"), top + 134.0, GameAudio.music_volume, func(value: float) -> void:
 		GameAudio.set_music_volume(value)
 		Session.save_progress())
-	_add_volume_row(panel, "SfxVolume", "EFFECTS", top + 224.0, GameAudio.sfx_volume, func(value: float) -> void:
+	_add_volume_row(panel, "SfxVolume", tr("EFFECTS"), top + 224.0, GameAudio.sfx_volume, func(value: float) -> void:
 		GameAudio.set_sfx_volume(value)
 		Session.save_progress()
 		GameAudio.play_sfx("res://assets/audio/common/block.wav"))

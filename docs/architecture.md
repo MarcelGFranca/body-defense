@@ -73,3 +73,7 @@ The simulation has no random numbers, so a headless run at `--fixed-fps 60` give
 ## Save file
 
 `user://progress.cfg`: `[progress]` best health per level (a level is unlocked when the one before has a best), `[settings]` difficulty, music_volume, sfx_volume, muted. Reset keeps the difficulty.
+
+## Languages
+
+`Localization` (`scripts/localization.gd`) lists the seven languages (English, Português, Français, Español, Italiano, 中文, 日本語) and applies one to the `TranslationServer`. The texts are in `localization/translations.csv`: the key is the English text, one column per language, and Godot imports the file into `translations.<code>.translation` (listed in `project.godot`). Code shows text with `tr("...")` (data texts as `tr(data.display_name)`), formatted strings keep their `%d` / `%s` in the key. A missing translation shows the English text. The language is chosen on the start screen (button at the top left), saved in `progress.cfg` (`[settings] language`) and defaults to the phone language on the first run. The pixel font has no Chinese or Japanese characters, so `Localization.prepare_font` gives it the system font as fallback. Scientific names of microbes stay untranslated on purpose.
