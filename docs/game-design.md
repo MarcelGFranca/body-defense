@@ -30,7 +30,7 @@ Mobile towers can be moved to another slot.
 
 **Tower information.** Holding a build card or a built tower for 0.3 s shows its attributes (role, cost, range, damage, ability) and which enemies of the current level it is good, weak or useless against. Releasing closes the panel and does not build or open the sell card. A quick tap builds or opens the sell card as before.
 
-**Attack feedback.** Every tower plays an attack animation when it attacks. Area towers (lysozyme, interferon) also send a ring from the tower to the edge of its range in 0.6 s, coloured by damage type. Enemies marked by a B lymphocyte are dyed lilac while the mark lasts. The T lymphocyte plays a charging animation that fills the time between shots and fires a thick beam with an explosion. The platelet grows one tendril to each enemy it roots (up to 3); the tendril holds the enemy for as long as it is paralysed and then disappears.
+**Attack feedback.** Every tower plays an attack animation when it attacks. Area towers (lysozyme, interferon) also send a ring from the tower to the edge of its range in 0.6 s, coloured by damage type. The interferon mist appears only when it attacks and fades out 1.5 s later. Enemies marked by a B lymphocyte are dyed lilac while the mark lasts. The T lymphocyte plays a charging animation that fills the time between shots and fires a thick beam with an explosion. The platelet grows one tendril to each enemy it roots (up to 3); the tendril holds the enemy for as long as it is paralysed and then disappears.
 
 ## Damage types
 

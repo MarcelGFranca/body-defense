@@ -10,6 +10,8 @@ const SETTLE_SECONDS := 1.5
 const SECRETE_INTERVAL := 2.0
 ## An area attack sends a ring from the tower out to the edge of its range in this time.
 const PULSE_SECONDS := 0.6
+## A mist stays this long after the last attack that fed it, fading out.
+const MIST_FADE_SECONDS := 1.5
 const PULSE_COLORS := {
 	"chemical": Color("aaff78"),
 	"antiviral": Color("7fe8ff"),
@@ -34,6 +36,8 @@ var _flash_target := Vector2.ZERO
 ## Seconds since the last area attack, or -1 when no ring is spreading.
 var _pulse_age := -1.0
 var _pulse := 0.0
+## How strength the mist is, from 0 (hidden) to 1; every attack refills it.
+var _mist_level := 0.0
 var _missing_art := false
 var _sprite: AnimatedSprite2D
 var _on_attack_done := Callable()
@@ -73,11 +77,17 @@ func setup(tower_data: TowerData, slot: int, level: Level) -> void:
 		add_child(tendrils)
 
 
+## How visible the mist is, from 0 to 1.
+func mist_level() -> float:
+	return _mist_level
+
+
 ## Advanced by the level every frame, so tests can step the simulation by hand.
 func step(delta: float) -> void:
 	_pulse += delta
 	_update_holds(delta)
 	_flash = maxf(0.0, _flash - delta)
+	_mist_level = maxf(0.0, _mist_level - delta / MIST_FADE_SECONDS)
 	if _pulse_age >= 0.0:
 		_pulse_age = _pulse_age + delta if _pulse_age + delta < PULSE_SECONDS else -1.0
 	if _settling > 0.0:
@@ -202,6 +212,7 @@ func _step_damage_aura(delta: float) -> void:
 		enemy.take_damage(data.attack_damage, data.damage_type, data.id)
 	_cooldown = data.attack_interval
 	_pulse_age = 0.0
+	_mist_level = 1.0
 	play_attack()
 	GameAudio.play_sfx(data.sound_attack)
 
@@ -321,21 +332,22 @@ func _step_summon_units(delta: float) -> void:
 
 ## Waves of soft puffs that keep drifting outward and fading across the tower's area.
 func _draw_mist() -> void:
+	var strength := _mist_level
 	const WAVES := 3
 	const PUFFS := 10
 	const PERIOD := 2.4
 	for wave in WAVES:
 		var phase := fposmod(_pulse / PERIOD + float(wave) / WAVES, 1.0)
 		var radius := data.range_px * (0.2 + 0.8 * phase)
-		var color := Color(data.mist_color, (1.0 - phase) * 0.42)
+		var color := Color(data.mist_color, (1.0 - phase) * 0.42 * strength)
 		for i in PUFFS:
 			var angle := TAU * i / PUFFS + wave * 0.7 + sin(_pulse * 0.6 + wave) * 0.25
 			draw_circle(Vector2(cos(angle), sin(angle)) * radius * 0.85, 6.0 + 11.0 * phase, color)
-	draw_circle(Vector2.ZERO, data.range_px * (0.55 + 0.08 * sin(_pulse * 2.6)), Color(data.mist_color, 0.14))
+	draw_circle(Vector2.ZERO, data.range_px * (0.55 + 0.08 * sin(_pulse * 2.6)), Color(data.mist_color, 0.14 * strength))
 
 
 func _draw() -> void:
-	if data.mist_color.a > 0.0:
+	if data.mist_color.a > 0.0 and _mist_level > 0.0:
 		_draw_mist()
 	if _missing_art:
 		draw_circle(Vector2.ZERO, 12.0, Color("b9a7d6"))

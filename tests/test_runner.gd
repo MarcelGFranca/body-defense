@@ -477,12 +477,16 @@ func test_level_simulation() -> void:
 
 	level = new_level()
 	level.build_tower(2, "interferon")
+	level.step(3.0)
+	check(level.towers[2].mist_level() == 0.0, "interferon shows no mist while nothing is in range")
 	var slowed_virus := spawn_at(level, "rhinovirus", 850.0)
 	var spared_bacterium := spawn_at(level, "e-coli", 850.0)
 	level.step(0.05)
 	check(approx(slowed_virus.status.slow_percent(), 25.0), "interferon slows viruses by 25%")
 	check(spared_bacterium.status.slow_percent() == 0.0, "interferon does not slow bacteria")
-	check(level.towers[2].data.mist_color.a > 0.0, "interferon keeps pulsing a mist")
+	check(level.towers[2].data.mist_color.a > 0.0, "interferon has a mist")
+	level.step(0.05)
+	check(level.towers[2].mist_level() > 0.0, "interferon releases its mist when it attacks")
 	free_node(level)
 
 	level = new_level()
