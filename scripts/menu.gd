@@ -5,6 +5,8 @@ extends Control
 const SCREEN := Vector2(720, 1280)
 const CARD_SIZE := Vector2(640, 128)
 const MIN_TAP := 96.0
+## Finger travel, in pixels, after which a press on the level list becomes a scroll.
+const DRAG_THRESHOLD := 16.0
 const HERO_ROW_Y := 252.0
 ## Secret code on the two fighters: enemy three times, tower twice, enemy once. It opens every level.
 const SECRET_CODE := ["enemy", "enemy", "enemy", "tower", "tower", "enemy"]
@@ -23,6 +25,10 @@ var _detail: Control
 
 var _settings: Control
 var _tutorial: Control
+## Dragging the level list: the buttons inside it swallow touches, so the menu scrolls it by hand.
+var _press_in_list := false
+var _dragging := false
+var _drag_travel := 0.0
 var _reset_armed := false
 var _taps: Array[String] = []
 var _levels: Array[LevelData] = []
@@ -118,6 +124,24 @@ func _build() -> void:
 	call_deferred("_scroll_to", next)
 
 
+## Drag scrolling for the level list. A drag past DRAG_THRESHOLD scrolls and cancels the tap on the card under the finger.
+func _input(event: InputEvent) -> void:
+	if _scroll == null:
+		return
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+		if event.pressed:
+			_press_in_list = _detail == null and _settings == null and _tutorial == null and _scroll.get_global_rect().has_point(event.position)
+			_dragging = false
+			_drag_travel = 0.0
+	elif event is InputEventMouseMotion and _press_in_list and (event.button_mask & MOUSE_BUTTON_MASK_LEFT) != 0:
+		_drag_travel += absf(event.relative.y)
+		if _drag_travel > DRAG_THRESHOLD:
+			_dragging = true
+		if _dragging:
+			_scroll.scroll_vertical -= roundi(event.relative.y)
+			get_viewport().set_input_as_handled()
+
+
 func _scroll_to(number: int) -> void:
 	_scroll.scroll_vertical = maxi(0, int((number - 2) * (CARD_SIZE.y + 14.0)))
 
@@ -204,6 +228,8 @@ func _level_card(data: LevelData) -> Button:
 
 
 func _on_card_pressed(data: LevelData) -> void:
+	if _dragging:
+		return
 	if not Session.is_unlocked(data.number):
 		return
 	_open_detail(data)

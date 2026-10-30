@@ -83,7 +83,7 @@ Measured win rate with the 10 bot strategies: Easy 87%, Medium 65%, Hard 42%.
 
 ## Progress
 
-The menu has a HOW TO PLAY tutorial of six pages (goal, amino acids, building, immune cells, damage types, waves and controls). Level n+1 opens when level n is won. The menu shows the best body health per level ("BEST n"). Difficulty is chosen in Settings and applies to every level. Settings also has a mute switch and volume bars for music and effects (saved on the device).
+Dragging the level list scrolls it, even when the finger starts on a card. The menu has a HOW TO PLAY tutorial of six pages (goal, amino acids, building, immune cells, damage types, waves and controls). Level n+1 opens when level n is won. The menu shows the best body health per level ("BEST n"). Difficulty is chosen in Settings and applies to every level. Settings also has a mute switch and volume bars for music and effects (saved on the device).
 
 **Secret code (for testing):** on the start screen, tap the enemy 3 times, the tower 2 times, then the enemy once. A chime plays and every level opens. It is not saved: it lasts until the game is closed.
 

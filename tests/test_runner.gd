@@ -1371,6 +1371,19 @@ func test_menu_and_results() -> void:
 	for page in TutorialPages.PAGES:
 		mentions_amino = mentions_amino or String(page["text"]).contains("Amino acids are the building blocks")
 	check(mentions_amino, "the tutorial explains what amino acids are for")
+	var scroll_before: int = menu._scroll.scroll_vertical
+	menu._input(mouse_button(Vector2(360, 800), true))
+	var drag := mouse_motion(Vector2(360, 700), Vector2(0, -100))
+	drag.button_mask = MOUSE_BUTTON_MASK_LEFT
+	menu._input(drag)
+	check(menu._scroll.scroll_vertical == scroll_before + 100, "dragging on a level card scrolls the list")
+	menu._on_card_pressed(Session.load_level(1))
+	check(menu.find_child("Detail", true, false) == null, "the card under a dragging finger is not opened")
+	menu._input(mouse_button(Vector2(360, 700), false))
+	menu._input(mouse_button(Vector2(360, 800), true))
+	menu._on_card_pressed(Session.load_level(1))
+	check(menu.find_child("Detail", true, false) != null, "a plain tap on a card still opens it")
+	menu._close_detail()
 	var fps_label: FpsCounter = menu.find_child("FpsCounter", true, false)
 	Session.all_levels_open = false
 	fps_label._process(1.0)
