@@ -11,7 +11,7 @@ func _ready() -> void:
 			_out = arg.trim_prefix("--out=")
 	var splash: Control = load("res://game/splash.tscn").instantiate()
 	add_child(splash)
-	await get_tree().create_timer(1.5).timeout
+	await get_tree().create_timer(1.65).timeout
 	await _shot("splash")
 	splash.queue_free()
 	var menu: Control = load("res://game/menu.tscn").instantiate()

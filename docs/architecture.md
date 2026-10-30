@@ -3,7 +3,7 @@
 ## Flow
 
 ```
-splash.tscn (game/splash.gd) -- 5 s Apolo Software logo, then the menu
+splash.tscn (game/splash.gd) -- 5 s Apolo Software logo with a glint and a chime, then the menu
 menu.tscn (game/menu.gd)  -- pick level --> Session.current_level
 main.tscn (game/main.gd)  -- builds Level + Hud for that level and the chosen difficulty
 ```

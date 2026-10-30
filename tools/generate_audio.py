@@ -194,6 +194,21 @@ def unlock_sound():
     return np.concatenate(parts)
 
 
+def shine_sound():
+    """The glint of the logo on the splash screen: a quick upward sweep into a bright bell that rings out, about 1.3 s."""
+    d = 1.3
+    t = time(d)
+    sweep_len = 0.14
+    swept = np.sin(2 * np.pi * np.cumsum(np.linspace(1200.0, 3600.0, int(SR * sweep_len))) / SR) * decay(sweep_len, 0.07, 0.002) * 0.4
+    bell = np.zeros(len(t))
+    for ratio, level, tau in ((1.0, 1.0, 0.55), (2.76, 0.55, 0.32), (5.4, 0.3, 0.18), (8.93, 0.15, 0.1)):
+        bell += np.sin(2 * np.pi * 2093.0 * ratio * t) * level * np.exp(-t / tau)
+    bell *= np.minimum(t / 0.002, 1.0)
+    out = bell * 0.7
+    place(out, swept, 0.0)
+    return out
+
+
 # --- music -------------------------------------------------------------------
 
 NOTE_INDEX = {"C": 0, "D": 2, "E": 4, "F": 5, "G": 7, "A": 9, "B": 11}
@@ -526,6 +541,7 @@ def generate():
         files[path] = (tower, "attack", False)
     save(os.path.join(ROOT, "common", "block.wav"), blocked_sound())
     save(os.path.join(ROOT, "common", "unlock.wav"), unlock_sound())
+    save(os.path.join(ROOT, "common", "shine.wav"), shine_sound())
     save(os.path.join(ROOT, "music", "throat.wav"), music(), peak=0.7)
     for name in TRACKS:
         save(os.path.join(ROOT, "music", "%s.wav" % name), compose(name), peak=0.7)

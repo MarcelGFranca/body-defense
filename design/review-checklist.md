@@ -12,7 +12,7 @@ The designer tests each task on the phone and approves it one by one. An approve
 | 6 | Hypothalamus attack animation | `hypothalamus-attack-animation` | to test |
 | 7 | Volume and mute | `audio-settings` | to test |
 | 8 | 3-minute music, victory and defeat tunes | `long-music-and-end-tunes` | to test |
-| 9 | Splash and Apolo Software logo | `splash-and-apolo-logo` | to test |
+| 9 | Splash and Apolo Software logo, with a glint and a chime | `splash-and-apolo-logo` | to test |
 | 10 | Tutorial | `tutorial` | to test |
 | 11 | Start screen scroll | `fix-menu-list-scroll` | to test |
 | 12 | Zoom (pinch only, fills the screen) | `map-zoom` | adjusted, to test |

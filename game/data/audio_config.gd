@@ -11,3 +11,5 @@ extends Resource
 ## Tunes played once when a level is won or lost.
 @export var victory_music: String = ""
 @export var defeat_music: String = ""
+## Played when the logo glints on the splash screen.
+@export var splash_sound: String = ""

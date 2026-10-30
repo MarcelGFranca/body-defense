@@ -1432,6 +1432,13 @@ func test_splash() -> void:
 	await get_tree().process_frame
 	var texts: Array = splash.find_children("*", "Label", true, false).map(func(label: Label) -> String: return label.text)
 	check(texts == ["APOLO", "SOFTWARE"], "the splash names the company")
+	check(ResourceLoader.exists(GameAudio.config.splash_sound), "the splash has a glint sound")
+	GameAudio.reset()
+	GameAudio.record = true
+	await get_tree().create_timer(Splash.SHINE_AT + 0.3).timeout
+	check(GameAudio.play_log.has(GameAudio.config.splash_sound), "the glint rings a sound")
+	check(splash.find_child("Sparkle", true, false).scale.x > 0.0, "a star flashes on the logo during the glint")
+	GameAudio.record = false
 	free_node(splash)
 	done("test_splash")
 

@@ -7,6 +7,10 @@ const SCREEN := Vector2(720, 1280)
 const SECONDS := 5.0
 const FADE_IN := 1.0
 const FADE_OUT := 0.8
+const SHINE_SHADER := "res://assets/shaders/shine.gdshader"
+## When the glint starts, in seconds after the splash opens (the logo has faded in by then).
+const SHINE_AT := 1.3
+const SHINE_SECONDS := 0.9
 const LOGO_PATH := "res://assets/ui/apolo_logo.png"
 const FONT_PATH := "res://assets/fonts/PressStart2P-Regular.ttf"
 const COLOR_BG := Color("1a0f24")
@@ -14,6 +18,7 @@ const COLOR_GOLD := Color("f4d35e")
 const COLOR_DIM := Color("9b8aa6")
 
 var _content: Control
+var _sparkle: Control
 
 
 func _ready() -> void:
@@ -34,14 +39,47 @@ func _ready() -> void:
 	logo.size = Vector2(320, 320)
 	logo.position = Vector2(200, 400)
 	_content.add_child(logo)
+	var shine := ShaderMaterial.new()
+	shine.shader = load(SHINE_SHADER)
+	logo.material = shine
+	_sparkle = Control.new()
+	_sparkle.name = "Sparkle"
+	_sparkle.position = Vector2(SCREEN.x / 2.0, 408.0)
+	_sparkle.scale = Vector2.ZERO
+	_sparkle.draw.connect(_draw_sparkle)
+	_content.add_child(_sparkle)
 	var font: Font = load(FONT_PATH) if ResourceLoader.exists(FONT_PATH) else null
 	_content.add_child(_label("APOLO", 56, COLOR_GOLD, 740.0, font))
 	_content.add_child(_label("SOFTWARE", 32, COLOR_DIM, 820.0, font))
+	var glint := create_tween()
+	glint.tween_interval(SHINE_AT)
+	glint.tween_callback(_start_glint.bind(shine))
 	var tween := create_tween()
 	tween.tween_property(_content, "modulate:a", 1.0, FADE_IN)
 	tween.tween_interval(SECONDS - FADE_IN - FADE_OUT)
 	tween.tween_property(_content, "modulate:a", 0.0, FADE_OUT)
 	tween.tween_callback(_go_to_menu)
+
+
+## The logo glints: a band of light sweeps over it, a star flashes at the top, and a chime rings.
+func _start_glint(shine: ShaderMaterial) -> void:
+	GameAudio.play_sfx(GameAudio.config.splash_sound)
+	var sweep := create_tween()
+	sweep.tween_method(func(value: float) -> void: shine.set_shader_parameter("progress", value), -0.4, 1.4, SHINE_SECONDS)
+	var star := create_tween().set_parallel()
+	star.tween_property(_sparkle, "scale", Vector2.ONE, SHINE_SECONDS * 0.4).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	star.tween_property(_sparkle, "rotation", 0.8, SHINE_SECONDS * 1.4)
+	star.chain().tween_property(_sparkle, "scale", Vector2.ZERO, SHINE_SECONDS * 0.6)
+
+
+## A four-pointed star: two thin diamonds crossed, with a bright centre.
+func _draw_sparkle() -> void:
+	var long := 70.0
+	var thin := 10.0
+	var white := Color(1, 1, 0.9)
+	_sparkle.draw_colored_polygon(PackedVector2Array([Vector2(0, -long), Vector2(thin, 0), Vector2(0, long), Vector2(-thin, 0)]), white)
+	_sparkle.draw_colored_polygon(PackedVector2Array([Vector2(-long, 0), Vector2(0, thin), Vector2(long, 0), Vector2(0, -thin)]), white)
+	_sparkle.draw_circle(Vector2.ZERO, 14.0, Color(1, 1, 1, 0.9))
 
 
 func _label(text: String, font_size: int, color: Color, y: float, font: Font) -> Label:
