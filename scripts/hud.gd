@@ -18,6 +18,9 @@ const WHEEL_STEP := 40.0
 ## Build menus with more towers than this are drawn in two columns.
 const MAX_SINGLE_COLUMN := 6
 const CARD_SIZE := Vector2(272, 104)
+## Seconds a finger must rest on a build card before its attributes are shown.
+const HOLD_SECONDS := 0.3
+const INFO_SIZE := Vector2(640, 520)
 
 const COLOR_BG := Color("2b1b3a")
 const COLOR_BORDER := Color("ffb3c7")
@@ -50,6 +53,8 @@ var _card_lines: Label
 var _card_title: Label
 var _preview_index := -2
 var _slot_for_menu := -1
+## True while a long press on a build card showed its attributes: the release must not build. Cleared by the next press.
+var _card_held := false
 var _slot_for_sell := -1
 ## Slot of the lymphocyte that is being moved, or -1: the next tap on an empty slot puts it there.
 var _move_from := -1
@@ -58,6 +63,9 @@ var _scroll_track: Control
 var _pressing := false
 var _dragging := false
 var _press_position := Vector2.ZERO
+var _map_hold: Timer
+## True when a long press on a built tower showed its attributes: the release is not a tap.
+var _map_held := false
 
 
 func _init(game_level: Level) -> void:
@@ -83,6 +91,11 @@ func _ready() -> void:
 	catcher.gui_input.connect(_on_map_input)
 	_root.add_child(catcher)
 
+	_map_hold = Timer.new()
+	_map_hold.one_shot = true
+	_map_hold.wait_time = HOLD_SECONDS
+	_map_hold.timeout.connect(_on_map_hold)
+	add_child(_map_hold)
 	_build_top_bar()
 	_build_bottom_bar()
 	_build_scroll_track()
@@ -360,9 +373,14 @@ func _on_map_input(event: InputEvent) -> void:
 			if event.pressed:
 				_pressing = true
 				_dragging = false
+				_map_held = false
 				_press_position = event.position
+				_map_hold.start()
 			else:
-				if _pressing and not _dragging:
+				_map_hold.stop()
+				if _map_held:
+					_hide_tower_info()
+				elif _pressing and not _dragging:
 					_dismiss_all()
 					level.handle_tap(event.position)
 				_pressing = false
@@ -376,10 +394,22 @@ func _on_map_input(event: InputEvent) -> void:
 	elif event is InputEventMouseMotion and _pressing:
 		if not _dragging and event.position.distance_to(_press_position) > DRAG_THRESHOLD:
 			_dragging = true
+			_map_hold.stop()
 			_dismiss_all()
 			level.scroll_by(-(event.position - _press_position) / Level.SHRINK)
 		elif _dragging:
 			level.scroll_by(-event.relative / Level.SHRINK)
+
+
+## Holding a built tower shows its attributes, like holding a build card.
+func _on_map_hold() -> void:
+	if not _pressing or _dragging or get_tree().paused or level.state != "running":
+		return
+	var slot := level.tower_slot_at(_press_position)
+	if slot < 0:
+		return
+	_map_held = true
+	_show_tower_info(level.towers[slot].data)
 
 
 func _dismiss_all() -> void:
@@ -462,16 +492,99 @@ func _tower_card(tower_data: TowerData, at: Vector2) -> Button:
 	var orb := _icon("res://assets/ui/amino_acid_orb.png", Vector2(28, 28))
 	orb.position = Vector2(88, 58)
 	card.add_child(orb)
+	var hold := Timer.new()
+	hold.one_shot = true
+	hold.wait_time = HOLD_SECONDS
+	hold.timeout.connect(func() -> void:
+		_card_held = true
+		_show_tower_info(tower_data))
+	card.add_child(hold)
+	card.button_down.connect(func() -> void:
+		_card_held = false
+		hold.start())
+	card.button_up.connect(func() -> void:
+		hold.stop()
+		_hide_tower_info())
 	card.pressed.connect(_on_card_pressed.bind(tower_data))
 	return card
 
 
 func _on_card_pressed(tower_data: TowerData) -> void:
+	if _card_held:
+		return
 	if Economy.balance() < tower_data.cost:
 		show_toast("NOT ENOUGH AMINO ACIDS")
 		return
 	if level.build_tower(_slot_for_menu, tower_data.id):
 		_close_popups()
+
+
+## The attributes of a tower, shown while a build card is held: stats, ability and which enemies of the level it is good or bad against.
+func _show_tower_info(tower_data: TowerData) -> void:
+	_hide_tower_info()
+	var panel := _panel(Rect2((SCREEN - INFO_SIZE) / 2.0, INFO_SIZE))
+	panel.name = "TowerInfo"
+	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var title := _label(tower_data.display_name.to_upper(), 24, COLOR_BORDER)
+	title.position = Vector2(20, 16)
+	panel.add_child(title)
+	var body := _label(_tower_info_text(tower_data), 16, COLOR_TEXT)
+	body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	body.position = Vector2(20, 64)
+	body.size = INFO_SIZE - Vector2(40, 80)
+	body.add_theme_constant_override("line_spacing", 8)
+	panel.add_child(body)
+	_popup.add_child(panel)
+
+
+func _hide_tower_info() -> void:
+	var panel := _popup.get_node_or_null("TowerInfo")
+	if panel != null:
+		_popup.remove_child(panel)
+		panel.queue_free()
+
+
+func _tower_info_text(tower_data: TowerData) -> String:
+	var lines := PackedStringArray()
+	lines.append("%s - %s" % [tower_data.role.to_upper(), tower_data.mobility.to_upper()])
+	lines.append("COST: %d   RANGE: %d" % [tower_data.cost, int(tower_data.range_px)])
+	lines.append(_damage_text(tower_data))
+	lines.append(tower_data.ability_description)
+	if tower_data.damage_type == "none" or _damage_per_second(tower_data) <= 0.0:
+		lines.append("SUPPORT: IT HELPS THE OTHER TOWERS.")
+		return "\n\n".join(lines)
+	var good: Array[String] = []
+	var weak: Array[String] = []
+	var immune: Array[String] = []
+	for enemy_id in _level_enemy_ids():
+		var enemy_data: EnemyData = level.enemy_catalog[enemy_id]
+		var factor := DamageCalculator.factor_for(tower_data.damage_type, enemy_data, level.damage_table)
+		if tower_data.damage_type == DamageCalculator.PHYSICAL:
+			factor *= 1.0 - enemy_data.armor_percent / 100.0
+		var label := enemy_data.display_name.to_upper()
+		if factor <= 0.0:
+			immune.append(label)
+		elif factor > 1.0 or (tower_data.damage_type == DamageCalculator.IMMUNOLOGICAL and enemy_data.armor_percent > 0.0):
+			good.append(label)
+		elif factor < 0.8:
+			weak.append(label)
+	if not good.is_empty():
+		lines.append("GOOD AGAINST: %s" % ", ".join(good))
+	if not weak.is_empty():
+		lines.append("WEAK AGAINST: %s" % ", ".join(weak))
+	if not immune.is_empty():
+		lines.append("USELESS AGAINST: %s" % ", ".join(immune))
+	return "\n\n".join(lines)
+
+
+## Ids of the enemies that appear in this level, in order of first appearance.
+func _level_enemy_ids() -> Array:
+	var ids: Array = []
+	for wave in level.data.waves:
+		for entry in wave.entries:
+			if not ids.has(entry["enemy"]) and level.enemy_catalog.has(entry["enemy"]):
+				ids.append(entry["enemy"])
+	return ids
 
 
 func _open_tower_card(slot: int) -> void:
@@ -525,13 +638,15 @@ func _open_tower_card(slot: int) -> void:
 		card.add_child(move)
 
 
+func _damage_per_second(tower_data: TowerData) -> float:
+	if tower_data.attack_damage > 0.0 and tower_data.attack_interval > 0.0:
+		return tower_data.attack_damage / tower_data.attack_interval
+	return tower_data.dot_damage
+
+
 ## "DAMAGE: 12/S (PHYSICAL)" for towers that hurt enemies, "DAMAGE: NONE" for the others.
 func _damage_text(tower_data: TowerData) -> String:
-	var per_second := 0.0
-	if tower_data.attack_damage > 0.0 and tower_data.attack_interval > 0.0:
-		per_second = tower_data.attack_damage / tower_data.attack_interval
-	elif tower_data.dot_damage > 0.0:
-		per_second = tower_data.dot_damage
+	var per_second := _damage_per_second(tower_data)
 	if per_second <= 0.0 or tower_data.damage_type == "none":
 		return "DAMAGE: NONE"
 	var amount := "%d" % int(per_second) if is_equal_approx(per_second, roundf(per_second)) else "%.1f" % per_second

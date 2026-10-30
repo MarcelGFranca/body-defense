@@ -167,6 +167,15 @@ func enemies_in_range(center: Vector2, radius: float) -> Array:
 	return enemies.filter(func(e: Enemy) -> bool: return not e.finished and e.position.distance_to(center) <= radius)
 
 
+## Slot of the built tower under a point given in screen pixels, or -1.
+func tower_slot_at(screen_position: Vector2) -> int:
+	var point := screen_to_world(screen_position)
+	for i in data.slots.size():
+		if towers.has(i) and data.slots[i].distance_to(point) <= TAP_RADIUS:
+			return i
+	return -1
+
+
 ## Handles a tap given in screen pixels.
 func handle_tap(screen_position: Vector2) -> void:
 	if state != "running":

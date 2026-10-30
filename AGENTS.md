@@ -24,7 +24,7 @@ Read this file first, then the doc that matches your task:
 - Anything that depends on a level, tower, enemy or difficulty is data (`Resource` in `scripts/data/`), not a constant in code.
 - Tests must pass before you finish: `godot --headless --path . --fixed-fps 60 res://tests/test_runner.tscn` (expected: `0 failures`).
 - After adding or changing assets or scripts run `godot --headless --path . --import`.
-- `build/` and `.godot/` are ignored. The debug APK goes to `build/body-defense-debug.apk`; raise the version in `export_presets.cfg` for every new build.
+- `build/` and `.godot/` are ignored. The debug APK goes to `build/body-defense-debug.apk`; raise the version in `export_presets.cfg` for every new build (SemVer name, numeric code: see `docs/development.md`).
 - Use `openspec/` for planned work: one change per feature, with `proposal.md`, `design.md`, `tasks.md` and spec deltas.
 
 ## Quick commands
@@ -60,4 +60,4 @@ docs/         scope, architecture, game design, levels, development
 - Forgetting `remove_child` before `queue_free` when swapping UI pages: Godot renames the new node and lookups by name fail.
 - Scaling a spawned enemy's health twice: split copies pass `"final": true` so difficulty is not applied again.
 - Judging a balance change from one run: 100 games per level is about ±10 points. Compare by level and by strategy, not by single numbers.
-- Trying to see the game in the Android emulator on this machine: it starts but cannot render (GPU uniform limit). Check visuals with the screenshot tools in `tools/` and on a real phone.
+- Forgetting that the emulator is usable: it renders the game, see `docs/development.md` (Emulator) for the adb commands.
