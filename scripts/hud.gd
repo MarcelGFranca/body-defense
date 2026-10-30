@@ -19,10 +19,10 @@ const WHEEL_STEP := 40.0
 const ZOOM_STEP := 1.25
 ## Build menus with more towers than this are drawn in two columns.
 const MAX_SINGLE_COLUMN := 6
-const CARD_SIZE := Vector2(272, 104)
+const CARD_SIZE := Vector2(316, 104)
 ## Seconds a finger must rest on a build card before its attributes are shown.
 const HOLD_SECONDS := 0.3
-const INFO_SIZE := Vector2(640, 520)
+const INFO_SIZE := Vector2(640, 660)
 
 const COLOR_BG := Color("2b1b3a")
 const COLOR_BORDER := Color("ffb3c7")
@@ -173,7 +173,7 @@ func _build_top_bar() -> void:
 	_level_label.size = Vector2(290, 30)
 	_level_label.clip_text = true
 	_root.add_child(_level_label)
-	_wave_label = _label("", 18, COLOR_DIM)
+	_wave_label = _label("", 20, COLOR_DIM)
 	_wave_label.position = Vector2(300, top + 16)
 	_wave_label.size = Vector2(196, 26)
 	_wave_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
@@ -207,7 +207,7 @@ func _build_bottom_bar() -> void:
 	var bar := _panel(Rect2(0, top, SCREEN.x, BOTTOM_BAR_HEIGHT))
 	bar.name = "BottomBar"
 	_root.add_child(bar)
-	_countdown_label = _label("", 20, COLOR_TEXT)
+	_countdown_label = _label("", 22, COLOR_TEXT)
 	_countdown_label.position = Vector2(16, top + 18)
 	_root.add_child(_countdown_label)
 	_preview_box = Control.new()
@@ -263,16 +263,17 @@ func _draw_scroll_track() -> void:
 
 
 func _build_enemy_card() -> void:
-	_enemy_card = _panel(Rect2(16, TOP_BAR_HEIGHT + 12, SCREEN.x - 32, 230))
+	_enemy_card = _panel(Rect2(16, TOP_BAR_HEIGHT + 12, SCREEN.x - 32, 270))
 	_enemy_card.name = "EnemyCard"
 	_enemy_card.visible = false
-	_card_title = _label("", 24, COLOR_TEXT)
+	_card_title = _label("", 28, COLOR_TEXT)
 	_card_title.position = Vector2(20, 16)
 	_enemy_card.add_child(_card_title)
-	_card_lines = _label("", 18, COLOR_TEXT)
-	_card_lines.position = Vector2(20, 60)
-	_card_lines.size = Vector2(620, 160)
-	_card_lines.add_theme_constant_override("line_spacing", 8)
+	_card_lines = _label("", 20, COLOR_TEXT)
+	_card_lines.position = Vector2(20, 64)
+	_card_lines.size = Vector2(620, 220)
+	_card_lines.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_card_lines.add_theme_constant_override("line_spacing", 10)
 	_enemy_card.add_child(_card_lines)
 	_root.add_child(_enemy_card)
 
@@ -583,11 +584,11 @@ func _tower_card(tower_data: TowerData, at: Vector2) -> Button:
 	icon.position = Vector2(12, 20)
 	icon.modulate = Color.WHITE if affordable else Color(1, 1, 1, 0.35)
 	card.add_child(icon)
-	var title := _label(tower_data.display_name.to_upper(), 16, COLOR_TEXT if affordable else COLOR_DIM)
+	var title := _label(tower_data.display_name.to_upper(), 18, COLOR_TEXT if affordable else COLOR_DIM)
 	title.position = Vector2(88, 22)
 	card.add_child(title)
 	var cost := _label(str(tower_data.cost), 22, COLOR_GOOD if affordable else COLOR_BAD)
-	cost.position = Vector2(126, 60)
+	cost.position = Vector2(126, 58)
 	card.add_child(cost)
 	var orb := _icon("res://assets/ui/amino_acid_orb.png", Vector2(28, 28))
 	orb.position = Vector2(88, 58)
@@ -628,11 +629,11 @@ func _show_tower_info(tower_data: TowerData) -> void:
 	var title := _label(tower_data.display_name.to_upper(), 24, COLOR_BORDER)
 	title.position = Vector2(20, 16)
 	panel.add_child(title)
-	var body := _label(_tower_info_text(tower_data), 16, COLOR_TEXT)
+	var body := _label(_tower_info_text(tower_data), 20, COLOR_TEXT)
 	body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	body.position = Vector2(20, 64)
 	body.size = INFO_SIZE - Vector2(40, 80)
-	body.add_theme_constant_override("line_spacing", 8)
+	body.add_theme_constant_override("line_spacing", 10)
 	panel.add_child(body)
 	_popup.add_child(panel)
 
@@ -693,36 +694,36 @@ func _open_tower_card(slot: int) -> void:
 	level.set_selected_tower(slot)
 	var tower: Tower = level.towers[slot]
 	var refund := Economy.refund_for(tower.spent)
-	var card_size := Vector2(CARD_WIDTH, 332)
+	var card_size := Vector2(CARD_WIDTH, 380)
 	_popup.add_child(_popup_catcher())
 	var card := _panel(Rect2(_popup_position(level.world_to_screen(level.data.slots[slot]), card_size), card_size))
 	card.name = "TowerCard"
 	card.clip_contents = true
 	_popup.add_child(card)
-	var title := _label(tower.data.display_name.to_upper(), 22, COLOR_BORDER)
+	var title := _label(tower.data.display_name.to_upper(), 24, COLOR_BORDER)
 	title.name = "Name"
 	title.position = Vector2(16, 16)
 	title.size = Vector2(CARD_WIDTH - 32, 30)
 	title.clip_text = true
 	card.add_child(title)
-	var damage := _label(_damage_text(tower.data), 16, COLOR_TEXT)
+	var damage := _label(_damage_text(tower.data), 18, COLOR_TEXT)
 	damage.name = "Damage"
 	damage.position = Vector2(16, 58)
-	damage.size = Vector2(CARD_WIDTH - 32, 22)
+	damage.size = Vector2(CARD_WIDTH - 32, 26)
 	card.add_child(damage)
-	var ability := _label(tower.data.ability_description, 16, Color("d9cce6"))
+	var ability := _label(tower.data.ability_description, 18, Color("d9cce6"))
 	ability.name = "Ability"
 	ability.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	ability.custom_minimum_size = Vector2(CARD_WIDTH - 32, 0)
-	ability.position = Vector2(16, 92)
-	ability.size = Vector2(CARD_WIDTH - 32, 120)
+	ability.position = Vector2(16, 96)
+	ability.size = Vector2(CARD_WIDTH - 32, 150)
 	ability.clip_text = true
 	ability.add_theme_constant_override("line_spacing", 8)
 	card.add_child(ability)
 	var mobile := tower.data.mobility == "mobile"
 	var sell := _button("SELL +%d" % refund, Vector2(190 if mobile else 220, MIN_TAP), 20)
 	sell.name = "SellButton"
-	sell.position = Vector2(CARD_WIDTH - 206.0 if mobile else (CARD_WIDTH - 220.0) / 2.0, 220)
+	sell.position = Vector2(CARD_WIDTH - 206.0 if mobile else (CARD_WIDTH - 220.0) / 2.0, 260)
 	sell.pressed.connect(func() -> void:
 		level.sell_tower(slot)
 		_close_popups())
@@ -730,7 +731,7 @@ func _open_tower_card(slot: int) -> void:
 	if mobile:
 		var move := _button("MOVE", Vector2(190, MIN_TAP), 20)
 		move.name = "MoveButton"
-		move.position = Vector2(16, 220)
+		move.position = Vector2(16, 260)
 		move.pressed.connect(func() -> void:
 			_close_popups()
 			_move_from = slot

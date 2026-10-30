@@ -21,6 +21,9 @@ func _ready() -> void:
 	level.body_health = level.max_body_health
 	level.slot_tapped.emit(1)
 	await _shot("2_build_menu")
+	hud._show_tower_info(level.tower_catalog["b-lymphocyte"])
+	await _shot("2b_tower_info")
+	hud._hide_tower_info()
 	hud._popup.get_node("BuildMenu").get_node("Card_macrophage").pressed.emit()
 	level.slot_tapped.emit(2)
 	await _shot("3_build_menu_after_one_tower")
