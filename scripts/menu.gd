@@ -103,6 +103,9 @@ func _build() -> void:
 	version.size = Vector2(SCREEN.x, 16)
 	version.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	add_child(version)
+	var fps := FpsCounter.new()
+	fps.place_top_right(SCREEN.x, 8.0)
+	add_child(fps)
 	_refresh()
 	# Start with the level to play next in view.
 	var next := Session.next_to_play()

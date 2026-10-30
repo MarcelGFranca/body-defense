@@ -114,6 +114,9 @@ func _ready() -> void:
 	_overlay.size = SCREEN
 	_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_root.add_child(_overlay)
+	var fps := FpsCounter.new()
+	fps.place_top_right(SCREEN.x, TOP_BAR_HEIGHT + _safe_top() + 8.0)
+	_root.add_child(fps)
 
 	level.slot_tapped.connect(_on_slot_tapped)
 	level.tower_tapped.connect(_open_tower_card)

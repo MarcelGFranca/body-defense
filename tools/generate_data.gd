@@ -68,8 +68,8 @@ const TOWERS := [
 		"behavior": "single_target", "range": 100, "damage": 55, "interval": 2.0, "beam": 14},
 	{"id": "b-lymphocyte", "ability": "Releases antibodies that mark up to 4 enemies: 35% more damage for 5 s. It moves.", "name": "B Lymphocyte", "role": "summoner", "damage_type": "antiviral", "cost": 70, "mobility": "mobile",
 		"behavior": "summon_marker", "range": 100, "damage": 6, "interval": 3.5, "mark": 0.35, "mark_seconds": 5.0, "mark_targets": 4, "mark_color": Color(0.78, 0.5, 0.9)},
-	{"id": "bone-marrow", "ability": "Creates up to 3 neutrophils that block enemies.", "name": "Bone Marrow", "role": "summoner", "damage_type": "physical", "cost": 90, "mobility": "fixed",
-		"behavior": "summon_units", "range": 70, "summon_interval": 8.0, "summon_cap": 3, "unit_health": 40, "unit_damage": 8},
+	{"id": "bone-marrow", "ability": "Creates a neutrophil every 15 s, up to 3, that block and fight enemies.", "name": "Bone Marrow", "role": "summoner", "damage_type": "physical", "cost": 90, "mobility": "fixed",
+		"behavior": "summon_units", "range": 70, "summon_interval": 15.0, "summon_cap": 3, "unit_health": 40, "unit_damage": 8, "unit_radius": 60, "unit_speed": 80, "unit_regen": 2.0},
 ]
 
 # The three difficulty settings. Medium is the balanced game; the others change these multipliers.
@@ -352,6 +352,9 @@ func _save_tower(row: Dictionary) -> void:
 	t.root_cooldown = float(row.get("root_cooldown", 0))
 	t.root_targets = int(row.get("root_targets", 0))
 	t.beam_width = float(row.get("beam", 0))
+	t.unit_radius = float(row.get("unit_radius", 0))
+	t.unit_speed = float(row.get("unit_speed", 0))
+	t.unit_regen = float(row.get("unit_regen", 0))
 	t.dot_damage = float(row.get("dot", 0))
 	t.dot_seconds = float(row.get("dot_seconds", 0))
 	t.mark_bonus = float(row.get("mark", 0))

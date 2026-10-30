@@ -104,6 +104,9 @@ func step(delta: float) -> void:
 	scheduler.tick(delta)
 	for tower: Tower in towers.values():
 		tower.step(delta)
+	for unit in blockers.duplicate():
+		if is_instance_valid(unit):
+			unit.step(delta, enemies)
 	for glob in _globs.duplicate():
 		glob.step(delta)
 	for puddle in puddles.duplicate():
@@ -255,11 +258,11 @@ func move_tower(from_slot: int, to_slot: int) -> bool:
 
 
 ## Places a neutrophil on the path, as close to `near` as the path allows.
-func add_blocker(near: Vector2, shift: float, unit_health: float, unit_damage: float, source: Tower) -> BlockerUnit:
+func add_blocker(near: Vector2, shift: float, unit_health: float, unit_damage: float, source: Tower, radius: float = 0.0, move_speed: float = 0.0, regen: float = 0.0) -> BlockerUnit:
 	var offset := clampf(curve.get_closest_offset(near) + shift, 20.0, curve.get_baked_length() - 20.0)
 	var unit := BlockerUnit.new()
 	_ground_layer.add_child(unit)
-	unit.setup(offset, curve.sample_baked(offset), unit_health, unit_damage)
+	unit.setup(curve, offset, unit_health, unit_damage, radius, move_speed, regen)
 	unit.owner_tower = source
 	blockers.append(unit)
 	unit.died.connect(func(u: BlockerUnit) -> void: blockers.erase(u))

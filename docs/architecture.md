@@ -31,7 +31,8 @@ main.tscn (scripts/main.gd)  -- builds Level + Hud for that level and the chosen
 | `tower_beam.gd` | The thick beam and the explosion of a charging tower (T lymphocyte) |
 | `root_tendrils.gd` | Tendrils drawn by a platelet on the enemies it holds |
 | `tower.gd` | All tower behaviours (single target, aura, slow puddle, root, DOT, marker, summoner) |
-| `blocker_unit.gd` | Neutrophils summoned by Bone Marrow |
+| `blocker_unit.gd` | Neutrophils summoned by Bone Marrow: roam around a post, go to meet enemies in a guard radius, block one enemy |
+| `fps_counter.gd` | FPS readout shown in debug mode (the secret code), see `Session.debug_mode` |
 | `mucus_glob.gd`, `mucus_puddle.gd` | Mucus Cell projectile and slowing puddle |
 | `damage_calculator.gd` | Damage after armor, resistances, marks and the damage table |
 | `hud.gd` (`Hud`) | Bars, build and sell menus, long-press tower info panel (`HOLD_SECONDS`), wave info, enemy card, pause, results |

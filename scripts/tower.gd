@@ -310,7 +310,7 @@ func _step_summon_units(delta: float) -> void:
 	if _cooldown > 0.0:
 		return
 	var shift := (float(_units.size()) - 1.0) * 16.0
-	_units.append(_level.add_blocker(position, shift, data.unit_health, data.unit_damage, self))
+	_units.append(_level.add_blocker(position, shift, data.unit_health, data.unit_damage, self, data.unit_radius, data.unit_speed, data.unit_regen))
 	_cooldown = data.summon_interval
 	play_attack()
 	GameAudio.play_sfx(data.sound_attack)

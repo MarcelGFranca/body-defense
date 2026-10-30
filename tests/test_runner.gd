@@ -1038,6 +1038,7 @@ func test_new_towers() -> void:
 	level.step(1.0)
 	check(rhino.progress <= unit.offset + BlockerUnit.REACH and rhino.progress - before < 12.0, "a neutrophil holds the enemy back")
 	check(unit.health < unit.max_health and rhino.health < rhino.max_health, "the neutrophil and the enemy hurt each other")
+	check(unit.guard_radius == 60.0 and unit.speed == 80.0, "the neutrophil gets its radius and speed from the Bone Marrow data")
 	var boss := spawn_at(level, "mycobacterium-tuberculosis", unit.offset - 10.0)
 	var boss_before := boss.progress
 	level.step(1.0)
@@ -1045,11 +1046,57 @@ func test_new_towers() -> void:
 	for enemy in level.enemies.duplicate():
 		enemy.queue_free()
 	level.enemies.clear()
+	# Only the tower is stepped, so no wave gets in the way of the count.
 	for i in 500:
-		level.step(0.1)
-		if level.state != "running":
-			break
+		level.towers[0].step(0.1)
 	check(level.blockers.size() == 3, "a Bone Marrow keeps at most three neutrophils")
+	var first := level.blockers[0]
+	first.health = 0.0
+	first.died.emit(first)
+	first.queue_free()
+	level.blockers.erase(first)
+	level.towers[0].step(14.0)
+	check(level.blockers.size() == 2, "a dead neutrophil is not replaced before 15 s")
+	level.towers[0].step(1.2)
+	check(level.blockers.size() == 3, "a dead neutrophil is replaced 15 s after the Bone Marrow had its full count")
+	free_node(level)
+
+	level = campaign_level(6)
+	Economy.reset(1000)
+	level.build_tower(0, "bone-marrow")
+	level.step(0.1)
+	var guard: BlockerUnit = level.blockers[0]
+	var post := guard.position
+	var wander_low := guard.position
+	for i in 120:
+		level.step(0.05)
+		if guard.position.x < wander_low.x or guard.position.y > wander_low.y:
+			wander_low = guard.position
+	check(guard.position != post or wander_low != post, "a waiting neutrophil keeps moving around its post")
+	check(absf(guard.offset - guard.home_offset) <= BlockerUnit.WANDER + 0.01, "a waiting neutrophil stays close to its post")
+	guard.health = 10.0
+	guard.step(5.0, [])
+	check(is_equal_approx(guard.health, 10.0 + 2.0 * 5.0), "a neutrophil recovers 2 health per second")
+	guard.step(60.0, [])
+	check(is_equal_approx(guard.health, guard.max_health), "a neutrophil never recovers more than its full health")
+	guard.offset = guard.home_offset
+	var visitor := spawn_at(level, "rhinovirus", guard.home_offset - 40.0)
+	var distance_before := absf(guard.offset - visitor.progress)
+	level.step(0.3)
+	check(absf(guard.offset - visitor.progress) < distance_before, "a neutrophil walks to an enemy inside its radius")
+	var far := spawn_at(level, "rhinovirus", guard.home_offset - 400.0)
+	check(guard.target_among([far]) == null, "a neutrophil ignores enemies outside its radius")
+	var big := spawn_at(level, "mycobacterium-tuberculosis", guard.home_offset - 30.0)
+	check(guard.target_among([big]) == null, "a neutrophil does not go to meet a boss")
+	visitor.queue_free()
+	level.enemies.erase(visitor)
+	big.queue_free()
+	level.enemies.erase(big)
+	far.queue_free()
+	level.enemies.erase(far)
+	for i in 80:
+		level.step(0.05)
+	check(absf(guard.offset - guard.home_offset) <= BlockerUnit.WANDER + 0.01, "a neutrophil walks back to its post when the enemy is gone")
 	level.sell_tower(0)
 	check(level.blockers.is_empty() or level.blockers.all(func(u: BlockerUnit) -> bool: return u.is_queued_for_deletion()), "selling a Bone Marrow removes its neutrophils")
 	free_node(level)
@@ -1191,6 +1238,14 @@ func test_menu_and_results() -> void:
 	await get_tree().process_frame
 	menu.find_child("BackButton", true, false).pressed.emit()
 	await get_tree().process_frame
+	var fps_label: FpsCounter = menu.find_child("FpsCounter", true, false)
+	Session.all_levels_open = false
+	fps_label._process(1.0)
+	check(fps_label != null and not fps_label.visible, "the FPS readout is hidden until the secret code is entered")
+	Session.all_levels_open = true
+	fps_label._process(1.0)
+	check(fps_label.visible and fps_label.text.begins_with("FPS "), "the secret code shows the FPS readout")
+	Session.all_levels_open = false
 	var version_label: Label = menu.find_child("VersionLabel", true, false)
 	check(version_label != null and version_label.text == "V%s" % ProjectSettings.get_setting("application/config/version"), "the menu shows the game version")
 	var boss_card: Button = menu.find_child("Level_3", true, false)

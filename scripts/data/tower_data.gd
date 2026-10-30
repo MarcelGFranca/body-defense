@@ -35,6 +35,11 @@ extends Resource
 @export var summon_interval: float = 0.0
 @export var summon_cap: int = 0
 @export var unit_health: float = 0.0
+## How far from its post a summoned unit looks for enemies, and how fast it walks along the path to meet them.
+@export var unit_radius: float = 0.0
+@export var unit_speed: float = 0.0
+## Health that a summoned unit recovers every second, while it is alive.
+@export var unit_regen: float = 0.0
 ## Damage per second that a summoned unit deals to the enemy blocked by it.
 @export var unit_damage: float = 0.0
 ## Marked enemies that a "summon_marker" tower reaches in one release.

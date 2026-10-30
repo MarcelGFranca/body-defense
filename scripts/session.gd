@@ -20,6 +20,10 @@ var save_path := SAVE_PATH
 var difficulty := "medium"
 ## Set by the secret tap code in the menu. It is not saved: it lasts until the game is closed.
 var all_levels_open := false
+## The secret tap code also turns on the debug aids (the FPS readout).
+var debug_mode: bool:
+	get:
+		return all_levels_open
 
 
 func _ready() -> void:

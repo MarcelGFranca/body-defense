@@ -24,7 +24,7 @@ Enemies drop amino acids when they die. Selling a tower returns part of its cost
 | Interferon | area | antiviral | 70 | 5 per second, slows viruses 25%; bacteria immune |
 | T Lymphocyte | single target, mobile | immunological | 90 | 55 damage every 2 s, ignores armor; charges between shots and fires a thick beam that explodes on the target |
 | B Lymphocyte | summoner, mobile | antiviral | 70 | Antibodies mark up to 4 enemies: +35% damage for 5 s |
-| Bone Marrow | summoner | physical | 90 | Up to 3 neutrophils that block enemies |
+| Bone Marrow | summoner | physical | 90 | A neutrophil at once, then one every 15 s, up to 3, that block enemies. They drift around their post, and walk along the path to meet any non-boss enemy that comes within 60 units of the post. Neutrophils recover 2 health per second |
 
 Mobile towers can be moved to another slot.
 
@@ -90,3 +90,7 @@ Level n+1 opens when level n is won. The menu shows the best body health per lev
 ## Audio
 
 One music loop per level (about 50 s, three instruments) and one sound set per tower and enemy. At most 8 sounds play at once.
+
+## Debug aids
+
+The secret tap code on the start screen (enemy, enemy, enemy, tower, tower, enemy) opens every level and also shows an FPS readout at the top right, on the start screen and during a level. It lasts until the game is closed.
