@@ -7,7 +7,7 @@ menu.tscn (scripts/menu.gd)  -- pick level --> Session.current_level
 main.tscn (scripts/main.gd)  -- builds Level + Hud for that level and the chosen difficulty
 ```
 
-- `Menu`: level list with locks, level detail page, Settings page (difficulty, reset progress), and the game version (from `application/config/version`) in small text at the bottom.
+- `Menu`: level list with locks, level detail page, Settings page (difficulty, sound: mute, music and effects volume with `VolumeBar`, reset progress), and the game version (from `application/config/version`) in small text at the bottom.
 - `Main`: reads user args (`--level N`, `--difficulty id`, `--autoplay`, `--call-waves`), creates `Level` and `Hud`, and records a victory in `Session`.
 
 ## Autoloads
@@ -72,4 +72,4 @@ The simulation has no random numbers, so a headless run at `--fixed-fps 60` give
 
 ## Save file
 
-`user://progress.cfg`: `[progress]` best health per level (a level is unlocked when the one before has a best), `[settings]` difficulty. Reset keeps the difficulty.
+`user://progress.cfg`: `[progress]` best health per level (a level is unlocked when the one before has a best), `[settings]` difficulty, music_volume, sfx_volume, muted. Reset keeps the difficulty.

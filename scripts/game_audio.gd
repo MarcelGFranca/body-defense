@@ -13,6 +13,10 @@ var music_fading := false
 ## When true, every sound that really starts is added to `play_log` (used by tests).
 var record := false
 var play_log: Array = []
+## Player settings, from 0 to 1. They scale the volumes in `config`; `muted` silences the master bus.
+var music_volume := 1.0
+var sfx_volume := 1.0
+var muted := false
 
 var _voices: Array[AudioStreamPlayer] = []
 var _last_start: Dictionary = {}
@@ -49,7 +53,7 @@ func play_sfx(path: String) -> bool:
 		return false
 	_last_start[path] = now
 	voice.stream = stream
-	voice.volume_db = config.sfx_volume_db
+	voice.volume_db = _scaled_db(config.sfx_volume_db, sfx_volume)
 	voice.play()
 	if record:
 		play_log.append(path)
@@ -80,7 +84,7 @@ func play_music(path: String) -> void:
 		_fade.kill()
 	music_fading = false
 	_music.stream = stream
-	_music.volume_db = config.music_volume_db
+	_music.volume_db = _scaled_db(config.music_volume_db, music_volume)
 	_music.play()
 	current_music = path
 
@@ -98,6 +102,25 @@ func stop_music(fade_seconds: float = FADE_OUT_SECONDS) -> void:
 	_fade = create_tween().set_ignore_time_scale(true)
 	_fade.tween_property(_music, "volume_db", -60.0, fade_seconds)
 	_fade.tween_callback(_finish_music)
+
+
+func set_music_volume(value: float) -> void:
+	music_volume = clampf(value, 0.0, 1.0)
+	if _music != null and not music_fading:
+		_music.volume_db = _scaled_db(config.music_volume_db, music_volume)
+
+
+func set_sfx_volume(value: float) -> void:
+	sfx_volume = clampf(value, 0.0, 1.0)
+
+
+func set_muted(value: bool) -> void:
+	muted = value
+	AudioServer.set_bus_mute(AudioServer.get_bus_index("Master"), muted)
+
+
+func _scaled_db(base_db: float, volume: float) -> float:
+	return base_db + linear_to_db(volume) if volume > 0.0 else -80.0
 
 
 func is_music_playing() -> bool:

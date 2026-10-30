@@ -92,15 +92,24 @@ func save_progress() -> void:
 	for number in best_health:
 		file.set_value("best_health", str(number), int(best_health[number]))
 	file.set_value("settings", "difficulty", difficulty)
+	file.set_value("settings", "music_volume", GameAudio.music_volume)
+	file.set_value("settings", "sfx_volume", GameAudio.sfx_volume)
+	file.set_value("settings", "muted", GameAudio.muted)
 	file.save(save_path)
 
 
 func load_progress() -> void:
 	best_health.clear()
 	difficulty = "medium"
+	GameAudio.set_music_volume(1.0)
+	GameAudio.set_sfx_volume(1.0)
+	GameAudio.set_muted(false)
 	var file := ConfigFile.new()
 	if file.load(save_path) != OK:
 		return
+	GameAudio.set_music_volume(float(file.get_value("settings", "music_volume", 1.0)))
+	GameAudio.set_sfx_volume(float(file.get_value("settings", "sfx_volume", 1.0)))
+	GameAudio.set_muted(bool(file.get_value("settings", "muted", false)))
 	var saved := String(file.get_value("settings", "difficulty", "medium"))
 	difficulty = saved if DIFFICULTY_IDS.has(saved) else "medium"
 	if file.has_section("best_health"):

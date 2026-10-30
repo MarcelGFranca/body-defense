@@ -270,7 +270,7 @@ func _add_enemy_row(panel: Control, data: LevelData, at: Vector2) -> void:
 		x += 76.0
 
 
-## The settings page: the difficulty, and a way to start over.
+## The settings page: the difficulty, the sound, and a way to start over.
 func _open_settings() -> void:
 	_close_detail()
 	_close_settings()
@@ -283,18 +283,18 @@ func _open_settings() -> void:
 	dim.color = Color(0, 0, 0, 0.7)
 	dim.size = SCREEN
 	_settings.add_child(dim)
-	var panel := _panel(Rect2(60, 230, 600, 780))
+	var panel := _panel(Rect2(60, 100, 600, 1080))
 	panel.name = "SettingsPanel"
 	_settings.add_child(panel)
 	var heading := _label("SETTINGS", 34, COLOR_TEXT)
-	heading.position = Vector2(30, 36)
+	heading.position = Vector2(30, 24)
 	heading.size = Vector2(540, 44)
 	panel.add_child(heading)
 	var sub := _label("DIFFICULTY", 18, COLOR_BORDER)
-	sub.position = Vector2(30, 112)
+	sub.position = Vector2(30, 76)
 	sub.size = Vector2(540, 24)
 	panel.add_child(sub)
-	var y := 150.0
+	var y := 104.0
 	for id in Session.DIFFICULTY_IDS:
 		var option: DifficultyData = Session.load_difficulty(id)
 		var button := _button(option.display_name.to_upper(), Vector2(540, MIN_TAP), 24)
@@ -305,18 +305,19 @@ func _open_settings() -> void:
 			_open_settings())
 		_mark_selected(button, Session.difficulty == id)
 		panel.add_child(button)
-		y += MIN_TAP + 14.0
+		y += MIN_TAP + 8.0
 	var current: DifficultyData = Session.difficulty_data()
 	var text := _label(current.description, 16, Color("d9cce6"))
 	text.name = "DifficultyText"
 	text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	text.position = Vector2(30, y + 10.0)
-	text.size = Vector2(540, 130)
+	text.position = Vector2(30, y + 4.0)
+	text.size = Vector2(540, 100)
 	text.add_theme_constant_override("line_spacing", 8)
 	panel.add_child(text)
+	_add_sound_controls(panel, 530.0)
 	var reset := _button("RESET PROGRESS", Vector2(540, MIN_TAP), 20)
 	reset.name = "ResetButton"
-	reset.position = Vector2(30, 540)
+	reset.position = Vector2(30, 852)
 	reset.pressed.connect(func() -> void:
 		if not _reset_armed:
 			_reset_armed = true
@@ -327,9 +328,47 @@ func _open_settings() -> void:
 	panel.add_child(reset)
 	var back := _button("BACK", Vector2(540, MIN_TAP), 22)
 	back.name = "BackButton"
-	back.position = Vector2(30, 660)
+	back.position = Vector2(30, 956)
 	back.pressed.connect(_close_settings)
 	panel.add_child(back)
+
+
+## The sound section: a mute switch and a volume bar each for the music and the effects.
+func _add_sound_controls(panel: Control, top: float) -> void:
+	var sub := _label("SOUND", 18, COLOR_BORDER)
+	sub.position = Vector2(30, top)
+	sub.size = Vector2(540, 24)
+	panel.add_child(sub)
+	var mute := _button("SOUND ON" if not GameAudio.muted else "SOUND OFF", Vector2(540, MIN_TAP), 22)
+	mute.name = "MuteButton"
+	mute.position = Vector2(30, top + 26.0)
+	_mark_selected(mute, not GameAudio.muted)
+	mute.pressed.connect(func() -> void:
+		GameAudio.set_muted(not GameAudio.muted)
+		Session.save_progress()
+		_open_settings())
+	panel.add_child(mute)
+	_add_volume_row(panel, "MusicVolume", "MUSIC", top + 134.0, GameAudio.music_volume, func(value: float) -> void:
+		GameAudio.set_music_volume(value)
+		Session.save_progress())
+	_add_volume_row(panel, "SfxVolume", "EFFECTS", top + 224.0, GameAudio.sfx_volume, func(value: float) -> void:
+		GameAudio.set_sfx_volume(value)
+		Session.save_progress()
+		GameAudio.play_sfx("res://assets/audio/common/block.wav"))
+
+
+func _add_volume_row(panel: Control, node_name: String, title: String, y: float, start: float, on_change: Callable) -> void:
+	var caption := _label(title, 16, Color("d9cce6"))
+	caption.position = Vector2(30, y)
+	caption.size = Vector2(540, 22)
+	panel.add_child(caption)
+	var bar := VolumeBar.new()
+	bar.name = node_name
+	bar.position = Vector2(30, y + 26.0)
+	bar.size = Vector2(540, 56)
+	bar.value = start
+	bar.value_changed.connect(on_change)
+	panel.add_child(bar)
 
 
 func _close_settings() -> void:

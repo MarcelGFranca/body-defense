@@ -1320,6 +1320,20 @@ func test_menu_and_results() -> void:
 	check(Session.difficulty == "hard" and menu.find_child("Settings", true, false) != null, "tapping a difficulty chooses it")
 	menu.find_child("Difficulty_medium", true, false).pressed.emit()
 	await get_tree().process_frame
+	var music_bar: VolumeBar = menu.find_child("MusicVolume", true, false)
+	music_bar.set_from_x(music_bar.size.x * 0.5)
+	check(approx(GameAudio.music_volume, 0.5), "the music bar sets the music volume")
+	check(approx(GameAudio.sfx_volume, 1.0), "the music bar leaves the effects volume alone")
+	music_bar.set_from_x(0.0)
+	check(GameAudio.music_volume == 0.0 and GameAudio.music_volume_db() <= 0.0, "the lowest music setting is silent")
+	menu.find_child("MuteButton", true, false).pressed.emit()
+	await get_tree().process_frame
+	check(GameAudio.muted and AudioServer.is_bus_mute(0), "the mute button silences the master bus")
+	menu.find_child("MuteButton", true, false).pressed.emit()
+	await get_tree().process_frame
+	check(not GameAudio.muted and not AudioServer.is_bus_mute(0), "the mute button switches the sound back on")
+	GameAudio.set_music_volume(1.0)
+	Session.load_progress()
 	menu.find_child("BackButton", true, false).pressed.emit()
 	await get_tree().process_frame
 	var fps_label: FpsCounter = menu.find_child("FpsCounter", true, false)
