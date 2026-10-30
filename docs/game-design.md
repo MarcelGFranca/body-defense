@@ -66,7 +66,7 @@ Body damage is 1 to 2 for regular enemies and 8 to 10 for bosses.
 
 ## Waves
 
-Each level has 3 to 6 waves. A wave is a start time, an interval and a list of enemy groups. The first wave of levels above 1 starts after a 15 s delay; the spawn interval has a floor of 0.6 s; wave sizes ramp up inside a level. Bosses come in the last wave of levels 3, 7 and 10.
+Each level has 3 to 6 waves. A wave is a start time, an interval and a list of enemy groups. The first wave of levels above 1 starts after a 15 s delay; the spawn interval has a floor of 0.6 s; wave sizes ramp up inside a level. Bosses come in the last wave of levels 3, 7 and 10. When the last enemy on the field dies and no wave is still spawning, the next wave starts in at most 5 s (`Level.EMPTY_FIELD_WAIT`).
 
 ## Difficulty
 

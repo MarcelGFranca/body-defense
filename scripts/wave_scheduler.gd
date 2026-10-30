@@ -51,6 +51,18 @@ func call_next_wave() -> bool:
 	return false
 
 
+## Brings the next wave forward so it starts in at most `seconds` of level time.
+func shorten_wait(seconds: float) -> void:
+	var i := next_wave_index()
+	if i != -1:
+		clock = maxf(clock, _waves[i].start_time * time_scale - seconds)
+
+
+## True while some wave is still releasing enemies.
+func is_spawning() -> bool:
+	return _states.has(State.SPAWNING)
+
+
 func wave_count() -> int:
 	return _waves.size()
 

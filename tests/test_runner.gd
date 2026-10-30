@@ -402,6 +402,19 @@ func test_level_simulation() -> void:
 	free_node(level)
 
 	level = new_level()
+	level.step(level.data.waves[0].start_time * level.difficulty.wave_time + 0.1)
+	for enemy_left in level.enemies.duplicate():
+		enemy_left.take_damage(100000.0, "physical")
+	while level.scheduler.is_spawning():
+		level.step(0.05)
+		for enemy_left in level.enemies.duplicate():
+			enemy_left.take_damage(100000.0, "physical")
+	check(level.scheduler.time_to_next_wave() > Level.EMPTY_FIELD_WAIT + 0.1, "the next wave is still far away before the field empties")
+	level.step(0.05)
+	check(level.scheduler.time_to_next_wave() <= Level.EMPTY_FIELD_WAIT, "an empty field brings the next wave within 5 s")
+	free_node(level)
+
+	level = new_level()
 	check(level.build_tower(1, "macrophage") and Economy.balance() == 100, "building charges the cost")
 	check(not level.build_tower(1, "interferon"), "an occupied slot cannot be built on")
 	check(not level.build_tower(2, "platelet"), "towers outside the level list cannot be built")

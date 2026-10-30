@@ -21,6 +21,8 @@ const DIFFICULTY_PATH_FORMAT := "res://data/difficulties/%s.tres"
 const DAMAGE_TABLE_PATH := "res://data/damage_table.tres"
 ## Screen pixels per map unit: the map is drawn at 360 x 640 and shown at 2x.
 const SHRINK := 2
+## When the field is empty between waves, the next wave starts after at most this many seconds.
+const EMPTY_FIELD_WAIT := 5.0
 const TAP_RADIUS := 24.0
 ## Size of the drawn view in map units, and the parts of it covered by the HUD bars.
 const VIEW_SIZE := Vector2(360, 640)
@@ -102,6 +104,8 @@ func step(delta: float) -> void:
 	if state != "running":
 		return
 	scheduler.tick(delta)
+	if enemies.is_empty() and scheduler.started_count() > 0 and not scheduler.is_spawning():
+		scheduler.shorten_wait(EMPTY_FIELD_WAIT)
 	for tower: Tower in towers.values():
 		tower.step(delta)
 	for unit in blockers.duplicate():
