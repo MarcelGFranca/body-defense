@@ -30,6 +30,8 @@ extends Resource
 @export var dot_seconds: float = 0.0
 @export var mark_bonus: float = 0.0
 @export var mark_seconds: float = 0.0
+## Color that a marked enemy is dyed with while the mark lasts.
+@export var mark_color: Color = Color.WHITE
 @export var summon_interval: float = 0.0
 @export var summon_cap: int = 0
 @export var unit_health: float = 0.0

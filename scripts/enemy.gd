@@ -10,6 +10,7 @@ signal split(enemy: Enemy)
 const HIT_COOLDOWN := 1.4
 const SLOW_ANIMATION_COOLDOWN := 3.0
 const BAR_SIZE := Vector2(20, 3)
+const MARK_SHADER := "res://assets/shaders/mark_tint.gdshader"
 
 var data: EnemyData
 var status: EnemyStatus
@@ -44,6 +45,7 @@ var _damage_taken: Dictionary = {}  # damage type -> damage dealt so far
 var _resisted_type := ""
 var _aura_clock := 0.0
 var _blocked_by: BlockerUnit
+var _dye: ShaderMaterial
 
 
 ## `options` may hold "health", "reward", "damage", "scale", "progress", "copy" and "level".
@@ -103,6 +105,7 @@ func step(delta: float) -> void:
 		if finished:
 			return
 	_sprite.modulate.a = 0.4 if is_dormant() else 1.0
+	_update_mark_dye()
 	_step_aura(delta)
 	_update_blocker(delta)
 	var speed_factor := 0.0 if _blocked_by != null else status.speed_multiplier()
@@ -111,6 +114,19 @@ func step(delta: float) -> void:
 	position = _curve.sample_baked(clampf(progress, 0.0, _length))
 	if progress >= _length:
 		_exit()
+
+
+## A marked enemy is dyed with the color of the lymphocyte that marked it, until the mark ends.
+func _update_mark_dye() -> void:
+	var amount := status.mark_amount()
+	if amount <= 0.0 and _dye == null:
+		return
+	if _dye == null:
+		_dye = ShaderMaterial.new()
+		_dye.shader = load(MARK_SHADER)
+		_sprite.material = _dye
+	_dye.set_shader_parameter("tint", status.mark_color())
+	_dye.set_shader_parameter("amount", amount)
 
 
 ## HIV switches off the towers around it every few seconds.

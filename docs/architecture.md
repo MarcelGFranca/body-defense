@@ -7,7 +7,7 @@ menu.tscn (scripts/menu.gd)  -- pick level --> Session.current_level
 main.tscn (scripts/main.gd)  -- builds Level + Hud for that level and the chosen difficulty
 ```
 
-- `Menu`: level list with locks, level detail page, Settings page (difficulty, reset progress).
+- `Menu`: level list with locks, level detail page, Settings page (difficulty, reset progress), and the game version (from `application/config/version`) in small text at the bottom.
 - `Main`: reads user args (`--level N`, `--difficulty id`, `--autoplay`, `--call-waves`), creates `Level` and `Hud`, and records a victory in `Session`.
 
 ## Autoloads
@@ -26,7 +26,7 @@ main.tscn (scripts/main.gd)  -- builds Level + Hud for that level and the chosen
 | `map_view.gd` | Draws background, path, entrance, exit and empty slots |
 | `wave_scheduler.gd` | Starts waves and spawns enemies on time; scales times by difficulty; early call |
 | `enemy.gd` | Movement along the path, health, traits, rewards, damage taken |
-| `enemy_status.gd` | Slow, root, damage over time, mark, resistances on one enemy |
+| `enemy_status.gd` | Slow, root, damage over time, mark (and its dye, see `assets/shaders/mark_tint.gdshader`), resistances on one enemy |
 | `enemy_sprites.gd`, `tower_sprites.gd` | Load sprites and animations |
 | `tower_beam.gd` | The thick beam and the explosion of a charging tower (T lymphocyte) |
 | `root_tendrils.gd` | Tendrils drawn by a platelet on the enemies it holds |

@@ -3,6 +3,7 @@ class_name EnemyStatus
 extends RefCounted
 
 const SLOW_LINGER := 1.5
+const MARK_FADE_SECONDS := 0.6
 const BOSS_ROLE := "boss"
 const SLOW_IMMUNE_ROLE := "slow-immune"
 
@@ -20,6 +21,7 @@ var _dot_until := 0.0
 var _dot_next_tick := 0.0
 var _mark_bonus := 0.0
 var _mark_until := 0.0
+var _mark_color := Color.WHITE
 
 
 func _init(enemy_data: EnemyData) -> void:
@@ -105,9 +107,19 @@ func has_dot() -> bool:
 
 
 ## Marks do not stack: a new mark only refreshes the duration.
-func apply_mark(bonus: float, seconds: float) -> void:
+func apply_mark(bonus: float, seconds: float, color: Color = Color.WHITE) -> void:
 	_mark_bonus = bonus
+	_mark_color = color
 	_mark_until = time + seconds
+
+
+## How strongly the enemy is dyed by the mark, from 0 to 1: full while the mark lasts, easing out at the end.
+func mark_amount() -> float:
+	return clampf((_mark_until - time) / MARK_FADE_SECONDS, 0.0, 1.0)
+
+
+func mark_color() -> Color:
+	return _mark_color
 
 
 func mark_bonus() -> float:

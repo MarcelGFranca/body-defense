@@ -291,7 +291,7 @@ func _step_summon_marker(delta: float) -> void:
 		return
 	targets.sort_custom(func(a: Enemy, b: Enemy) -> bool: return a.progress > b.progress)
 	for enemy: Enemy in targets.slice(0, maxi(1, data.mark_targets)):
-		enemy.status.apply_mark(data.mark_bonus, data.mark_seconds)
+		enemy.status.apply_mark(data.mark_bonus, data.mark_seconds, data.mark_color)
 		enemy.take_damage(data.attack_damage, data.damage_type, data.id)
 	_cooldown = data.attack_interval
 	_flash = FLASH_SECONDS

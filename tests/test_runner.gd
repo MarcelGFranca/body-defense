@@ -283,6 +283,14 @@ func test_status_effects() -> void:
 	check(approx(marked.mark_bonus(), 0.25), "a mark adds 25%")
 	marked.advance(5.1)
 	check(approx(marked.mark_bonus(), 0.0), "a mark ends after 5 s")
+	var tinted := EnemyStatus.new(_enemies["rhinovirus"])
+	check(tinted.mark_amount() == 0.0, "an unmarked enemy keeps its colors")
+	tinted.apply_mark(0.35, 5.0, Color(0.78, 0.5, 0.9))
+	check(tinted.mark_amount() == 1.0 and tinted.mark_color().is_equal_approx(Color(0.78, 0.5, 0.9)), "a marked enemy is dyed with the color of the lymphocyte")
+	tinted.advance(4.7)
+	check(tinted.mark_amount() > 0.0 and tinted.mark_amount() < 1.0, "the dye eases out as the mark runs out")
+	tinted.advance(0.5)
+	check(tinted.mark_amount() == 0.0, "the dye is gone when the mark ends")
 	done("test_status_effects")
 
 
@@ -1183,6 +1191,8 @@ func test_menu_and_results() -> void:
 	await get_tree().process_frame
 	menu.find_child("BackButton", true, false).pressed.emit()
 	await get_tree().process_frame
+	var version_label: Label = menu.find_child("VersionLabel", true, false)
+	check(version_label != null and version_label.text == "V%s" % ProjectSettings.get_setting("application/config/version"), "the menu shows the game version")
 	var boss_card: Button = menu.find_child("Level_3", true, false)
 	check(boss_card.find_children("*", "TextureRect", true, false).size() == 1, "a boss level shows its boss")
 	Session.record_victory(1, 10)

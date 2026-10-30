@@ -97,6 +97,12 @@ func _build() -> void:
 	settings.position = Vector2(210, 1150)
 	settings.pressed.connect(_open_settings)
 	add_child(settings)
+	var version := _label("V%s" % ProjectSettings.get_setting("application/config/version", "0"), 10, COLOR_DIM)
+	version.name = "VersionLabel"
+	version.position = Vector2(0, 1240)
+	version.size = Vector2(SCREEN.x, 16)
+	version.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	add_child(version)
 	_refresh()
 	# Start with the level to play next in view.
 	var next := Session.next_to_play()

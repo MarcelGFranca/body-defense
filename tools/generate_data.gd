@@ -67,7 +67,7 @@ const TOWERS := [
 	{"id": "t-lymphocyte", "ability": "Charges, then fires a thick beam that explodes on one enemy. Ignores armor. It moves.", "name": "T Lymphocyte", "role": "single-target", "damage_type": "immunological", "cost": 90, "mobility": "mobile",
 		"behavior": "single_target", "range": 100, "damage": 55, "interval": 2.0, "beam": 14},
 	{"id": "b-lymphocyte", "ability": "Releases antibodies that mark up to 4 enemies: 35% more damage for 5 s. It moves.", "name": "B Lymphocyte", "role": "summoner", "damage_type": "antiviral", "cost": 70, "mobility": "mobile",
-		"behavior": "summon_marker", "range": 100, "damage": 6, "interval": 3.5, "mark": 0.35, "mark_seconds": 5.0, "mark_targets": 4},
+		"behavior": "summon_marker", "range": 100, "damage": 6, "interval": 3.5, "mark": 0.35, "mark_seconds": 5.0, "mark_targets": 4, "mark_color": Color(0.78, 0.5, 0.9)},
 	{"id": "bone-marrow", "ability": "Creates up to 3 neutrophils that block enemies.", "name": "Bone Marrow", "role": "summoner", "damage_type": "physical", "cost": 90, "mobility": "fixed",
 		"behavior": "summon_units", "range": 70, "summon_interval": 8.0, "summon_cap": 3, "unit_health": 40, "unit_damage": 8},
 ]
@@ -361,6 +361,7 @@ func _save_tower(row: Dictionary) -> void:
 	t.unit_health = float(row.get("unit_health", 0))
 	t.unit_damage = float(row.get("unit_damage", 0))
 	t.mark_targets = int(row.get("mark_targets", 0))
+	t.mark_color = row.get("mark_color", Color.WHITE)
 	t.mist_color = row.get("mist", Color(0, 0, 0, 0))
 	t.sound_attack = "res://assets/audio/towers/%s/attack.wav" % row["id"]
 	_save(t, "%s/%s.tres" % [TOWER_DIR, row["id"]])
