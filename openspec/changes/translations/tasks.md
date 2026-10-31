@@ -7,3 +7,4 @@
 - [x] 1.5 System font fallback for Chinese and Japanese
 - [x] 1.6 Test that every text has a translation in every language
 - [x] 1.7 Add tests, update docs, run the test runner (0 failures)
+- [x] Approved by the designer on 2026-10-31

@@ -5,6 +5,12 @@ extends RefCounted
 
 const ENTRIES := [
 	{
+		"version": "0.38.0",
+		"items": [
+			"The game speaks seven languages, chosen in Settings, and follows your phone language the first time.",
+		],
+	},
+	{
 		"version": "0.37.0",
 		"items": [
 			"Text in the cards, tower info and bottom bar is bigger and easier to read.",
