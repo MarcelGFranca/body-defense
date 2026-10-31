@@ -5,6 +5,12 @@ extends RefCounted
 
 const ENTRIES := [
 	{
+		"version": "0.36.0",
+		"items": [
+			"Enemies flash orange, green or lilac when hurt by heat, chemicals or the immune system, and every tower animates when it attacks.",
+		],
+	},
+	{
 		"version": "0.35.0",
 		"items": [
 			"The game runs on Android 7.0 or newer, capped at 60 frames per second and lighter on the battery.",

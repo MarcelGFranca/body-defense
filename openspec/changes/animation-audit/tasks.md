@@ -5,3 +5,4 @@
 - [x] 1.3 Gap found: thermal, chemical and immunological hits reused the physical hit animation with no visible difference, so they now flash their colour on the sprite (orange, green, lilac)
 - [x] 1.4 Known: the immune_antiviral animation named in code does not exist in the art and is skipped without effect
 - [x] 1.5 Add tests, update docs, run the test runner (0 failures)
+- [x] Approved by the designer on 2026-10-31
