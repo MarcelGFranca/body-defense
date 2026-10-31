@@ -11,7 +11,7 @@ The designer tests each task on the phone and approves it one by one. An approve
 | 5 | Orbs flying into a new tower | `tower-build-orbs` | **approved 2026-10-30** (v0.27.0) |
 | 6 | Hypothalamus attack animation, red fever wave with flames and fire on burning enemies | `hypothalamus-attack-animation`, `fever-fire-effects` | **approved 2026-10-30** (v0.28.0) |
 | 7 | Volume and mute | `audio-settings` | **approved 2026-10-30** (v0.29.0) |
-| 8 | 3-minute music, victory and defeat tunes | `long-music-and-end-tunes` | to test |
+| 8 | 3-minute music, victory and defeat tunes | `long-music-and-end-tunes` | **approved 2026-10-30** (v0.30.0) |
 | 9 | Splash and Apolo Software logo, with a spark inside the globe and a chime | `splash-and-apolo-logo`, `splash-logo-glint` | **approved 2026-10-30** (v0.21.0, glint inside the globe) |
 | 10 | Tutorial | `tutorial` | to test |
 | 11 | Start screen scroll | `fix-menu-list-scroll` | to test |

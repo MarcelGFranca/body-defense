@@ -6,3 +6,4 @@
 - [x] 1.4 GameAudio.play_jingle plays a tune without looping
 - [x] 1.5 Fix the loop end of imported (compressed) music: it is now taken from the length in seconds instead of the compressed byte size
 - [x] 1.6 Add tests, update docs, run the test runner (0 failures)
+- [x] Approved by the designer on 2026-10-30
