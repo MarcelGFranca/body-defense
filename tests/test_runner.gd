@@ -553,6 +553,16 @@ func test_level_simulation() -> void:
 	level.step(0.05)
 	check(level.towers[2].current_animation() == "attack", "the hypothalamus plays its attack animation when it sets an enemy on fire")
 	check(burning._flames.visible and level.towers[2]._pulse_seconds() == Tower.FEVER_WAVE_SECONDS, "a burning enemy shows flames and the fever wave runs")
+	burning.speed = 0.0
+	level.towers[2]._pulse_age = -1.0
+	level.step(0.5)
+	check(level.towers[2]._pulse_age < 0.0, "the hypothalamus waits between attacks")
+	level.step(0.6)
+	check(level.towers[2]._pulse_age >= 0.0, "the hypothalamus keeps attacking enemies that already burn")
+	burning.status.advance(2.0)
+	level.towers[2]._cooldown = 0.0
+	level.step(0.05)
+	check(burning.status.has_dot() and burning.status._dot_until >= burning.status.time + data_dot_seconds() - 0.1, "each fire attack brings the burn back to its full time")
 	free_node(level)
 
 	level = level_with_tower("t-lymphocyte")
@@ -702,6 +712,10 @@ func test_speed_and_pause() -> void:
 
 
 # --- HUD --------------------------------------------------------------------
+
+func data_dot_seconds() -> float:
+	return 4.0
+
 
 func test_revive() -> void:
 	var level := new_level()

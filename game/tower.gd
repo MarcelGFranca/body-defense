@@ -13,6 +13,8 @@ const PULSE_SECONDS := 0.6
 ## The fever wave of the hypothalamus is slower, so the fire along it can be seen.
 const FEVER_WAVE_SECONDS := 1.1
 const FEVER_FLAMES := 16
+## While enemies burn, the hypothalamus attacks again this often.
+const FEVER_INTERVAL := 1.0
 ## A mist stays this long after the last attack that fed it, fading out.
 const MIST_FADE_SECONDS := 1.5
 const PULSE_COLORS := {
@@ -118,7 +120,7 @@ func step(delta: float) -> void:
 		"root_aura":
 			_step_root_aura()
 		"dot_aura":
-			_step_dot_aura()
+			_step_dot_aura(delta)
 		"summon_marker":
 			_step_summon_marker(delta)
 		"summon_units":
@@ -320,15 +322,20 @@ func _step_root_aura() -> void:
 		GameAudio.play_sfx(data.sound_attack)
 
 
-## Sets fire to the enemies in range. The tower animates and sends a heat ring whenever it ignites a new one.
-func _step_dot_aura() -> void:
+## Keeps the enemies in range burning: the fire goes back to its full time every step. The tower animates,
+## plays its sound and sends the fever wave when it ignites a new enemy and then once per second while any
+## enemy in range burns, so it never looks idle with enemies near.
+func _step_dot_aura(delta: float) -> void:
+	_cooldown -= delta
 	var ignited := false
-	for enemy: Enemy in _enemies():
+	var targets := _enemies()
+	for enemy: Enemy in targets:
 		var was_burning := enemy.status.has_dot()
 		enemy.status.apply_dot(data.dot_damage, data.damage_type, data.dot_seconds, data.id)
 		if not was_burning:
 			ignited = true
-	if ignited:
+	if ignited or (not targets.is_empty() and _cooldown <= 0.0):
+		_cooldown = FEVER_INTERVAL
 		_pulse_age = 0.0
 		play_attack()
 		GameAudio.play_sfx(data.sound_attack)
