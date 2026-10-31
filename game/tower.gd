@@ -10,6 +10,9 @@ const SETTLE_SECONDS := 1.5
 const SECRETE_INTERVAL := 2.0
 ## An area attack sends a ring from the tower out to the edge of its range in this time.
 const PULSE_SECONDS := 0.6
+## The fever wave of the hypothalamus is slower, so the fire along it can be seen.
+const FEVER_WAVE_SECONDS := 1.1
+const FEVER_FLAMES := 16
 ## A mist stays this long after the last attack that fed it, fading out.
 const MIST_FADE_SECONDS := 1.5
 const PULSE_COLORS := {
@@ -94,7 +97,7 @@ func step(delta: float) -> void:
 	_flash = maxf(0.0, _flash - delta)
 	_mist_level = maxf(0.0, _mist_level - delta / MIST_FADE_SECONDS)
 	if _pulse_age >= 0.0:
-		_pulse_age = _pulse_age + delta if _pulse_age + delta < PULSE_SECONDS else -1.0
+		_pulse_age = _pulse_age + delta if _pulse_age + delta < _pulse_seconds() else -1.0
 	if _settling > 0.0:
 		_settling -= delta
 		queue_redraw()
@@ -383,6 +386,24 @@ func _draw_mist() -> void:
 	draw_circle(Vector2.ZERO, data.range_px * (0.55 + 0.08 * sin(_pulse * 2.6)), Color(data.mist_color, 0.14 * strength))
 
 
+func _pulse_seconds() -> float:
+	return FEVER_WAVE_SECONDS if data.behavior == "dot_aura" else PULSE_SECONDS
+
+
+## A red wave runs out to the edge of the range with stylised flames along its front.
+func _draw_fever_wave() -> void:
+	var fraction := _pulse_age / FEVER_WAVE_SECONDS
+	var fade := 1.0 - fraction
+	var radius := data.range_px * (1.0 - pow(fade, 2.0))
+	draw_circle(Vector2.ZERO, radius, Color(1.0, 0.15, 0.05, 0.16 * fade))
+	draw_arc(Vector2.ZERO, radius * 0.8, 0.0, TAU, 48, Color(1.0, 0.3, 0.1, 0.5 * fade), 4.0)
+	draw_arc(Vector2.ZERO, radius, 0.0, TAU, 64, Color(0.95, 0.12, 0.1, 0.9 * fade), 7.0)
+	for i in FEVER_FLAMES:
+		var angle := TAU * i / FEVER_FLAMES
+		var phase := _pulse * 12.0 + i * 1.7
+		BurnFlames.draw_flame(self, Vector2.from_angle(angle) * radius, 14.0 + 5.0 * sin(phase), 10.0, 3.0 * sin(phase * 0.8), fade)
+
+
 func _draw() -> void:
 	if data.mist_color.a > 0.0 and _mist_level > 0.0:
 		_draw_mist()
@@ -399,7 +420,9 @@ func _draw() -> void:
 		draw_arc(Vector2.ZERO, data.range_px, 0.0, TAU, 48, Color(1, 1, 1, 0.5), 1.0)
 	if selected and is_aura:
 		draw_arc(Vector2.ZERO, data.range_px, 0.0, TAU, 48, Color(1, 1, 1, 0.8), 2.0)
-	if _pulse_age >= 0.0:
+	if _pulse_age >= 0.0 and data.behavior == "dot_aura":
+		_draw_fever_wave()
+	elif _pulse_age >= 0.0:
 		var fraction := _pulse_age / PULSE_SECONDS
 		var color: Color = PULSE_COLORS.get(data.damage_type, Color.WHITE)
 		draw_arc(Vector2.ZERO, data.range_px * fraction, 0.0, TAU, 48, Color(color, 0.8 * (1.0 - fraction)), 3.0)

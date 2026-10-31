@@ -547,9 +547,11 @@ func test_level_simulation() -> void:
 	level = level_with_tower("hypothalamus")
 	level.step(2.0)
 	check(level.towers[2].current_animation() == "idle", "the hypothalamus idles while nothing is in range")
-	spawn_at(level, "rhinovirus", 850.0)
+	var burning := spawn_at(level, "rhinovirus", 850.0)
+	check(not burning._flames.visible, "an enemy that is not burning shows no flames")
 	level.step(0.05)
 	check(level.towers[2].current_animation() == "attack", "the hypothalamus plays its attack animation when it sets an enemy on fire")
+	check(burning._flames.visible and level.towers[2]._pulse_seconds() == Tower.FEVER_WAVE_SECONDS, "a burning enemy shows flames and the fever wave runs")
 	free_node(level)
 
 	level = level_with_tower("t-lymphocyte")

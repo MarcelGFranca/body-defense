@@ -55,6 +55,7 @@ var _blocked_by: BlockerUnit
 ## True while the one-shot animation being played is the attack against a summoned unit.
 var _unit_attack_playing := false
 var _dye: ShaderMaterial
+var _flames: BurnFlames
 
 
 ## `options` may hold "health", "reward", "damage", "scale", "progress", "copy" and "level".
@@ -84,6 +85,9 @@ func setup(enemy_data: EnemyData, curve: Curve2D, table: DamageTable, options: D
 	_sprite.scale = Vector2.ONE * float(options.get("scale", 1.0))
 	add_child(_sprite)
 	_sprite.play("walk")
+	_flames = BurnFlames.new()
+	_flames.visible = false
+	add_child(_flames)
 
 
 ## True when the trait is on for this enemy: it belongs to the roster entry and the level allows it.
@@ -113,6 +117,7 @@ func step(delta: float) -> void:
 		take_damage(float(tick["damage"]), String(tick["type"]), String(tick["source"]))
 		if finished:
 			return
+	_flames.set_burning(status.has_dot())
 	_sprite.modulate.a = 0.4 if is_dormant() else 1.0
 	_update_mark_dye()
 	_step_aura(delta)
