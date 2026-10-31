@@ -5,6 +5,12 @@ extends RefCounted
 
 const ENTRIES := [
 	{
+		"version": "0.32.0",
+		"items": [
+			"The level list on the start screen scrolls with a drag, even over a level card.",
+		],
+	},
+	{
 		"version": "0.31.0",
 		"items": [
 			"The start screen has a six-page HOW TO PLAY tutorial.",
