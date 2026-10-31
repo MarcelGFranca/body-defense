@@ -1535,6 +1535,17 @@ func test_menu_and_results() -> void:
 	await get_tree().process_frame
 	var detail := menu.find_child("Detail", true, false)
 	check(detail != null and detail.find_child("PlayButton", true, false) != null, "an open level shows its page with a play button")
+	var enemy_button: Button = detail.find_children("Enemy_*", "Button", true, false)[0]
+	check(detail.find_child("EnemyCard", true, false) == null, "the enemy card is closed until an enemy is tapped")
+	enemy_button.pressed.emit()
+	var enemy_card := detail.find_child("EnemyCard", true, false)
+	var card_text := ""
+	for label: Label in enemy_card.find_children("*", "Label", true, false):
+		card_text += label.text + "\n"
+	check(enemy_card != null and card_text.contains("HP ") and card_text.contains("VIRUS"), "tapping an enemy on the level page opens its card with type and health")
+	detail.find_child("CloseEnemyCard", true, false).pressed.emit()
+	await get_tree().process_frame
+	check(detail.find_child("EnemyCard", true, false) == null, "the enemy card closes")
 	var settings_button: Button = menu.find_child("SettingsButton", true, false)
 	check(settings_button != null and menu.find_child("Settings", true, false) == null, "the menu has a settings button")
 	settings_button.pressed.emit()

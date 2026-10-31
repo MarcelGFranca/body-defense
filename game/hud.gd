@@ -31,8 +31,6 @@ const COLOR_DIM := Color("9b8aa6")
 const COLOR_BAD := Color("e84a5f")
 const COLOR_GOOD := Color("6ad4a0")
 const FONT_PATH := "res://assets/fonts/PressStart2P-Regular.ttf"
-const DAMAGE_TYPES := ["physical", "thermal", "chemical", "antiviral", "immunological"]
-
 var level: Level
 
 var _root: Control
@@ -675,13 +673,6 @@ func _tower_info_text(tower_data: TowerData) -> String:
 
 
 ## Ids of the enemies that appear in this level, in order of first appearance.
-func _translated(words: Array[String]) -> Array[String]:
-	var result: Array[String] = []
-	for word in words:
-		result.append(tr(word))
-	return result
-
-
 func _level_enemy_ids() -> Array:
 	var ids: Array = []
 	for wave in level.data.waves:
@@ -793,25 +784,7 @@ func _refresh_enemy_card() -> void:
 		lines.append(tr("HP %d/%d") % [maxi(0, ceili(_card_enemy.health)), int(_card_enemy.max_health)])
 	else:
 		lines.append(tr("HP %d") % roundi(data.health * level.difficulty.enemy_health))
-	var weak: Array[String] = []
-	var resists: Array[String] = []
-	var immune: Array[String] = []
-	for damage_type in DAMAGE_TYPES:
-		var factor := DamageCalculator.factor_for(damage_type, data, level.damage_table)
-		if factor == 0.0:
-			immune.append(damage_type)
-		elif factor > 1.0:
-			weak.append(damage_type)
-		elif factor < 1.0:
-			resists.append(damage_type)
-	if data.armor_percent > 0.0:
-		resists.append(tr("physical %d%%") % int(data.armor_percent))
-	if not weak.is_empty():
-		lines.append(tr("WEAK: %s") % ", ".join(_translated(weak)).to_upper())
-	if not resists.is_empty():
-		lines.append(tr("RESISTS: %s") % ", ".join(_translated(resists)).to_upper())
-	if not immune.is_empty():
-		lines.append(tr("IMMUNE: %s") % ", ".join(_translated(immune)).to_upper())
+	lines.append_array(EnemyInfo.defense_lines(data, level.damage_table))
 	_card_lines.text = "\n".join(lines)
 
 

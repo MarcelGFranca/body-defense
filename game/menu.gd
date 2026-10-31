@@ -299,16 +299,52 @@ func _add_enemy_row(panel: Control, data: LevelData, at: Vector2) -> void:
 		var enemy: EnemyData = _enemy_catalog.get(id)
 		if enemy == null or enemy.sprite_dir == "":
 			continue
-		var icon := TextureRect.new()
-		icon.texture = load("%s/%s_sprite.png" % [enemy.sprite_dir, enemy.id])
-		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		icon.stretch_mode = TextureRect.STRETCH_SCALE
+		var icon := Button.new()
+		icon.name = "Enemy_%s" % enemy.id
+		icon.flat = true
+		icon.icon = load("%s/%s_sprite.png" % [enemy.sprite_dir, enemy.id])
+		icon.expand_icon = true
 		icon.size = Vector2(72, 72)
 		icon.position = at + Vector2(x, 0)
 		icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		icon.focus_mode = Control.FOCUS_NONE
+		icon.pressed.connect(_open_enemy_card.bind(panel, enemy))
 		panel.add_child(icon)
 		x += 76.0
+
+
+## Tapping an enemy of the level opens its card over the level screen: type, role, health and what hurts it.
+func _open_enemy_card(panel: Control, enemy: EnemyData) -> void:
+	_close_enemy_card()
+	var card := _panel(Rect2(20, 120, 560, 470))
+	card.name = "EnemyCard"
+	var title := _label(tr(enemy.display_name).to_upper(), 30, COLOR_TEXT)
+	title.position = Vector2(24, 20)
+	title.size = Vector2(512, 40)
+	title.clip_text = true
+	card.add_child(title)
+	var lines := EnemyInfo.summary_lines(enemy, Session.difficulty_data().enemy_health)
+	lines.append_array(EnemyInfo.defense_lines(enemy, load(Level.DAMAGE_TABLE_PATH)))
+	var body := _label("\n\n".join(lines), 20, Color("d9cce6"))
+	body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	body.position = Vector2(24, 80)
+	body.size = Vector2(512, 250)
+	card.add_child(body)
+	var close := _button(tr("BACK"), Vector2(260, MIN_TAP), 22)
+	close.name = "CloseEnemyCard"
+	close.position = Vector2(150, 350)
+	close.pressed.connect(_close_enemy_card)
+	card.add_child(close)
+	panel.add_child(card)
+
+
+func _close_enemy_card() -> void:
+	if _detail == null:
+		return
+	var card := _detail.find_child("EnemyCard", true, false)
+	if card != null:
+		card.get_parent().remove_child(card)
+		card.queue_free()
 
 
 ## The tutorial: one page of TutorialPages at a time, with buttons to go back, forward and close.
