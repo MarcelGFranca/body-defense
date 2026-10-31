@@ -5,6 +5,12 @@ extends RefCounted
 
 const ENTRIES := [
 	{
+		"version": "0.37.0",
+		"items": [
+			"Text in the cards, tower info and bottom bar is bigger and easier to read.",
+		],
+	},
+	{
 		"version": "0.36.0",
 		"items": [
 			"Enemies flash orange, green or lilac when hurt by heat, chemicals or the immune system, and every tower animates when it attacks.",
