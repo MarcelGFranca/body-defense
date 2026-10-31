@@ -7,7 +7,7 @@ splash.tscn (game/splash.gd) -- 5 s Apolo Software logo with a glint and a chime
 menu.tscn (game/menu.gd)  -- pick level --> Session.current_level
 main.tscn (game/main.gd)  -- builds Level + Hud for that level and the chosen difficulty
 ```
-- `Menu`: level list with locks, level detail page, Tutorial (`HOW TO PLAY`, text in `TutorialPages`), Changelog (`Changelog`, opened on the first start after an update and from Settings, `WHAT'S NEW`), Settings page (difficulty, sound: mute, music and effects volume with `VolumeBar`, reset progress), and the game version (from `application/config/version`) in small text at the bottom.
+- `Menu`: level list with locks, level detail page, Tutorial (`HOW TO PLAY`, text in `TutorialPages`), Changelog (`Changelog`, opened on the first start after an update, with only the newest version and from Settings, `WHAT'S NEW`), Settings page (difficulty, sound: mute, music and effects volume with `VolumeBar`, reset progress), and the game version (from `application/config/version`) in small text at the bottom.
 - `Main`: reads user args (`--level N`, `--difficulty id`, `--autoplay`, `--call-waves`), creates `Level` and `Hud`, and records a victory in `Session`.
 
 ## Autoloads

@@ -1431,8 +1431,8 @@ func test_changelog_menu() -> void:
 	await get_tree().process_frame
 	check(menu.find_child("Changelog", true, false) != null, "the menu opens the changelog the first time after an update")
 	var labels: Array = menu.find_child("ChangelogScroll", true, false).find_children("*", "Label", true, false)
-	check(labels.size() > Changelog.ENTRIES.size() * 2, "the changelog lists the versions and their changes")
-	check(labels.any(func(label: Label) -> bool: return label.text == "V0.1"), "the changelog lists the oldest version too")
+	var shown_versions := labels.filter(func(label: Label) -> bool: return label.text.begins_with("V") and label.text.length() > 1 and label.text[1].is_valid_int())
+	check(shown_versions.size() == 1 and shown_versions[0].text == "V%s" % Changelog.ENTRIES[0]["version"], "after an update the changelog shows only the newest version")
 	menu.find_child("ChangelogClose", true, false).pressed.emit()
 	await get_tree().process_frame
 	check(menu.find_child("Changelog", true, false) == null and not Session.should_show_changelog(), "closing the changelog marks the version as seen")
@@ -1441,6 +1441,8 @@ func test_changelog_menu() -> void:
 	menu.find_child("ChangelogButton", true, false).pressed.emit()
 	await get_tree().process_frame
 	check(menu.find_child("Changelog", true, false) != null and menu.find_child("Settings", true, false) == null, "the settings open the changelog at any time")
+	var all_labels: Array = menu.find_child("ChangelogScroll", true, false).find_children("*", "Label", true, false)
+	check(all_labels.size() > Changelog.ENTRIES.size() * 2 and all_labels.any(func(label: Label) -> bool: return label.text == "V0.1"), "the changelog in the settings lists every version, down to the oldest")
 	free_node(menu)
 	DirAccess.remove_absolute(ProjectSettings.globalize_path("user://test_progress.cfg"))
 	Session.save_path = save

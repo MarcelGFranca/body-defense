@@ -130,7 +130,7 @@ func _build() -> void:
 	var next := Session.next_to_play()
 	call_deferred("_scroll_to", next)
 	if Session.should_show_changelog():
-		call_deferred("_open_changelog")
+		call_deferred("_open_changelog", true)
 
 
 ## Drag scrolling for the level list. A drag past DRAG_THRESHOLD scrolls and cancels the tap on the card under the finger.
@@ -443,8 +443,9 @@ func _open_languages() -> void:
 	panel.add_child(back)
 
 
-## The changelog: every version, newest first, in a scrolling list. Closing it marks the current version as seen.
-func _open_changelog() -> void:
+## The changelog: every version, newest first, in a scrolling list (only the newest one after an update).
+## Closing it marks the current version as seen.
+func _open_changelog(latest_only := false) -> void:
 	_close_detail()
 	_close_settings()
 	_close_tutorial()
@@ -474,7 +475,7 @@ func _open_changelog() -> void:
 	var list := VBoxContainer.new()
 	list.add_theme_constant_override("separation", 10)
 	scroll.add_child(list)
-	for entry in Changelog.ENTRIES:
+	for entry in Changelog.ENTRIES.slice(0, 1) if latest_only else Changelog.ENTRIES:
 		var version := _label("V%s" % entry["version"], 22, COLOR_BORDER)
 		version.custom_minimum_size = Vector2(560, 34)
 		list.add_child(version)
