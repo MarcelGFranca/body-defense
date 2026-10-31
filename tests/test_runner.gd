@@ -719,8 +719,8 @@ func data_dot_seconds() -> float:
 
 
 func test_heartbeat() -> void:
-	check(MapView.heartbeat(0.0) > 0.95 and MapView.heartbeat(0.5) > 0.5 and MapView.heartbeat(0.5) < MapView.heartbeat(0.0), "the path beats strong then weak, like a heart")
-	check(MapView.heartbeat(1.6) < 0.01, "the path rests between beats")
+	check(MapView.heartbeat(0.8) > 0.95 and MapView.heartbeat(1.4) > 0.5 and MapView.heartbeat(1.4) < MapView.heartbeat(0.8), "the path beats strong then weak, like a heart")
+	check(MapView.heartbeat(2.3) < 0.01, "the path rests between beats")
 	var smooth := true
 	for i in 100:
 		if absf(MapView.heartbeat((i + 1) * 0.083) - MapView.heartbeat(i * 0.083)) > 0.4:

@@ -124,7 +124,7 @@ func _build_margin_decor(map_size: Vector2) -> void:
 ## 0 to 1: two smooth bumps per BEAT_SECONDS (a heartbeat), with a long rest between beats.
 static func heartbeat(time: float) -> float:
 	var phase := fposmod(time, BEAT_SECONDS)
-	return minf(1.0, exp(-pow(phase / 0.2, 2.0)) + 0.6 * exp(-pow((phase - 0.5) / 0.2, 2.0)))
+	return minf(1.0, exp(-pow((phase - 0.8) / 0.24, 2.0)) + 0.6 * exp(-pow((phase - 1.4) / 0.24, 2.0)))
 
 
 ## Draws the tissue. Every shape drifts a few pixels and swells a little, each on its own rhythm.
