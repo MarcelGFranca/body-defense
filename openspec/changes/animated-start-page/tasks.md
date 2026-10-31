@@ -6,3 +6,4 @@
 - [x] 1.4 Add NEW GAME and CONTINUE to the translations
 - [x] 1.5 title_shine.gdshader
 - [x] 1.6 Add tests, update docs, run the test runner (0 failures)
+- [x] Approved by the designer on 2026-10-31
