@@ -5,6 +5,12 @@ extends RefCounted
 
 const ENTRIES := [
 	{
+		"version": "0.39.0",
+		"items": [
+			"The code is organised in one game folder, with no change to how the game plays.",
+		],
+	},
+	{
 		"version": "0.38.0",
 		"items": [
 			"The game speaks seven languages, chosen in Settings, and follows your phone language the first time.",

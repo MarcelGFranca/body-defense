@@ -23,7 +23,7 @@ The designer tests each task on the phone and approves it one by one. An approve
 | 17 | Text bars | `text-bars-pass` | **approved 2026-10-31** (v0.37.0) |
 | 18 | Icon inside the safe zone, 15% bigger | `icon-safe-zone` | **approved 2026-10-30** (v0.20.0) |
 | 19 | Seven languages | `translations` | **approved 2026-10-31** (v0.38.0) |
-| 20 | Code in `game/` | `move-code-to-game-folder` | to test |
+| 20 | Code in `game/` | `move-code-to-game-folder` | **approved 2026-10-31** (v0.39.0) |
 | 21 | Changelog of every version, shown after an update and in Settings | `changelog` | **approved 2026-10-30** (v0.22.0) |
 | 22 | Equal space above and below: no wasted padding in the top bar on phones with a camera cutout | `top-bar-cutout-space` | **approved 2026-10-30** (v0.22.1) |
 | 23 | Build menu lists the towers by cost | `build-menu-by-cost` | to test |
