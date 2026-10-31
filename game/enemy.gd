@@ -131,7 +131,6 @@ func step(delta: float) -> void:
 		if finished:
 			return
 	_flames.set_burning(status.has_dot())
-	_sprite.modulate.a = 0.4 if is_dormant() else 1.0
 	_update_mark_dye()
 	_step_aura(delta)
 	_update_blocker(delta)

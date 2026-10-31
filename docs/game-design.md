@@ -53,7 +53,7 @@ Armor (percent) reduces physical, thermal, chemical and antiviral damage; immuno
 | Rhinovirus | virus | 20 | 45 | Appears in large groups |
 | Influenza | virus | 30 | 79 | Fast |
 | SARS-CoV-2 | virus | 60 | 45 | Releases 2 small rhinoviruses on death |
-| Herpes Simplex | virus | 50 | 50 | Goes dormant (immune) 1.5 s every 4 s |
+| Herpes Simplex | virus | 50 | 50 | Goes dormant (immune) 1.5 s every 4 s; the sprite looks the same while dormant |
 | HPV | virus | 85 | 40 | 30% armor |
 | E. coli | bacterium | 40 | 50 | Basic |
 | Streptococcus pyogenes | bacterium | 100 | 40 | Chain of 3 segments that die separately |
