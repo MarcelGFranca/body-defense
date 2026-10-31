@@ -31,3 +31,9 @@ The designer tests each task on the phone and approves it one by one. An approve
 | 25 | C. difficile death and return animation | `revive-animation` | **approved 2026-10-30** (v0.28.0) |
 | 26 | Herpes keeps its normal look while dormant (decision on a dormancy cue pending) | `herpes-dormant-look` | to test |
 | 27 | Changelog after an update shows only the newest version | `changelog-latest-only` | to test |
+| 28 | First wave of every level at 10 s (playtested: same win rates) | `first-wave-at-10s` | to test |
+| 29 | NEXT WAVE notice on the screen when a wave starts | `next-wave-banner` | to test |
+| 30 | Language choice inside Settings | `language-in-settings` | to test |
+| 31 | Tower names fit the build cards | `tower-name-fit` | to test |
+| 32 | Every enemy has an angry face, none smiles | `angry-enemies` | to test |
+| 33 | Levels centred with equal space above and below | (waiting for the designer to say what to centre) | pending |

@@ -5,7 +5,7 @@
 
 [sub_resource type="Resource" id="Resource_i5ccs"]
 script = ExtResource("2_rbhq0")
-start_time = 20.0
+start_time = 10.0
 spawn_interval = 0.9
 entries = [{
 "count": 2,

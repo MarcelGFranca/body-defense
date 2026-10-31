@@ -177,7 +177,7 @@ func test_level_data() -> void:
 	check(_level_data.slots.size() == 6, "level 1 has 6 slots")
 	check(_level_data.starting_amino_acids == 150 and _level_data.body_health == 20, "level 1 starts with 150 amino acids and 20 health")
 	check(_level_data.waves.size() == 3, "level 1 has 3 waves")
-	check(approx(_level_data.waves[0].start_time, 5.0) and approx(_level_data.waves[1].start_time, 50.0) and approx(_level_data.waves[2].start_time, 150.0), "waves start at 5, 50 and 150 s")
+	check(approx(_level_data.waves[0].start_time, 10.0) and approx(_level_data.waves[1].start_time, 50.0) and approx(_level_data.waves[2].start_time, 150.0), "waves start at 10, 50 and 150 s")
 	check(_level_data.tower_ids == ["macrophage", "mucus-cell", "interferon"], "level 1 offers the three prototype towers")
 	check(_level_data.map_size.y > Level.VIEW_SIZE.y - Level.SAFE_TOP - Level.SAFE_BOTTOM, "the map is taller than the visible area")
 	var longest := 0.0
@@ -319,7 +319,7 @@ func test_wave_scheduler() -> void:
 	for i in int(160.0 / 0.05):
 		scheduler.tick(0.05)
 	check(starts.size() == 3, "three waves start")
-	check(approx(starts[0][1], 5.0, 0.1) and approx(starts[1][1], 50.0, 0.1) and approx(starts[2][1], 150.0, 0.1), "waves start at 5, 50 and 150 s")
+	check(approx(starts[0][1], 10.0, 0.1) and approx(starts[1][1], 50.0, 0.1) and approx(starts[2][1], 150.0, 0.1), "waves start at 10, 50 and 150 s")
 	check(spawns.size() == 8 + 14 + 10, "all enemies of the three waves spawn")
 	check(approx(spawns[1][0] - spawns[0][0], 1.2, 0.1), "wave 1 enemies spawn 1.2 s apart")
 	check(spawns[8][1] == "rhinovirus" and spawns[18][1] == "influenza", "wave 2 spawns rhinoviruses then influenza")
@@ -789,6 +789,11 @@ func test_hud() -> void:
 	check(hud._level_label.text == "THROAT", "the top bar shows the level name")
 	check(hud.find_children("*", "", true, false).filter(func(n: Node) -> bool: return String(n.name).to_lower().contains("atp")).is_empty(), "no ATP element in the HUD")
 
+	level.wave_started.emit(2, 3)
+	check(hud._wave_banner.text.begins_with("NEXT WAVE") and hud._wave_banner.text.contains("WAVE 2/3"), "a starting wave shows a NEXT WAVE notice with its number")
+	await get_tree().create_timer(0.4).timeout
+	check(hud._wave_banner.modulate.a > 0.9, "the NEXT WAVE notice is visible on the screen")
+
 	level.slot_tapped.emit(1)
 	var menu := hud._popup.get_node_or_null("BuildMenu")
 	check(menu != null and menu.get_child_count() == 3, "tapping a slot opens a menu with the three towers")
@@ -834,7 +839,7 @@ func test_hud() -> void:
 	check(not level.towers.has(1) and Economy.balance() == 30, "selling removes the tower and refunds 60%")
 
 	hud._refresh_wave_info()
-	check(hud._countdown_label.text == "NEXT WAVE IN 5S" and hud._call_button.visible, "the countdown and call button show before wave 1")
+	check(hud._countdown_label.text == "NEXT WAVE IN 10S" and hud._call_button.visible, "the countdown and call button show before wave 1")
 	check(hud._preview_box.get_child_count() == 1, "the next wave preview shows its enemy")
 	hud._call_button.pressed.emit()
 	check(level.scheduler.started_count() == 1, "the call button starts the next wave")
@@ -1549,6 +1554,16 @@ func test_menu_and_results() -> void:
 	var detail := menu.find_child("Detail", true, false)
 	check(detail != null and detail.find_child("PlayButton", true, false) != null, "an open level shows its page with a play button")
 	var enemy_button: Button = detail.find_children("Enemy_*", "Button", true, false)[0]
+	var row_fits := true
+	for number in range(1, Session.LEVEL_COUNT + 1):
+		menu._open_detail(Session.load_level(number))
+		for button: Button in menu.find_child("Detail", true, false).find_children("Enemy_*", "Button", true, false):
+			if button.position.x + button.size.x > 30.0 + menu.ENEMY_ROW_WIDTH + 0.5:
+				row_fits = false
+	check(row_fits, "the enemy pictures of every level fit inside the level page")
+	menu._open_detail(Session.load_level(1))
+	detail = menu.find_child("Detail", true, false)
+	enemy_button = detail.find_children("Enemy_*", "Button", true, false)[0]
 	check(detail.find_child("EnemyCard", true, false) == null, "the enemy card is closed until an enemy is tapped")
 	enemy_button.pressed.emit()
 	var enemy_card := detail.find_child("EnemyCard", true, false)
@@ -1650,6 +1665,17 @@ func test_menu_and_results() -> void:
 	for card: Button in tower_cards:
 		columns[card.position.x] = true
 	check(tower_cards.size() == 10 and columns.size() == 2, "ten towers are shown in two columns")
+	var names_fit := true
+	for language in Localization.LANGUAGES:
+		Localization.apply(language["code"])
+		for id in level.tower_catalog:
+			var text := String(TranslationServer.translate(level.tower_catalog[id].display_name)).to_upper()
+			var size := hud._fit_font_size(text, Hud.CARD_SIZE.x - 96.0, 18, 10)
+			var font: Font = hud._root.theme.default_font
+			if font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x > Hud.CARD_SIZE.x - 96.0:
+				names_fit = false
+	Localization.apply("en")
+	check(names_fit, "every tower name fits inside its build card in every language")
 	var costs_in_order := true
 	for i in range(1, tower_cards.size()):
 		if level.tower_catalog[tower_cards[i].name.trim_prefix("Card_")].cost < level.tower_catalog[tower_cards[i - 1].name.trim_prefix("Card_")].cost:
@@ -1746,7 +1772,7 @@ func test_difficulty() -> void:
 	var rhino_easy := spawn_at(easy_level, "rhinovirus", 0.0)
 	check(rhino_easy.health == ceilf(20.0 * easy.enemy_health) and approx(rhino_easy.speed, 45.0 * easy.enemy_speed)
 		and rhino_easy.reward == roundi(2 * easy.reward), "easy enemies are weaker, slower and drop a little more")
-	check(approx(easy_level.scheduler.time_to_next_wave(), 5.0 * easy.wave_time), "easy waves start later")
+	check(approx(easy_level.scheduler.time_to_next_wave(), 10.0 * easy.wave_time), "easy waves start later")
 	check(approx(easy_level.scheduler.time_scale, easy.wave_time), "the scheduler knows the wave time")
 	free_node(easy_level)
 
@@ -1755,7 +1781,7 @@ func test_difficulty() -> void:
 	check(Economy.balance() == roundi(150 * hard.start_amino) and hard_level.max_body_health == roundi(20 * hard.body_health), "hard starts with less")
 	var rhino_hard := spawn_at(hard_level, "rhinovirus", 0.0)
 	check(rhino_hard.health == ceilf(20.0 * hard.enemy_health) and approx(rhino_hard.speed, 45.0 * hard.enemy_speed), "hard enemies are tougher and faster")
-	check(approx(hard_level.scheduler.time_to_next_wave(), 5.0 * hard.wave_time), "hard waves come sooner")
+	check(approx(hard_level.scheduler.time_to_next_wave(), 10.0 * hard.wave_time), "hard waves come sooner")
 	free_node(hard_level)
 
 	var hard_boss_level := Level.new(Session.load_level(7), hard)

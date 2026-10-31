@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://bcisoof4lrqih"
+
+[deps]
+
+files=["res://playtests/first_wave_10s/summary.level.translation", "res://playtests/first_wave_10s/summary.strategy.translation", "res://playtests/first_wave_10s/summary.difficulty.translation", "res://playtests/first_wave_10s/summary.result.translation", "res://playtests/first_wave_10s/summary.health.translation", "res://playtests/first_wave_10s/summary.health.translation", "res://playtests/first_wave_10s/summary.time.translation", "res://playtests/first_wave_10s/summary.amino.translation", "res://playtests/first_wave_10s/summary.amino.translation", "res://playtests/first_wave_10s/summary.leaks.translation", "res://playtests/first_wave_10s/summary.first.translation"]
+
+source_file="res://playtests/first_wave_10s/summary.csv"
+dest_files=["res://playtests/first_wave_10s/summary.level.translation", "res://playtests/first_wave_10s/summary.strategy.translation", "res://playtests/first_wave_10s/summary.difficulty.translation", "res://playtests/first_wave_10s/summary.result.translation", "res://playtests/first_wave_10s/summary.health.translation", "res://playtests/first_wave_10s/summary.health.translation", "res://playtests/first_wave_10s/summary.time.translation", "res://playtests/first_wave_10s/summary.amino.translation", "res://playtests/first_wave_10s/summary.amino.translation", "res://playtests/first_wave_10s/summary.leaks.translation", "res://playtests/first_wave_10s/summary.first.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true

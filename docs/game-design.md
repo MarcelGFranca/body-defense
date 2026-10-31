@@ -28,6 +28,8 @@ Enemies drop amino acids when they die. Selling a tower returns part of its cost
 
 Mobile towers can be moved to another slot.
 
+**Next wave notice.** Whenever a wave starts (also when called early) a big NEXT WAVE notice with the wave number fades in and out in the middle of the screen.
+
 **Build menu order.** The build menu lists the towers from the cheapest to the dearest, whatever the order in the level data.
 
 **Tower information.** Holding a build card or a built tower for 0.3 s shows its attributes (role, cost, range, damage, ability) and which enemies of the current level it is good, weak or useless against. Releasing closes the panel and does not build or open the sell card. A quick tap builds or opens the sell card as before.
@@ -47,6 +49,8 @@ Mobile towers can be moved to another slot.
 Armor (percent) reduces physical, thermal, chemical and antiviral damage; immunological ignores it. Some enemies override the table (C. difficile takes half from thermal and chemical).
 
 ## Enemies
+
+Every enemy looks angry (brows sloping down to the nose, frowning mouth); none smiles. The faces are drawn by `tools/enemies.py`.
 
 | Enemy | Type | Health | Speed | Trait |
 |---|---|---|---|---|
@@ -68,7 +72,7 @@ Body damage is 1 to 2 for regular enemies and 8 to 10 for bosses.
 
 ## Waves
 
-Each level has 3 to 6 waves. A wave is a start time, an interval and a list of enemy groups. The first wave of levels above 1 starts after a 15 s delay; the spawn interval has a floor of 0.6 s; wave sizes ramp up inside a level. Bosses come in the last wave of levels 3, 7 and 10. When the last enemy on the field dies and no wave is still spawning, the next wave starts in at most 5 s (`Level.EMPTY_FIELD_WAIT`).
+Each level has 3 to 6 waves. A wave is a start time, an interval and a list of enemy groups. The first wave of every level starts at 10 s (`FIRST_WAVE_START` in the generator); the other waves keep their own times (levels above 1 have a 15 s delay on them); the spawn interval has a floor of 0.6 s; wave sizes ramp up inside a level. Bosses come in the last wave of levels 3, 7 and 10. When the last enemy on the field dies and no wave is still spawning, the next wave starts in at most 5 s (`Level.EMPTY_FIELD_WAIT`).
 
 ## Difficulty
 
@@ -85,7 +89,7 @@ Measured win rate with the 10 bot strategies: Easy 87%, Medium 65%, Hard 42%.
 
 ## Progress
 
-Dragging the level list scrolls it, even when the finger starts on a card. The game shows the changelog of the newest version only, the first time it opens after an update; Settings has a WHAT'S NEW button that lists every version. The menu has a HOW TO PLAY tutorial of six pages (goal, amino acids, building, immune cells, damage types, waves and controls). Level n+1 opens when level n is won. The menu shows the best body health per level ("BEST n"). Difficulty is chosen in Settings and applies to every level. The game speaks English, Portuguese (Brazil), French, Spanish, Italian, Chinese and Japanese; the language button is at the top left of the start screen. Settings also has a mute switch and volume bars for music and effects (saved on the device).
+Dragging the level list scrolls it, even when the finger starts on a card. The game shows the changelog of the newest version only, the first time it opens after an update; Settings has a WHAT'S NEW button that lists every version and a LANGUAGE button (seven languages; the phone language is the default on the first run). The menu has a HOW TO PLAY tutorial of six pages (goal, amino acids, building, immune cells, damage types, waves and controls). Level n+1 opens when level n is won. The menu shows the best body health per level ("BEST n"). Difficulty is chosen in Settings and applies to every level. The game speaks English, Portuguese (Brazil), French, Spanish, Italian, Chinese and Japanese; the language button is at the top left of the start screen. Settings also has a mute switch and volume bars for music and effects (saved on the device).
 
 **Secret code (for testing):** on the start screen, tap the enemy 3 times, the tower 2 times, then the enemy once. A chime plays and every level opens. It is not saved: it lasts until the game is closed.
 

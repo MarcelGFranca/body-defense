@@ -26,6 +26,7 @@ const INFO_SIZE := Vector2(640, 660)
 
 const COLOR_BG := Color("2b1b3a")
 const COLOR_BORDER := Color("ffb3c7")
+const COLOR_GOLD := Color("f4d35e")
 const COLOR_TEXT := Color("fff2f6")
 const COLOR_DIM := Color("9b8aa6")
 const COLOR_BAD := Color("e84a5f")
@@ -63,6 +64,8 @@ var _slot_for_sell := -1
 ## Slot of the lymphocyte that is being moved, or -1: the next tap on an empty slot puts it there.
 var _move_from := -1
 var _toast_tween: Tween
+var _wave_banner: Label
+var _banner_tween: Tween
 var _scroll_track: Control
 ## Fingers on the map: touch index -> position, used to pinch-zoom.
 var _touches: Dictionary = {}
@@ -117,6 +120,16 @@ func _ready() -> void:
 	_toast.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_toast.modulate.a = 0.0
 	_root.add_child(_toast)
+	_wave_banner = _label("", 48, COLOR_GOLD)
+	_wave_banner.name = "WaveBanner"
+	_wave_banner.position = Vector2(0, 520)
+	_wave_banner.size = Vector2(SCREEN.x, 160)
+	_wave_banner.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_wave_banner.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_wave_banner.add_theme_color_override("font_outline_color", COLOR_BG)
+	_wave_banner.add_theme_constant_override("outline_size", 12)
+	_wave_banner.modulate.a = 0.0
+	_root.add_child(_wave_banner)
 	_overlay = Control.new()
 	_overlay.size = SCREEN
 	_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -131,6 +144,7 @@ func _ready() -> void:
 	level.nothing_tapped.connect(_dismiss_all)
 	level.orbs_requested.connect(_fly_orbs)
 	level.tower_built.connect(_fly_orbs_to_tower)
+	level.wave_started.connect(_show_wave_banner)
 	level.victory.connect(_show_result.bind(true))
 	level.defeat.connect(_show_result.bind(false))
 	level.speed_changed.connect(func(value: int) -> void: _speed_button.text = "%dX" % value)
@@ -289,6 +303,16 @@ func _label(text: String, font_size: int, color: Color) -> Label:
 	return label
 
 
+## The largest font size, from `start` down to `smallest`, at which the text is not wider than `width`
+## (the names of the towers are longer in some languages).
+func _fit_font_size(text: String, width: float, start: int, smallest: int) -> int:
+	var font: Font = _root.theme.default_font
+	var size := start
+	while size > smallest and font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x > width:
+		size -= 1
+	return size
+
+
 func _icon(path: String, icon_size: Vector2) -> TextureRect:
 	var rect := TextureRect.new()
 	rect.texture = load(path)
@@ -361,6 +385,19 @@ func _rebuild_preview(next_index: int) -> void:
 		icon.add_child(mark)
 		_preview_box.add_child(icon)
 		x += 80.0
+
+
+## A big "NEXT WAVE" notice in the middle of the screen, with the wave number, whenever a wave starts.
+func _show_wave_banner(number: int, total: int) -> void:
+	_wave_banner.text = "%s\n%s" % [tr("NEXT WAVE"), tr("WAVE %d/%d") % [number, total]]
+	_wave_banner.modulate.a = 0.0
+	_wave_banner.scale = Vector2(1.0, 1.0)
+	if _banner_tween != null:
+		_banner_tween.kill()
+	_banner_tween = create_tween().set_ignore_time_scale(true)
+	_banner_tween.tween_property(_wave_banner, "modulate:a", 1.0, 0.25)
+	_banner_tween.tween_interval(1.6)
+	_banner_tween.tween_property(_wave_banner, "modulate:a", 0.0, 0.5)
 
 
 func show_toast(text: String) -> void:
@@ -579,7 +616,11 @@ func _tower_card(tower_data: TowerData, at: Vector2) -> Button:
 	icon.modulate = Color.WHITE if affordable else Color(1, 1, 1, 0.35)
 	card.add_child(icon)
 	var title := _label(tr(tower_data.display_name).to_upper(), 18, COLOR_TEXT if affordable else COLOR_DIM)
+	title.name = "Title"
 	title.position = Vector2(88, 22)
+	title.size = Vector2(CARD_SIZE.x - 88.0 - 8.0, 28)
+	title.add_theme_font_size_override("font_size", _fit_font_size(title.text, title.size.x, 18, 10))
+	title.clip_text = true
 	card.add_child(title)
 	var cost := _label(str(tower_data.cost), 22, COLOR_GOOD if affordable else COLOR_BAD)
 	cost.position = Vector2(126, 58)

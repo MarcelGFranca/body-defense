@@ -104,6 +104,8 @@ const SLOT_MAX_DISTANCE := 78.0
 const SLOT_SPACING := 46.0
 const SLOT_REACH := 85.0
 
+## Seconds before the first wave of every level, to give the player time to build.
+const FIRST_WAVE_START := 10.0
 const ALL_TOWERS := ["macrophage", "mucus-cell", "interferon", "neutrophil", "lysozyme", "platelet", "hypothalamus",
 	"t-lymphocyte", "b-lymphocyte", "bone-marrow"]
 
@@ -456,6 +458,8 @@ func _save_level(row: Dictionary) -> void:
 			var count: int = pair[1] if _is_boss(pair[0]) else maxi(1, roundi(pair[1] * scale * ramp))
 			entries.append({"enemy": pair[0], "count": count})
 		waves.append(_wave(5.0 + delay + (entry[0] - 5.0) * squeeze, maxf(0.6, entry[1] * squeeze), entries))
+	# Every level starts its first wave at the same time; the later waves keep their own times.
+	waves[0].start_time = FIRST_WAVE_START
 	level.waves = waves
 	_save(level, "%s/level_%d.tres" % [LEVEL_DIR, level.number])
 

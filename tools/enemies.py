@@ -26,24 +26,16 @@ def draw_face_large(img, cx, cy, expr, look, style):
                     p(ex + pupil_dx + dx, 14 + min(pupil_dy, height - 2) + dy)
 
     def brows():
-        if style == "sly":
-            for x, y in ((9, 12), (10, 12), (11, 13), (12, 13), (20, 13), (21, 12), (22, 12), (23, 11)):
-                p(x, y)
-        else:
-            for x, y in ((9, 12), (10, 12), (11, 13), (12, 13), (20, 13), (21, 13), (22, 12), (23, 12)):
-                p(x, y)
+        # Every enemy looks angry: the brows slope down towards the nose.
+        for x, y in ((9, 11), (10, 12), (11, 12), (12, 13), (13, 13), (24, 11), (23, 12), (22, 12), (21, 13), (20, 13)):
+            p(x, y)
 
     def mouth():
-        if style == "sly":
-            for x, y in ((13, 21), (14, 22), (15, 23), (16, 23), (17, 23), (18, 23), (19, 22), (20, 21)):
-                p(x, y)
-            for x in (15, 16, 17, 18):
-                p(x, 22, WHITE)
-        else:
-            for x, y in ((13, 23), (14, 22), (15, 21), (16, 21), (17, 21), (18, 21), (19, 22), (20, 23)):
-                p(x, y)
-            for x in (15, 16, 17, 18):
-                p(x, 22, WHITE)
+        # A frown with teeth, never a smile.
+        for x, y in ((13, 23), (14, 22), (15, 21), (16, 21), (17, 21), (18, 21), (19, 22), (20, 23)):
+            p(x, y)
+        for x in (15, 16, 17, 18):
+            p(x, 22, WHITE)
 
     if expr in ("normal", "smug"):
         eyes(*look, height=3 if style == "sly" else 4)
@@ -205,26 +197,20 @@ def draw_small_face(img, ci, cj, expr, look):
 
     if expr in ("normal", "dazed", "smug"):
         eyes()
-        if expr == "smug":
-            for ex in (left, right):
-                for dx in range(3):
-                    p(ex + dx, -3)
-            for dx, dy in ((-2, 3), (-1, 3), (0, 3), (1, 3), (2, 2), (3, 1)):
-                p(dx, dy)
-        elif expr == "dazed":
+        if expr == "dazed":
             for dx, dy in ((-1, 2), (0, 2), (-2, 3), (1, 3), (-1, 4), (0, 4)):
                 p(dx, dy)
         else:
-            for dx, dy in ((-2, 3), (-1, 3), (0, 3), (1, 3), (2, 2)):
+            # Angry, never smiling: steep brows and a frown.
+            for dx, dy in ((-2, 4), (-1, 3), (0, 3), (1, 4)):
                 p(dx, dy)
-        if expr != "dazed":
-            brows()
+            brows(steep=True)
     elif expr == "blink":
         for ex in (left, right):
             for dx in range(3):
                 p(ex + dx, -2)
-        brows()
-        for dx, dy in ((-2, 3), (-1, 3), (0, 3), (1, 3), (2, 2)):
+        brows(steep=True)
+        for dx, dy in ((-2, 4), (-1, 3), (0, 3), (1, 4)):
             p(dx, dy)
     elif expr in ("angry", "angry_open"):
         eyes()
@@ -283,8 +269,11 @@ def draw_mini_face(img, ci, cj, expr):
                 for dy in range(2):
                     p(ex + dx, -2 + dy, WHITE)
             p(ex + 1, -1)
-    for dx in (-1, 0):
-        p(dx, 2)
+        # Angry brows and a frown.
+        for dx, dy in ((-3, -4), (-2, -3), (2, -4), (1, -3)):
+            p(dx, dy)
+    for dx, dy in ((-1, 2), (0, 2)) if expr in ("hurt", "dead", "blink", "sticky") else ((-2, 3), (-1, 2), (0, 2), (1, 3)):
+        p(dx, dy)
 
 
 class StreptococcusPyogenes(EnemyArt):

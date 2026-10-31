@@ -9,6 +9,8 @@ const MIN_TAP := 96.0
 const DRAG_THRESHOLD := 16.0
 const HERO_ROW_Y := 252.0
 ## Secret code on the two fighters: enemy three times, tower twice, enemy once. It opens every level.
+## Width of the row of enemy pictures on the level page.
+const ENEMY_ROW_WIDTH := 540.0
 const SECRET_CODE := ["enemy", "enemy", "enemy", "tower", "tower", "enemy"]
 const FONT_PATH := "res://assets/fonts/PressStart2P-Regular.ttf"
 const COLOR_BG := Color("2b1b3a")
@@ -117,11 +119,6 @@ func _build() -> void:
 	version.size = Vector2(SCREEN.x, 16)
 	version.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	add_child(version)
-	var language := _button(Localization.name_of(Session.language), Vector2(220, 52), 16)
-	language.name = "LanguageButton"
-	language.position = Vector2(16, 4)
-	language.pressed.connect(_open_languages)
-	add_child(language)
 	var fps := FpsCounter.new()
 	fps.place_top_right(SCREEN.x, 8.0)
 	add_child(fps)
@@ -294,6 +291,9 @@ func _add_enemy_row(panel: Control, data: LevelData, at: Vector2) -> void:
 		for entry in wave.entries:
 			if not ids.has(entry["enemy"]):
 				ids.append(entry["enemy"])
+	var shown: Array = ids.filter(func(id: String) -> bool: return _enemy_catalog.get(id) != null and _enemy_catalog[id].sprite_dir != "")
+	# Levels with many enemies get smaller pictures so the row stays inside the page.
+	var icon_size := minf(72.0, (ENEMY_ROW_WIDTH - 4.0 * (shown.size() - 1)) / maxf(1.0, shown.size()))
 	var x := 0.0
 	for id in ids:
 		var enemy: EnemyData = _enemy_catalog.get(id)
@@ -304,13 +304,13 @@ func _add_enemy_row(panel: Control, data: LevelData, at: Vector2) -> void:
 		icon.flat = true
 		icon.icon = load("%s/%s_sprite.png" % [enemy.sprite_dir, enemy.id])
 		icon.expand_icon = true
-		icon.size = Vector2(72, 72)
+		icon.size = Vector2(icon_size, icon_size)
 		icon.position = at + Vector2(x, 0)
 		icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 		icon.focus_mode = Control.FOCUS_NONE
 		icon.pressed.connect(_open_enemy_card.bind(panel, enemy))
 		panel.add_child(icon)
-		x += 76.0
+		x += icon_size + 4.0
 
 
 ## Tapping an enemy of the level opens its card over the level screen: type, role, health and what hurts it.
@@ -575,9 +575,14 @@ func _open_settings() -> void:
 		Session.reset_progress()
 		_open_settings())
 	panel.add_child(reset)
-	var news := _button(tr("WHAT'S NEW"), Vector2(540, MIN_TAP), 20)
+	var language := _button(Localization.name_of(Session.language), Vector2(266, MIN_TAP), 20)
+	language.name = "LanguageButton"
+	language.position = Vector2(30, 956)
+	language.pressed.connect(_open_languages)
+	panel.add_child(language)
+	var news := _button(tr("WHAT'S NEW"), Vector2(266, MIN_TAP), 20)
 	news.name = "ChangelogButton"
-	news.position = Vector2(30, 956)
+	news.position = Vector2(304, 956)
 	news.pressed.connect(_open_changelog)
 	panel.add_child(news)
 	var back := _button(tr("BACK"), Vector2(540, MIN_TAP), 22)
