@@ -211,7 +211,7 @@ func add_puddle(at: Vector2, radius: float, slow_percent: float, seconds: float)
 
 
 func enemies_in_range(center: Vector2, radius: float) -> Array:
-	return enemies.filter(func(e: Enemy) -> bool: return not e.finished and e.position.distance_to(center) <= radius)
+	return enemies.filter(func(e: Enemy) -> bool: return not e.finished and not e.is_reviving() and e.position.distance_to(center) <= radius)
 
 
 ## Slot of the built tower under a point given in screen pixels, or -1.

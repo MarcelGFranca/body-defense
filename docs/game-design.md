@@ -59,7 +59,7 @@ Armor (percent) reduces physical, thermal, chemical and antiviral damage; immuno
 | Streptococcus pyogenes | bacterium | 100 | 40 | Chain of 3 segments that die separately |
 | Staphylococcus aureus | bacterium | 75 | 45 | Gains 50% resistance to one damage type at 40% of the path |
 | Helicobacter pylori | bacterium | 60 | 45 | Immune to slowing |
-| Clostridioides difficile | bacterium | 45 | 45 | Revives once with 20% health |
+| Clostridioides difficile | bacterium | 45 | 45 | Revives once with 20% health: it plays its death animation, lies still for 0.5 s, then gets up (animation backwards, green glow); meanwhile it cannot be hurt, targeted or moved |
 | HIV (boss) | virus | 400 | 30 | Aura disables nearby towers; affects lymphocytes longer |
 | Mycobacterium tuberculosis (boss) | bacterium | 300 | 22 | 30% armor, very slow |
 | Neisseria meningitidis (boss) | bacterium | 290 | 35 | Splits into 2 smaller copies at half health |

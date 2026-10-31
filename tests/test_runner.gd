@@ -34,6 +34,7 @@ func _run() -> void:
 	test_level_simulation()
 	test_scrolling()
 	await test_speed_and_pause()
+	await test_revive()
 	await test_hud()
 	await test_audio()
 	test_difficulty()
@@ -702,6 +703,29 @@ func test_speed_and_pause() -> void:
 
 # --- HUD --------------------------------------------------------------------
 
+func test_revive() -> void:
+	var level := new_level()
+	var spore := spawn_at(level, "clostridioides-difficile", 100.0)
+	var max_health := spore.max_health
+	spore.take_damage(max_health + 10.0, "physical")
+	check(spore.is_reviving() and not spore.finished, "the first death of a C. difficile starts the revive animation")
+	check(spore.current_animation() == "death", "a reviving C. difficile plays its death animation")
+	check(spore.take_damage(5.0, "physical") == 0 and level.enemies_in_range(spore.position, 50.0).is_empty(), "a reviving enemy cannot be hurt or targeted")
+	var at := spore.progress
+	spore.step(1.0)
+	check(spore.progress == at, "a reviving enemy does not move")
+	spore.step(0.2)
+	check(spore.is_reviving() and spore.current_animation() == "death", "the C. difficile lies still after dying")
+	spore.step(0.6)
+	check(spore.is_reviving(), "the C. difficile is getting up")
+	spore.step(1.0)
+	check(not spore.is_reviving() and spore.health == ceilf(max_health * spore.param("health", 0.25)), "the C. difficile gets up with a part of its health")
+	check(spore.current_animation() == "walk", "the C. difficile walks again after getting up")
+	spore.take_damage(max_health, "physical")
+	check(spore.finished, "the second death is final")
+	free_node(level)
+
+
 func test_hud() -> void:
 	var orb_level := new_level()
 	var orb_hud := Hud.new(orb_level)
@@ -1077,8 +1101,10 @@ func test_enemy_traits() -> void:
 	balance = Economy.balance()
 	var spore := spawn_at(level, "clostridioides-difficile", 100.0)
 	kill(spore)
-	check(not spore.finished and level.enemies.has(spore) and Economy.balance() == balance and spore.health == 9.0,
-		"C. difficile comes back once with a fifth of its health")
+	check(not spore.finished and level.enemies.has(spore) and Economy.balance() == balance and spore.is_reviving(),
+		"C. difficile lies down instead of dying the first time")
+	spore.step(3.0)
+	check(not spore.is_reviving() and spore.health == 9.0, "C. difficile comes back once with a fifth of its health")
 	kill(spore)
 	check(spore.finished and not level.enemies.has(spore) and Economy.balance() == balance + 5, "the second death is final and pays")
 	free_node(level)

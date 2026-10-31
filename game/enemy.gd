@@ -16,6 +16,9 @@ const HIT_TINTS := {
 	"chemical": Color(0.6, 1.0, 0.45),
 	"immunological": Color(0.85, 0.6, 1.0),
 }
+## A reviving enemy lies still this long after its death animation, then gets up.
+const REVIVE_PAUSE := 0.5
+const REVIVE_GLOW := Color(0.5, 1.0, 0.55)
 const MARK_SHADER := "res://assets/shaders/mark_tint.gdshader"
 
 var data: EnemyData
@@ -47,6 +50,12 @@ var _tint_tween: Tween
 var _hit_cooldown := 0.0
 var _slow_cooldown := 0.0
 var _revived := false
+## True while a reviving enemy lies down and gets up again: it cannot be hurt, targeted or moved.
+var _reviving := false
+var _revive_clock := 0.0
+var _revive_seconds := 0.4
+var _revive_has_art := false
+var _getting_up := false
 var _split_done := false
 var _damage_taken: Dictionary = {}  # damage type -> damage dealt so far
 var _resisted_type := ""
@@ -110,6 +119,10 @@ func is_dormant() -> bool:
 ## Advanced by the level every frame, so tests can step the simulation by hand.
 func step(delta: float) -> void:
 	if finished:
+		return
+	if _reviving:
+		_flames.set_burning(false)
+		_step_revive(delta)
 		return
 	_hit_cooldown -= delta
 	_slow_cooldown -= delta
@@ -192,6 +205,11 @@ func _start_unit_attack() -> void:
 	_unit_attack_playing = true
 
 
+## True while the enemy lies down and gets up again (Clostridioides difficile).
+func is_reviving() -> bool:
+	return _reviving
+
+
 ## Name of the animation being played.
 func current_animation() -> String:
 	return String(_sprite.animation)
@@ -199,7 +217,7 @@ func current_animation() -> String:
 
 ## Applies an attack. Returns the damage that was actually dealt.
 func take_damage(amount: float, damage_type: String, source: String = "") -> int:
-	if finished or is_dormant():
+	if finished or is_dormant() or _reviving:
 		return 0
 	_update_resistance()
 	var resistance := param("factor", 0.5) if damage_type == _resisted_type and _resisted_type != "" else 1.0
@@ -289,14 +307,52 @@ func _split_in_two() -> void:
 	_fade_out()
 
 
-## Clostridioides difficile comes back once, as a spore with little health.
+## Clostridioides difficile comes back once, as a spore with little health: it dies, lies still, then
+## gets up (the death animation played backwards, with a green glow). Timed by step(), like the rest of the game.
 func _revive() -> void:
 	_revived = true
-	health = ceilf(max_health * param("health", 0.25))
+	_reviving = true
+	_one_shot_playing = true
+	_revive_clock = 0.0
 	_damage_taken.clear()
+	health = 0.0
 	queue_redraw()
-	if _sprite != null:
-		_flash_resistance()
+	GameAudio.play_sfx(data.sound_death)
+	if _on_done.is_valid() and _sprite.animation_finished.is_connected(_on_done):
+		_sprite.animation_finished.disconnect(_on_done)
+	var frames := _sprite.sprite_frames
+	_revive_has_art = frames.has_animation("death")
+	_revive_seconds = frames.get_frame_count("death") / frames.get_animation_speed("death") if _revive_has_art else 0.4
+	_getting_up = false
+	if _revive_has_art:
+		_sprite.play("death")
+
+
+## Moves the revive along: lying down, getting up (animation backwards and glow), then back to work.
+func _step_revive(delta: float) -> void:
+	_revive_clock += delta
+	var lying := _revive_seconds + REVIVE_PAUSE
+	if _revive_clock < lying:
+		if not _revive_has_art:
+			_sprite.modulate.a = lerpf(1.0, 0.3, minf(_revive_clock / _revive_seconds, 1.0))
+		return
+	var risen := (_revive_clock - lying) / _revive_seconds
+	if risen >= 1.0:
+		_reviving = false
+		_one_shot_playing = false
+		health = ceilf(max_health * param("health", 0.25))
+		_sprite.modulate = Color.WHITE
+		_sprite.play("walk")
+		queue_redraw()
+		return
+	if not _getting_up:
+		_getting_up = true
+		if _revive_has_art:
+			_sprite.play_backwards("death")
+	var glow := 1.0 - absf(risen * 2.0 - 1.0)
+	_sprite.modulate = Color.WHITE.lerp(REVIVE_GLOW, glow)
+	if not _revive_has_art:
+		_sprite.modulate.a = lerpf(0.3, 1.0, risen)
 
 
 func _die() -> void:

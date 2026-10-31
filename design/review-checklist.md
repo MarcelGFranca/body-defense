@@ -28,3 +28,4 @@ The designer tests each task on the phone and approves it one by one. An approve
 | 22 | Equal space above and below: no wasted padding in the top bar on phones with a camera cutout | `top-bar-cutout-space` | **approved 2026-10-30** (v0.22.1) |
 | 23 | Build menu lists the towers by cost | `build-menu-by-cost` | to test |
 | 24 | Tower is built only when its amino acids arrive | `tower-built-when-amino-arrives` | **approved 2026-10-30** (v0.26.0) |
+| 25 | C. difficile death and return animation | `revive-animation` | to test |
