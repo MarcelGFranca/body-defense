@@ -5,6 +5,14 @@ extends RefCounted
 
 const ENTRIES := [
 	{
+		"version": "0.28.0",
+		"items": [
+			"The hypothalamus sends a red wave with flames and keeps attacking enemies that already burn.",
+			"Burning enemies show flames.",
+			"Clostridioides difficile dies, lies still and gets up again.",
+		],
+	},
+	{
 		"version": "0.27.0",
 		"items": [
 			"Amino acid orbs fly from the top bar to a new tower; pricier towers get more orbs.",
