@@ -9,6 +9,9 @@ const SLOT_EDGE := Color("ffb3c7")
 ## The drawing is refreshed this many times per second: enough for slow motion, cheap on a phone.
 const REDRAW_RATE := 12.0
 const PUS_SPOTS := 14
+## The path beats like a heart: a strong "lub", a weaker "dub", then a rest. It widens by BEAT_PIXELS at the peak.
+const BEAT_SECONDS := 2.6
+const BEAT_PIXELS := 6.0
 ## The tissue goes on this far past the edges of the map, so zooming out never shows an empty border.
 const MARGIN := Vector2(320.0, 240.0)
 const PUS_COLOR := Color(0.85, 0.85, 0.35)
@@ -52,7 +55,7 @@ func _draw() -> void:
 	_draw_decor()
 	_draw_infection(map_size)
 	var points := _level.data.path_points
-	var beat := sin(_time * 2.2)
+	var beat := heartbeat(_time) * BEAT_PIXELS
 	draw_polyline(points, level_data.path_edge_color, 40.0 + beat)
 	draw_polyline(points, level_data.path_fill_color, 30.0 + beat)
 	_draw_dashes(points)
@@ -116,6 +119,12 @@ func _build_margin_decor(map_size: Vector2) -> void:
 					continue
 				var radius := random.randf_range(14.0, 26.0) if _level.data.decor == "rings" else random.randf_range(18.0, 34.0)
 				_decor.append({"at": at, "radius": radius, "phase": random.randf() * TAU, "width": 5.0 if _level.data.decor == "rings" else 0.0})
+
+
+## 0 to 1: two smooth bumps per BEAT_SECONDS (a heartbeat), with a long rest between beats.
+static func heartbeat(time: float) -> float:
+	var phase := fposmod(time, BEAT_SECONDS)
+	return minf(1.0, exp(-pow(phase / 0.2, 2.0)) + 0.6 * exp(-pow((phase - 0.5) / 0.2, 2.0)))
 
 
 ## Draws the tissue. Every shape drifts a few pixels and swells a little, each on its own rhythm.

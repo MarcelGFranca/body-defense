@@ -34,6 +34,7 @@ func _run() -> void:
 	test_level_simulation()
 	test_scrolling()
 	await test_speed_and_pause()
+	test_heartbeat()
 	await test_revive()
 	await test_hud()
 	await test_audio()
@@ -715,6 +716,16 @@ func test_speed_and_pause() -> void:
 
 func data_dot_seconds() -> float:
 	return 4.0
+
+
+func test_heartbeat() -> void:
+	check(MapView.heartbeat(0.0) > 0.95 and MapView.heartbeat(0.5) > 0.5 and MapView.heartbeat(0.5) < MapView.heartbeat(0.0), "the path beats strong then weak, like a heart")
+	check(MapView.heartbeat(1.6) < 0.01, "the path rests between beats")
+	var smooth := true
+	for i in 100:
+		if absf(MapView.heartbeat((i + 1) * 0.083) - MapView.heartbeat(i * 0.083)) > 0.4:
+			smooth = false
+	check(smooth, "the beat changes gently from frame to frame")
 
 
 func test_revive() -> void:
