@@ -9,3 +9,4 @@
 - [x] 1.7 Every story has a SKIP button
 - [x] 1.8 tests draw every story from start to end
 - [x] 1.9 Add tests, update docs, run the test runner (0 failures)
+- [x] Approved by the designer on 2026-10-31
