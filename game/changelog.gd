@@ -5,6 +5,12 @@ extends RefCounted
 
 const ENTRIES := [
 	{
+		"version": "0.34.0",
+		"items": [
+			"The tissue moves like a living organ, the path beats like a heart, and infection turns it red.",
+		],
+	},
+	{
 		"version": "0.33.0",
 		"items": [
 			"Tap an enemy in the next-wave preview or on the level page to see its card.",
