@@ -5,6 +5,12 @@ extends RefCounted
 
 const ENTRIES := [
 	{
+		"version": "0.46.0",
+		"items": [
+			"The language is now chosen in Settings.",
+		],
+	},
+	{
 		"version": "0.45.0",
 		"items": [
 			"A big NEXT WAVE notice shows on the screen whenever a wave starts.",

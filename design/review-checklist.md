@@ -33,7 +33,7 @@ The designer tests each task on the phone and approves it one by one. An approve
 | 27 | Changelog after an update shows only the newest version | `changelog-latest-only` | **approved 2026-10-31** (v0.43.0) |
 | 28 | First wave of every level at 10 s (playtested: same win rates) | `first-wave-at-10s` | **approved 2026-10-31** (v0.44.0) |
 | 29 | NEXT WAVE notice on the screen when a wave starts | `next-wave-banner` | **approved 2026-10-31** (v0.45.0) |
-| 30 | Language choice inside Settings | `language-in-settings` | to test |
+| 30 | Language choice inside Settings | `language-in-settings` | **approved 2026-10-31** (v0.46.0) |
 | 31 | Tower names fit the build cards | `tower-name-fit` | to test |
 | 32 | Every enemy has an angry face, none smiles | `angry-enemies` | to test |
 | 33 | Maps shorter than the room between the bars are centred (same space above and below); the full zoom out already fits every current map exactly | `level-centering` | to test |
