@@ -26,7 +26,7 @@ The designer tests each task on the phone and approves it one by one. An approve
 | 20 | Code in `game/` | `move-code-to-game-folder` | **approved 2026-10-31** (v0.39.0) |
 | 21 | Changelog of every version, shown after an update and in Settings | `changelog` | **approved 2026-10-30** (v0.22.0) |
 | 22 | Equal space above and below: no wasted padding in the top bar on phones with a camera cutout | `top-bar-cutout-space` | **approved 2026-10-30** (v0.22.1) |
-| 23 | Build menu lists the towers by cost | `build-menu-by-cost` | to test |
+| 23 | Build menu lists the towers by cost | `build-menu-by-cost` | **approved 2026-10-31** (v0.41.0) |
 | 24 | Tower is built only when its amino acids arrive | `tower-built-when-amino-arrives` | **approved 2026-10-30** (v0.26.0) |
 | 25 | C. difficile death and return animation | `revive-animation` | **approved 2026-10-30** (v0.28.0) |
 | 26 | Herpes keeps its normal look while dormant (decision on a dormancy cue pending) | `herpes-dormant-look` | to test |

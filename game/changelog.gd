@@ -5,6 +5,12 @@ extends RefCounted
 
 const ENTRIES := [
 	{
+		"version": "0.41.0",
+		"items": [
+			"The tower shop lists the towers from the cheapest to the most expensive.",
+		],
+	},
+	{
 		"version": "0.40.0",
 		"items": [
 			"Pinch with two fingers to zoom the map in and out.",
