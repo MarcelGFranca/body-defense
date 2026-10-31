@@ -13,7 +13,7 @@ The designer tests each task on the phone and approves it one by one. An approve
 | 7 | Volume and mute | `audio-settings` | **approved 2026-10-30** (v0.29.0) |
 | 8 | 3-minute music, victory and defeat tunes | `long-music-and-end-tunes` | **approved 2026-10-30** (v0.30.0) |
 | 9 | Splash and Apolo Software logo, with a spark inside the globe and a chime | `splash-and-apolo-logo`, `splash-logo-glint` | **approved 2026-10-30** (v0.21.0, glint inside the globe) |
-| 10 | Tutorial | `tutorial` | to test |
+| 10 | Tutorial | `tutorial` | **approved 2026-10-30** (v0.31.0) |
 | 11 | Start screen scroll | `fix-menu-list-scroll` | to test |
 | 12 | Zoom (pinch only, fills the screen) | `map-zoom` | adjusted, to test |
 | 13 | Next-wave enemy cards | `next-wave-enemy-cards` | to test |
