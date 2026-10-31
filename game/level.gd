@@ -129,7 +129,7 @@ func step(delta: float) -> void:
 
 
 ## Lowest and highest scroll positions: the whole map can be brought between the HUD bars.
-## When the zoom shows more than the map is wide, the map stays centred.
+## When the zoom shows more than the map is wide, the map stays centred; the same goes for the height.
 func scroll_limits() -> Rect2:
 	var view_width := VIEW_SIZE.x / zoom
 	var low := Vector2(minf(0.0, (data.map_size.x - view_width) / 2.0), -SAFE_TOP / zoom)
@@ -138,6 +138,11 @@ func scroll_limits() -> Rect2:
 		maxf(low.y, data.map_size.y - (VIEW_SIZE.y - SAFE_BOTTOM) / zoom))
 	if data.map_size.x < view_width:
 		high.x = low.x
+	# A map shorter than the room between the bars sits in the middle: the same space above and below.
+	var free := (VIEW_SIZE.y - SAFE_TOP - SAFE_BOTTOM) / zoom - data.map_size.y
+	if free > 0.0:
+		low.y = -(SAFE_TOP / zoom + free / 2.0)
+		high.y = low.y
 	return Rect2(low, high - low)
 
 

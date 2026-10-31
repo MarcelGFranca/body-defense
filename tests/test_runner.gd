@@ -35,6 +35,7 @@ func _run() -> void:
 	test_scrolling()
 	await test_speed_and_pause()
 	test_heartbeat()
+	test_map_centering()
 	await test_revive()
 	await test_hud()
 	await test_audio()
@@ -716,6 +717,19 @@ func test_speed_and_pause() -> void:
 
 func data_dot_seconds() -> float:
 	return 4.0
+
+
+func test_map_centering() -> void:
+	var level := new_level()
+	var short: LevelData = level.data.duplicate()
+	short.map_size = Vector2(360, 300)
+	level.data = short
+	var limits := level.scroll_limits()
+	var room := Level.VIEW_SIZE.y - Level.SAFE_TOP - Level.SAFE_BOTTOM
+	check(approx(-limits.position.y - Level.SAFE_TOP, (room - 300.0) / 2.0) and approx(limits.size.y, 0.0), "a map shorter than the room between the bars is centred: the same space above and below")
+	short.map_size = Vector2(360, 900)
+	check(limits.size.y == 0.0 and level.scroll_limits().size.y > 0.0, "a map taller than the room between the bars scrolls")
+	free_node(level)
 
 
 func test_heartbeat() -> void:

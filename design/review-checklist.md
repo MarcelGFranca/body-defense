@@ -36,4 +36,4 @@ The designer tests each task on the phone and approves it one by one. An approve
 | 30 | Language choice inside Settings | `language-in-settings` | to test |
 | 31 | Tower names fit the build cards | `tower-name-fit` | to test |
 | 32 | Every enemy has an angry face, none smiles | `angry-enemies` | to test |
-| 33 | Levels centred with equal space above and below | (waiting for the designer to say what to centre) | pending |
+| 33 | Maps shorter than the room between the bars are centred (same space above and below); the full zoom out already fits every current map exactly | `level-centering` | to test |
