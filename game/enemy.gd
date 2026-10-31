@@ -18,6 +18,9 @@ const HIT_TINTS := {
 }
 ## A reviving enemy lies still this long after its death animation, then gets up.
 const REVIVE_PAUSE := 0.5
+## Seconds the armour shell takes to close, and the flash when it breaks.
+const SHELL_IN := 0.3
+const SHELL_OUT := 0.5
 const REVIVE_GLOW := Color(0.5, 1.0, 0.55)
 const MARK_SHADER := "res://assets/shaders/mark_tint.gdshader"
 
@@ -52,6 +55,10 @@ var _slow_cooldown := 0.0
 var _revived := false
 ## True while a reviving enemy lies down and gets up again: it cannot be hurt, targeted or moved.
 var _reviving := false
+var _shell_on := false
+var _shell_amount := 0.0
+var _shell_burst := 0.0
+var _shell_drawn := false
 var _revive_clock := 0.0
 var _revive_seconds := 0.4
 var _revive_has_art := false
@@ -132,6 +139,7 @@ func step(delta: float) -> void:
 			return
 	_flames.set_burning(status.has_dot())
 	_update_mark_dye()
+	_update_shell(delta)
 	_step_aura(delta)
 	_update_blocker(delta)
 	var speed_factor := 0.0 if _blocked_by != null else status.speed_multiplier()
@@ -140,6 +148,68 @@ func step(delta: float) -> void:
 	position = _curve.sample_baked(clampf(progress, 0.0, _length))
 	if progress >= _length:
 		_exit()
+
+
+## A dormant enemy grows a grey armour shell while it is immune. The shell spins in and snaps shut
+## (SHELL_IN seconds), and when the immunity ends the plates fly off with a flash (SHELL_OUT).
+func _update_shell(delta: float) -> void:
+	var armoured := is_dormant()
+	if armoured and not _shell_on:
+		_shell_amount = 0.0
+		_shell_burst = 0.0
+	if _shell_on and not armoured:
+		_shell_burst = SHELL_OUT
+	_shell_on = armoured
+	var animating := false
+	if armoured:
+		_shell_amount = minf(1.0, _shell_amount + delta / SHELL_IN)
+		animating = true
+	elif _shell_burst > 0.0:
+		_shell_burst = maxf(0.0, _shell_burst - delta)
+		animating = true
+	if animating or _shell_drawn:
+		_shell_drawn = animating
+		queue_redraw()
+
+
+## The shell is drawn from the shell amount (0 to 1 while it closes) or the burst (1 to 0 while it breaks).
+func _draw_shell() -> void:
+	var plates := 8
+	var radius := 17.0
+	if _shell_on:
+		var t := _shell_amount
+		var ease := 1.0 - pow(1.0 - t, 3.0)
+		var r := lerpf(34.0, radius, ease)
+		var spin := (1.0 - ease) * PI
+		var alpha := clampf(t * 2.0, 0.0, 1.0)
+		_draw_plates(plates, r, spin, 1.0, alpha)
+		if t < 1.0:
+			draw_arc(Vector2.ZERO, lerpf(40.0, radius, ease), 0.0, TAU, 32, Color(1, 1, 1, (1.0 - t) * 0.6), 2.0)
+		else:
+			var pulse := 0.5 + 0.5 * sin(status.time * 6.0)
+			draw_arc(Vector2.ZERO, radius + 4.0, 0.0, TAU, 32, Color(0.7, 0.85, 1.0, 0.18 + 0.18 * pulse), 2.0)
+	elif _shell_burst > 0.0:
+		var k := 1.0 - _shell_burst / SHELL_OUT
+		_draw_plates(plates, radius + k * 26.0, k * 1.2, 1.0 - k, 1.0 - k)
+		var glow := Color(1.0, 0.95, 0.7)
+		for ring in 3:
+			var kr := clampf(k * 1.3 - ring * 0.15, 0.0, 1.0)
+			if kr > 0.0:
+				draw_arc(Vector2.ZERO, radius + kr * 34.0, 0.0, TAU, 40, Color(glow.r, glow.g, glow.b, (1.0 - kr) * 0.9), 3.0 - ring * 0.8)
+		draw_circle(Vector2.ZERO, radius * (1.0 - k * 0.3), Color(1.0, 0.97, 0.8, (1.0 - k) * 0.55))
+		for i in 12:
+			var dir := Vector2.from_angle(TAU * i / 12.0 + 0.2)
+			draw_line(dir * (radius + k * 10.0), dir * (radius + 6.0 + k * 30.0), Color(1, 1, 0.85, (1.0 - k)), 2.0)
+
+
+## A ring of steel-grey segments with rivets, turned by spin and faded by alpha.
+func _draw_plates(plates: int, radius: float, spin: float, _scale: float, alpha: float) -> void:
+	for i in plates:
+		var a0 := TAU * i / plates + 0.06 + spin
+		var a1 := TAU * (i + 1) / plates - 0.06 + spin
+		draw_arc(Vector2.ZERO, radius, a0, a1, 6, Color(0.66, 0.72, 0.8, 0.95 * alpha), 5.0)
+		draw_arc(Vector2.ZERO, radius + 2.0, a0, a1, 6, Color(0.9, 0.94, 1.0, 0.9 * alpha), 1.5)
+		draw_circle(Vector2.from_angle((a0 + a1) / 2.0) * radius, 1.6, Color(0.35, 0.4, 0.5, alpha))
 
 
 ## A marked enemy is dyed with the color of the lymphocyte that marked it, until the mark ends.
@@ -407,6 +477,8 @@ func _draw() -> void:
 		return
 	if level != null and has_trait("tower_disable_aura"):
 		draw_arc(Vector2.ZERO, param("radius", 70.0), 0.0, TAU, 48, Color(0.9, 0.3, 0.3, 0.35), 1.0)
+	if _shell_on or _shell_burst > 0.0:
+		_draw_shell()
 	if health >= max_health:
 		return
 	var origin := Vector2(-BAR_SIZE.x / 2.0, -22.0)

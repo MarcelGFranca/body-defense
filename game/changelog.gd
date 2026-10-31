@@ -5,6 +5,12 @@ extends RefCounted
 
 const ENTRIES := [
 	{
+		"version": "0.42.0",
+		"items": [
+			"Herpes now wears a grey armour shell while it is immune, with a flash when the shell breaks.",
+		],
+	},
+	{
 		"version": "0.41.0",
 		"items": [
 			"The tower shop lists the towers from the cheapest to the most expensive.",
