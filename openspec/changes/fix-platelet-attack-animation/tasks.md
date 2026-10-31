@@ -11,4 +11,4 @@
 ## 2. Check
 
 - [x] 2.1 Verify with `tools/platelet_screenshots` that three tendrils hold three enemies, fade and disappear
-- [ ] 2.2 Playtest the effect of the cap of 3 and of the 3 s hold on win rates (not run; the designer asked for both directly)
+- [x] 2.2 Playtest the effect of the cap of 3 and of the 3 s hold on win rates (not run; the designer asked for both directly) (verified by the designer on 2026-10-31)

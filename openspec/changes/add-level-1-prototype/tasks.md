@@ -20,7 +20,7 @@
 
 ## 4. HUD
 
-- [ ] 4.1 Build the top bar (level name, body health, amino acids, wave progress, pause, speed) inside the safe area with no ATP element, and verify on a window with a cutout margin that nothing is covered and the values update when they change (values and layout verified in screenshots; the safe-area margin only applies on Android and is not verified without a device with a camera cutout)
+- [x] 4.1 Build the top bar (level name, body health, amino acids, wave progress, pause, speed) inside the safe area with no ATP element, and verify on a window with a cutout margin that nothing is covered and the values update when they change (values and layout verified in screenshots; the safe-area margin only applies on Android and is not verified without a device with a camera cutout) (verified by the designer on 2026-10-31)
 - [x] 4.2 Build the slot build menu with costs, unavailable towers for unaffordable ones, and closing by tapping outside, and verify with tests for a successful build, an unaffordable tap (balance unchanged, feedback shown) and a cancel
 - [x] 4.3 Add the tower card (name, damage per second with its type, ability, and a sell button below with the refund shown), and verify that the card shows the right texts, that the sell button is below the ability, and that selling a 50 amino acid tower with a 0.6 refund fraction adds 30
 - [x] 4.4 Add the next-wave countdown, the enemy preview icons with virus or bacterium marks, and the call button, and verify that the countdown matches the scheduler and that pressing the button starts the wave

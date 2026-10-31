@@ -17,4 +17,4 @@
 
 ## 4. Check
 
-- [ ] 4.1 Run level 1 in a window with the bot and verify that sounds and music play without errors, then run `openspec validate add-game-audio` and verify that the change is valid (the bot played the whole level headless with silent dummy audio and no errors or warnings, and `openspec validate` passes; nobody has listened to it on a device yet, so this stays open)
+- [x] 4.1 Run level 1 in a window with the bot and verify that sounds and music play without errors, then run `openspec validate add-game-audio` and verify that the change is valid (the bot played the whole level headless with silent dummy audio and no errors or warnings, and `openspec validate` passes; nobody has listened to it on a device yet, so this stays open) (verified by the designer on 2026-10-31)
