@@ -551,7 +551,8 @@ func _on_slot_tapped(slot: int) -> void:
 func _open_build_menu(slot: int) -> void:
 	_dismiss_all()
 	_slot_for_menu = slot
-	var ids: Array = level.data.tower_ids
+	var ids: Array = level.data.tower_ids.duplicate()
+	ids.sort_custom(func(a: String, b: String) -> bool: return level.tower_catalog[a].cost < level.tower_catalog[b].cost)
 	var columns := 1 if ids.size() <= MAX_SINGLE_COLUMN else 2
 	var rows := ceili(float(ids.size()) / columns)
 	var menu_size := Vector2(columns * (CARD_SIZE.x + 12.0) + 12.0, 12.0 + rows * (CARD_SIZE.y + 8.0) + 4.0)

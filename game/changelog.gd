@@ -5,6 +5,13 @@ extends RefCounted
 
 const ENTRIES := [
 	{
+		"version": "0.25.0",
+		"items": [
+			"The build menu lists the towers from the cheapest to the dearest.",
+			"The interferon mist only shows while the tower is attacking.",
+		],
+	},
+	{
 		"version": "0.24.0",
 		"items": [
 			"The Lungs level has more room at the top of the map.",

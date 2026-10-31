@@ -1577,6 +1577,11 @@ func test_menu_and_results() -> void:
 	for card: Button in tower_cards:
 		columns[card.position.x] = true
 	check(tower_cards.size() == 10 and columns.size() == 2, "ten towers are shown in two columns")
+	var costs_in_order := true
+	for i in range(1, tower_cards.size()):
+		if level.tower_catalog[tower_cards[i].name.trim_prefix("Card_")].cost < level.tower_catalog[tower_cards[i - 1].name.trim_prefix("Card_")].cost:
+			costs_in_order = false
+	check(costs_in_order, "the build menu lists the towers from the cheapest to the dearest")
 	check(build_menu.size.y < Hud.SCREEN.y - Hud.TOP_BAR_HEIGHT - Hud.BOTTOM_BAR_HEIGHT, "the build menu fits between the bars")
 	var lysozyme_card: Button = build_menu.find_child("Card_lysozyme", true, false)
 	lysozyme_card.button_down.emit()
