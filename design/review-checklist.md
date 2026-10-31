@@ -8,7 +8,7 @@ The designer tests each task on the phone and approves it one by one. An approve
 | 2 | Lungs with more room at the top | `lungs-top-space` | **approved 2026-10-30** (v0.24.0) |
 | 3 | Interferon mist only when attacking | `interferon-mist-on-attack` | **approved 2026-10-30** (v0.25.0) |
 | 4 | Amino acids counted when the orb arrives | `count-amino-when-orb-arrives` | **approved 2026-10-30** (v0.26.0) |
-| 5 | Orbs flying into a new tower | `tower-build-orbs` | to test |
+| 5 | Orbs flying into a new tower | `tower-build-orbs` | **approved 2026-10-30** (v0.27.0) |
 | 6 | Hypothalamus attack animation | `hypothalamus-attack-animation` | to test |
 | 7 | Volume and mute | `audio-settings` | to test |
 | 8 | 3-minute music, victory and defeat tunes | `long-music-and-end-tunes` | to test |
