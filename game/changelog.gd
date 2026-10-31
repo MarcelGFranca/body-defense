@@ -5,6 +5,12 @@ extends RefCounted
 
 const ENTRIES := [
 	{
+		"version": "0.23.0",
+		"items": [
+			"The next wave starts within 5 seconds once the field is empty.",
+		],
+	},
+	{
 		"version": "0.22.1",
 		"items": [
 			"The top bar no longer wastes space above the title on phones with a camera cutout.",
