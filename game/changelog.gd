@@ -5,6 +5,12 @@ extends RefCounted
 
 const ENTRIES := [
 	{
+		"version": "0.48.0",
+		"items": [
+			"Every enemy now has an angry face.",
+		],
+	},
+	{
 		"version": "0.47.0",
 		"items": [
 			"Tower names fit inside the cards in the tower shop.",
