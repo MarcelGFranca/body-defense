@@ -11,6 +11,7 @@ const DIFFICULTY_IDS := ["easy", "medium", "hard"]
 const DIFFICULTY_PATH_FORMAT := "res://data/difficulties/%s.tres"
 const LEVEL_SCENE := "res://game/main.tscn"
 const MENU_SCENE := "res://game/menu.tscn"
+const INTRO_SCENE := "res://game/intro.tscn"
 
 var current_level := 1
 ## Level number -> the most body health left after winning it.
@@ -160,6 +161,10 @@ func start_level(number: int) -> void:
 	current_level = clampi(number, 1, LEVEL_COUNT)
 	get_tree().paused = false
 	Engine.time_scale = 1.0
+	# Level 1 opens with its story (skippable); the bots skip it.
+	if current_level == 1 and "--autoplay" not in OS.get_cmdline_user_args():
+		get_tree().change_scene_to_file(INTRO_SCENE)
+		return
 	get_tree().change_scene_to_file(LEVEL_SCENE)
 
 

@@ -147,6 +147,11 @@ func music_stream() -> AudioStreamWAV:
 	return _music.stream as AudioStreamWAV
 
 
+## Volume of a sound effect played by a node outside the voice pool (the level intro), with mute applied.
+func sfx_volume_db() -> float:
+	return -80.0 if muted else _scaled_db(config.sfx_volume_db, sfx_volume)
+
+
 func music_volume_db() -> float:
 	return _music.volume_db
 

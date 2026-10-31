@@ -47,6 +47,7 @@ func _run() -> void:
 	test_session()
 	await test_menu_and_results()
 	await test_splash()
+	await test_intro()
 	test_localization()
 	test_icon_safe_zone()
 	await test_changelog_menu()
@@ -56,7 +57,7 @@ func _run() -> void:
 			"test_damage_calculator", "test_status_effects", "test_wave_scheduler", "test_economy",
 			"test_level_simulation", "test_scrolling", "test_speed_and_pause", "test_hud", "test_audio",
 			"test_difficulty", "test_stats", "test_campaign_data", "test_enemy_traits", "test_new_towers", "test_session", "test_menu_and_results",
-			"test_splash", "test_localization", "test_changelog", "test_changelog_menu", "test_campaign_simulation"]:
+			"test_splash", "test_intro", "test_localization", "test_changelog", "test_changelog_menu", "test_campaign_simulation"]:
 		if not _done.has(section):
 			_failures += 1
 			printerr("FAIL: %s stopped before its end (a script error?)" % section)
@@ -1532,6 +1533,34 @@ func test_splash() -> void:
 	GameAudio.record = false
 	free_node(splash)
 	done("test_splash")
+
+
+func test_intro() -> void:
+	var intro: LevelIntro = load("res://game/intro.tscn").instantiate()
+	get_tree().root.add_child(intro)
+	await get_tree().process_frame
+	check(intro.find_child("SkipButton", true, false) != null and (intro.find_child("SkipButton", true, false) as Button).text == "SKIP", "the intro has a SKIP button in English")
+	var sound := load(LevelIntro.SOUND) as AudioStreamWAV
+	check(sound != null and absf(sound.get_length() - LevelIntro.DURATION) < 0.1, "the intro sound is as long as the intro")
+	check(intro.talking("A", 0.35) > 0.0 and intro.talking("B", 1.0) == 0.0 and intro.talking("B", 2.0) > 0.0, "the two people take turns talking")
+	var ended := [false]
+	intro.finished.connect(func() -> void: ended[0] = true)
+	for i in 660:
+		intro.step(1.0 / 60.0)
+	check(not ended[0] and intro.clock > 11.0, "the intro plays for about 11 seconds")
+	for i in 40:
+		intro.step(1.0 / 60.0)
+	check(ended[0] and intro.done, "the intro ends by itself")
+	free_node(intro)
+	var second: LevelIntro = load("res://game/intro.tscn").instantiate()
+	get_tree().root.add_child(second)
+	await get_tree().process_frame
+	var skipped := [false]
+	second.finished.connect(func() -> void: skipped[0] = true)
+	second.find_child("SkipButton", true, false).pressed.emit()
+	check(skipped[0] and second.done, "SKIP ends the intro at once")
+	free_node(second)
+	done("test_intro")
 
 
 func test_menu_and_results() -> void:

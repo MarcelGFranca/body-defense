@@ -5,6 +5,12 @@ extends RefCounted
 
 const ENTRIES := [
 	{
+		"version": "0.51.0",
+		"items": [
+			"Level 1 opens with a short animated story about how the germs get in, with a SKIP button.",
+		],
+	},
+	{
 		"version": "0.50.0",
 		"items": [
 			"A new animated start page with NEW GAME, CONTINUE, HOW TO PLAY and SETTINGS.",
