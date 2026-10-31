@@ -5,6 +5,12 @@ extends RefCounted
 
 const ENTRIES := [
 	{
+		"version": "0.29.0",
+		"items": [
+			"Volume controls and a mute switch in the settings.",
+		],
+	},
+	{
 		"version": "0.28.0",
 		"items": [
 			"The hypothalamus sends a red wave with flames and keeps attacking enemies that already burn.",
