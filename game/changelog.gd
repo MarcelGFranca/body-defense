@@ -5,6 +5,13 @@ extends RefCounted
 
 const ENTRIES := [
 	{
+		"version": "0.26.0",
+		"items": [
+			"Amino acids are counted only when their orb reaches the top bar.",
+			"A new tower appears only when its amino acids arrive.",
+		],
+	},
+	{
 		"version": "0.25.0",
 		"items": [
 			"The build menu lists the towers from the cheapest to the dearest.",

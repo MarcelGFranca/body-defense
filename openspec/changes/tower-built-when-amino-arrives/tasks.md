@@ -7,3 +7,4 @@
 - [x] 1.5 Taps on a tower under construction are ignored
 - [x] 1.6 tower_built now carries the Tower
 - [x] 1.7 Add tests, update docs, run the test runner (0 failures)
+- [x] Approved by the designer on 2026-10-30

@@ -7,7 +7,7 @@ The designer tests each task on the phone and approves it one by one. An approve
 | 1 | Next wave within 5 s of an empty field | `next-wave-after-clear` | **approved 2026-10-30** (v0.23.0) |
 | 2 | Lungs with more room at the top | `lungs-top-space` | **approved 2026-10-30** (v0.24.0) |
 | 3 | Interferon mist only when attacking | `interferon-mist-on-attack` | **approved 2026-10-30** (v0.25.0) |
-| 4 | Amino acids counted when the orb arrives | `count-amino-when-orb-arrives` | to test |
+| 4 | Amino acids counted when the orb arrives | `count-amino-when-orb-arrives` | **approved 2026-10-30** (v0.26.0) |
 | 5 | Orbs flying into a new tower | `tower-build-orbs` | to test |
 | 6 | Hypothalamus attack animation | `hypothalamus-attack-animation` | to test |
 | 7 | Volume and mute | `audio-settings` | to test |
@@ -27,4 +27,4 @@ The designer tests each task on the phone and approves it one by one. An approve
 | 21 | Changelog of every version, shown after an update and in Settings | `changelog` | **approved 2026-10-30** (v0.22.0) |
 | 22 | Equal space above and below: no wasted padding in the top bar on phones with a camera cutout | `top-bar-cutout-space` | **approved 2026-10-30** (v0.22.1) |
 | 23 | Build menu lists the towers by cost | `build-menu-by-cost` | to test |
-| 24 | Tower is built only when its amino acids arrive | `tower-built-when-amino-arrives` | to test |
+| 24 | Tower is built only when its amino acids arrive | `tower-built-when-amino-arrives` | **approved 2026-10-30** (v0.26.0) |
