@@ -5,7 +5,7 @@ The designer tests each task on the phone and approves it one by one. An approve
 | # | Task | Change | Status |
 |---|---|---|---|
 | 1 | Next wave within 5 s of an empty field | `next-wave-after-clear` | **approved 2026-10-30** (v0.23.0) |
-| 2 | Lungs with more room at the top | `lungs-top-space` | to test |
+| 2 | Lungs with more room at the top | `lungs-top-space` | **approved 2026-10-30** (v0.24.0) |
 | 3 | Interferon mist only when attacking | `interferon-mist-on-attack` | to test |
 | 4 | Amino acids counted when the orb arrives | `count-amino-when-orb-arrives` | to test |
 | 5 | Orbs flying into a new tower | `tower-build-orbs` | to test |

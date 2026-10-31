@@ -5,6 +5,12 @@ extends RefCounted
 
 const ENTRIES := [
 	{
+		"version": "0.24.0",
+		"items": [
+			"The Lungs level has more room at the top of the map.",
+		],
+	},
+	{
 		"version": "0.23.0",
 		"items": [
 			"The next wave starts within 5 seconds once the field is empty.",
