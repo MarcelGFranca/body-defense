@@ -8,3 +8,4 @@
 - [x] 1.6 GameAudio.sfx_volume_db() so the intro respects the effects volume and mute
 - [x] 1.7 Tests and a screenshot tool (tools/intro_screenshots.tscn)
 - [x] 1.8 Add tests, update docs, run the test runner (0 failures)
+- [x] Approved by the designer on 2026-10-31

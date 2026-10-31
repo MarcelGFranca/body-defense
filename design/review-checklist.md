@@ -38,4 +38,4 @@ The designer tests each task on the phone and approves it one by one. An approve
 | 32 | Every enemy has an angry face, none smiles | `angry-enemies` | **approved 2026-10-31** (v0.48.0) |
 | 33 | Maps shorter than the room between the bars are centred (same space above and below); the full zoom out already fits every current map exactly | `level-centering` | **approved 2026-10-31** (v0.49.0) |
 | 34 | Animated start page: fighters facing each other, glint and chime on the title, NEW GAME / CONTINUE / HOW TO PLAY / SETTINGS | `animated-start-page` | to test |
-| 35 | Level 1 intro: sneeze story with sound and a SKIP button | `level1-intro` | to test |
+| 35 | Level 1 intro: sneeze story with sound and a SKIP button | `level1-intro` | **approved 2026-10-31** (v0.51.0) |
