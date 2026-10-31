@@ -8,8 +8,8 @@ signal victory
 signal defeat
 ## Emitted when an enemy dies, so the HUD can fly amino acid orbs to the counter.
 signal orbs_requested(world_position: Vector2, amount: int)
-## Emitted when a tower is built, so the HUD can fly amino acid orbs from the counter to it.
-signal tower_built(world_position: Vector2, cost: int)
+## Emitted when a tower is placed. The HUD flies amino acid orbs to a tower under construction and finishes it when they arrive.
+signal tower_built(tower: Tower)
 signal enemy_tapped(enemy: Enemy)
 signal slot_tapped(slot_index: int)
 signal tower_tapped(slot_index: int)
@@ -218,7 +218,7 @@ func enemies_in_range(center: Vector2, radius: float) -> Array:
 func tower_slot_at(screen_position: Vector2) -> int:
 	var point := screen_to_world(screen_position)
 	for i in data.slots.size():
-		if towers.has(i) and data.slots[i].distance_to(point) <= tap_radius():
+		if towers.has(i) and not towers[i].under_construction and data.slots[i].distance_to(point) <= tap_radius():
 			return i
 	return -1
 
@@ -241,7 +241,8 @@ func handle_tap(screen_position: Vector2) -> void:
 	for i in data.slots.size():
 		if data.slots[i].distance_to(point) <= tap_radius():
 			if towers.has(i):
-				tower_tapped.emit(i)
+				if not towers[i].under_construction:
+					tower_tapped.emit(i)
 			else:
 				slot_tapped.emit(i)
 			return
@@ -249,7 +250,8 @@ func handle_tap(screen_position: Vector2) -> void:
 
 
 ## Builds a tower on an empty slot, charging its cost. Returns whether it was built.
-func build_tower(slot: int, tower_id: String) -> bool:
+## With `delivered` false the tower stays hidden and idle until `Tower.finish_construction` (the amino acids are still on their way).
+func build_tower(slot: int, tower_id: String, delivered := true) -> bool:
 	if state != "running" or towers.has(slot) or slot < 0 or slot >= data.slots.size():
 		return false
 	if not data.tower_ids.has(tower_id):
@@ -262,9 +264,11 @@ func build_tower(slot: int, tower_id: String) -> bool:
 	tower.position = data.slots[slot]
 	_tower_layer.add_child(tower)
 	tower.setup(tower_data, slot, self)
+	if not delivered:
+		tower.begin_construction()
 	towers[slot] = tower
 	_map.queue_redraw()
-	tower_built.emit(tower.position, tower_data.cost)
+	tower_built.emit(tower)
 	return true
 
 

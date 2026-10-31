@@ -397,17 +397,22 @@ func _fly_orbs(world_position: Vector2, amount: int) -> void:
 
 
 ## The cost of a new tower flows from the top bar into the tower (one orb per 20 amino acids, 2 to 6).
-func _fly_orbs_to_tower(world_position: Vector2, cost: int) -> void:
-	var count := clampi(cost / 20, 2, 6)
+## The tower stays hidden and idle until the last orb arrives.
+func _fly_orbs_to_tower(tower: Tower) -> void:
+	var count := clampi(tower.data.cost / 20, 2, 6)
+	var last := count - 1
 	for i in count:
 		var orb := _icon("res://assets/ui/amino_acid_orb.png", Vector2(28, 28))
 		orb.position = _amino_icon.position + Vector2(randf_range(-6, 6), randf_range(-6, 6))
 		_root.add_child(orb)
 		var tween := create_tween().set_ignore_time_scale(true)
 		tween.tween_interval(i * 0.06)
-		tween.tween_property(orb, "position", level.world_to_screen(world_position) - Vector2(14, 14), 0.5).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-		tween.tween_property(orb, "modulate:a", 0.0, 0.15)
+		tween.tween_property(orb, "position", level.world_to_screen(tower.position) - Vector2(14, 14), 0.5).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 		tween.tween_callback(orb.queue_free)
+		if i == last:
+			tween.tween_callback(func() -> void:
+				if is_instance_valid(tower):
+					tower.finish_construction())
 
 
 func _orb_arrived(orb: Control, share: int) -> void:
@@ -607,7 +612,7 @@ func _on_card_pressed(tower_data: TowerData) -> void:
 	if Economy.balance() < tower_data.cost:
 		show_toast(tr("NOT ENOUGH AMINO ACIDS"))
 		return
-	if level.build_tower(_slot_for_menu, tower_data.id):
+	if level.build_tower(_slot_for_menu, tower_data.id, false):
 		_close_popups()
 
 

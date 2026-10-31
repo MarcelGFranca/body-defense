@@ -706,10 +706,17 @@ func test_hud() -> void:
 	get_tree().root.add_child(orb_hud)
 	await get_tree().process_frame
 	var built_signals: Array = []
-	orb_level.tower_built.connect(func(at: Vector2, cost: int) -> void: built_signals.append(cost))
-	orb_level.build_tower(1, "macrophage")
+	orb_level.tower_built.connect(func(tower: Tower) -> void: built_signals.append(tower.data.cost))
+	orb_level.build_tower(1, "macrophage", false)
 	check(built_signals == [50], "building a tower announces its cost so amino acids can flow to it")
+	var pending: Tower = orb_level.towers[1]
+	check(pending.under_construction and not pending.visible, "a tower is hidden while its amino acids are on the way")
+	orb_level.handle_tap(orb_level.world_to_screen(pending.position))
+	check(orb_level.tower_slot_at(orb_level.world_to_screen(pending.position)) == -1, "a tower under construction cannot be tapped")
+	await get_tree().create_timer(0.3).timeout
+	check(pending.under_construction, "the tower is still not built before the amino acids arrive")
 	await get_tree().create_timer(1.0).timeout
+	check(not pending.under_construction and pending.visible, "the tower appears when its amino acids arrive")
 	Economy.reset(150)
 	orb_level.orbs_requested.emit(Vector2(100, 100), 7)
 	Economy.add(7)

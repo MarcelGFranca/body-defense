@@ -23,6 +23,8 @@ var data: TowerData
 var slot_index := -1
 ## Total amino acids spent on this tower, used for the sell refund.
 var spent := 0
+## True while the amino acids are still flying to the tower: it is hidden and does nothing.
+var under_construction := false
 var selected := false:
 	set(value):
 		selected = value
@@ -85,6 +87,8 @@ func mist_level() -> float:
 
 ## Advanced by the level every frame, so tests can step the simulation by hand.
 func step(delta: float) -> void:
+	if under_construction:
+		return
 	_pulse += delta
 	_update_holds(delta)
 	_flash = maxf(0.0, _flash - delta)
@@ -162,6 +166,23 @@ func _after_attack() -> void:
 ## Stops the tower for a while. Lymphocytes (mobile towers) stay disabled twice as long.
 func disable() -> void:
 	_disabled_for = MOBILE_DISABLE_SECONDS if data.mobility == "mobile" else NORMAL_DISABLE_SECONDS
+
+
+## Hides the tower until its amino acids arrive.
+func begin_construction() -> void:
+	under_construction = true
+	visible = false
+
+
+## The amino acids arrived: the tower appears with a small pop.
+func finish_construction() -> void:
+	if not under_construction:
+		return
+	under_construction = false
+	visible = true
+	scale = Vector2(0.6, 0.6)
+	create_tween().tween_property(self, "scale", Vector2.ONE, 0.2).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	queue_redraw()
 
 
 ## A lymphocyte that has just been moved rests for a moment before it works again.
