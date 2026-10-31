@@ -1640,6 +1640,39 @@ func test_menu_and_results() -> void:
 	for page in TutorialPages.PAGES:
 		mentions_amino = mentions_amino or " ".join(page["paragraphs"]).contains("Amino acids are the building blocks")
 	check(mentions_amino, "the tutorial explains what amino acids are for")
+	# Start page: four buttons, animated fighters, a glint on the title.
+	check(menu._home.visible and not menu._levels_page.visible, "the menu opens on the start page, not on the level list")
+	for button_name in ["NewGameButton", "ContinueButton", "TutorialButton", "SettingsButton"]:
+		check(menu.find_child(button_name, true, false) != null, "the start page has %s" % button_name)
+	var tower_hero: TextureRect = menu.find_child("Hero_tower", true, false)
+	var enemy_hero: TextureRect = menu.find_child("Hero_enemy", true, false)
+	check(tower_hero.position.x + tower_hero.size.x < 360.0 and enemy_hero.position.x > 360.0, "the tower stands left of the middle and the enemy right of it")
+	check(absf((360.0 - (tower_hero.position.x + tower_hero.size.x)) - (enemy_hero.position.x - 360.0)) < 0.5, "both fighters are as far from VS")
+	check(enemy_hero.flip_h and not tower_hero.flip_h, "the enemy faces the tower")
+	var frame_before: float = (tower_hero.texture as AtlasTexture).region.position.x
+	var y_before := tower_hero.position.y
+	menu._animate(0.45)
+	check((tower_hero.texture as AtlasTexture).region.position.x != frame_before, "the fighters play their sprite animation")
+	check(tower_hero.position.y != y_before, "the fighters hop")
+	check(menu.find_child("Title", true, false).text == "BODY\nDEFENSE" and menu.find_child("TitleShine", true, false).material != null, "the title is static text with a separate glint layer")
+	var shine_before: float = menu._glint_clock
+	menu._animate(menu.GLINT_EVERY)
+	check(menu._glint_clock < shine_before + menu.GLINT_EVERY, "the title glints every ten seconds")
+	Session.best_health.clear()
+	Session.all_levels_open = false
+	menu._update_continue()
+	check(menu.find_child("ContinueButton", true, false).disabled, "CONTINUE is off before any level is won")
+	Session.best_health[1] = 10
+	menu._update_continue()
+	check(not menu.find_child("ContinueButton", true, false).disabled, "CONTINUE works after a level is won")
+	Session.best_health.clear()
+	menu.find_child("NewGameButton", true, false).pressed.emit()
+	check(menu._levels_page.visible and not menu._home.visible, "NEW GAME opens the level list")
+	await get_tree().process_frame
+	menu.find_child("LevelsBackButton", true, false).pressed.emit()
+	check(menu._home.visible and not menu._levels_page.visible, "BACK returns to the start page")
+	menu._show_levels(true)
+	await get_tree().process_frame
 	var scroll_before: int = menu._scroll.scroll_vertical
 	menu._input(mouse_button(Vector2(360, 800), true))
 	var drag := mouse_motion(Vector2(360, 700), Vector2(0, -100))

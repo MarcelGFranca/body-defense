@@ -1,4 +1,4 @@
-## The level menu: ten levels in a list, locked until the one before is won. Tap one to see it and start it.
+## The start page (title, the macrophage facing the rhinovirus, NEW GAME, CONTINUE, HOW TO PLAY, SETTINGS) and the level list: ten levels, locked until the one before is won. Tap one to see it and start it.
 ## `-- --autoplay [--level N]` skips the menu and lets the bot play.
 extends Control
 
@@ -7,7 +7,22 @@ const CARD_SIZE := Vector2(640, 128)
 const MIN_TAP := 96.0
 ## Finger travel, in pixels, after which a press on the level list becomes a scroll.
 const DRAG_THRESHOLD := 16.0
-const HERO_ROW_Y := 252.0
+## The fighters stand in a band below the title: sprites 256 px wide, equal gaps from the edges and from "VS".
+const HERO_SIZE := 256.0
+const HERO_CENTER_Y := 508.0
+const HERO_HOP := 52.0
+const HERO_HOP_SECONDS := 1.8
+const TOWER_SHEET := "res://assets/towers/macrophage/animations/macrophage_attack_sheet.png"
+const ENEMY_SHEET := "res://assets/enemies/rhinovirus/animations/rhinovirus_walk_sheet.png"
+const SHEET_FRAMES := 8
+## Frames per second of the macrophage attack and of the rhinovirus walk (slow and calm).
+const TOWER_FPS := 6.7
+const ENEMY_FPS := 4.4
+## The title glints (light band, star and chime) first after GLINT_FIRST seconds, then every GLINT_EVERY.
+const GLINT_FIRST := 1.5
+const GLINT_EVERY := 10.0
+const GLINT_SECONDS := 0.9
+const GLINT_SHADER := "res://assets/shaders/title_shine.gdshader"
 ## Secret code on the two fighters: enemy three times, tower twice, enemy once. It opens every level.
 ## Width of the row of enemy pictures on the level page.
 const ENEMY_ROW_WIDTH := 540.0
@@ -21,6 +36,15 @@ const COLOR_BAD := Color("e84a5f")
 const COLOR_GOOD := Color("6ad4a0")
 const COLOR_GOLD := Color("f4d35e")
 
+var _home: Control
+var _levels_page: Control
+var _continue_button: Button
+var _heroes: Array[Dictionary] = []
+var _orbs: Array[ColorRect] = []
+var _clock := 0.0
+var _glint_clock := GLINT_EVERY - GLINT_FIRST
+var _title_shine: ShaderMaterial
+var _sparkle: Control
 var _list: VBoxContainer
 var _scroll: ScrollContainer
 var _detail: Control
@@ -74,51 +98,19 @@ func _build() -> void:
 	background.size = SCREEN
 	background.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(background)
-	var title := _label("BODY DEFENSE", 44, COLOR_GOLD)
-	title.position = Vector2(0, 60)
-	title.size = Vector2(SCREEN.x, 56)
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	add_child(title)
-	var tagline := _label(tr("DEFEND THE HUMAN BODY"), 18, COLOR_BORDER)
-	tagline.position = Vector2(0, 136)
-	tagline.size = Vector2(SCREEN.x, 26)
-	tagline.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	add_child(tagline)
-	# The two fighters and "VS" share one row: equal gaps from the screen edges and from "VS".
-	_add_hero("res://assets/towers/macrophage.png", Vector2(180, HERO_ROW_Y), "tower")
-	_add_hero("res://assets/enemies/rhinovirus/rhinovirus_sprite.png", Vector2(540, HERO_ROW_Y), "enemy", true)
-	var bolt := _label(tr("VS"), 30, COLOR_GOLD)
-	bolt.position = Vector2(0, HERO_ROW_Y - 20)
-	bolt.size = Vector2(SCREEN.x, 40)
-	bolt.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	add_child(bolt)
-
-	_scroll = ScrollContainer.new()
-	_scroll.position = Vector2(40, 340)
-	_scroll.size = Vector2(640, 780)
-	_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
-	add_child(_scroll)
-	_list = VBoxContainer.new()
-	_list.add_theme_constant_override("separation", 14)
-	_scroll.add_child(_list)
-
-	var tutorial := _button(tr("HOW TO PLAY"), Vector2(300, 72), 16)
-	tutorial.name = "TutorialButton"
-	tutorial.position = Vector2(40, 1150)
-	tutorial.pressed.connect(_open_tutorial.bind(0))
-	add_child(tutorial)
-	var settings := _button(tr("SETTINGS"), Vector2(300, 72), 16)
-	settings.name = "SettingsButton"
-	settings.position = Vector2(380, 1150)
-	settings.pressed.connect(_open_settings)
-	add_child(settings)
-	var version := _label("V%s" % ProjectSettings.get_setting("application/config/version", "0"), 10, COLOR_DIM)
-	version.name = "VersionLabel"
-	version.position = Vector2(0, 1240)
-	version.size = Vector2(SCREEN.x, 16)
-	version.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	add_child(version)
+	_home = Control.new()
+	_home.name = "Home"
+	_home.size = SCREEN
+	_home.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_home)
+	_levels_page = Control.new()
+	_levels_page.name = "LevelsPage"
+	_levels_page.size = SCREEN
+	_levels_page.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_levels_page.visible = false
+	add_child(_levels_page)
+	_build_home()
+	_build_levels_page()
 	var fps := FpsCounter.new()
 	fps.place_top_right(SCREEN.x, 8.0)
 	add_child(fps)
@@ -136,7 +128,7 @@ func _input(event: InputEvent) -> void:
 		return
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
 		if event.pressed:
-			_press_in_list = _detail == null and _settings == null and _tutorial == null and _languages == null and _changelog == null and _scroll.get_global_rect().has_point(event.position)
+			_press_in_list = _levels_page.visible and _detail == null and _settings == null and _tutorial == null and _languages == null and _changelog == null and _scroll.get_global_rect().has_point(event.position)
 			_dragging = false
 			_drag_travel = 0.0
 	elif event is InputEventMouseMotion and _press_in_list and (event.button_mask & MOUSE_BUTTON_MASK_LEFT) != 0:
@@ -148,16 +140,213 @@ func _input(event: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 
 
+func _build_home() -> void:
+	var title_text := "BODY\nDEFENSE"
+	var title := _title_label(title_text, COLOR_GOLD)
+	title.name = "Title"
+	_home.add_child(title)
+	# A copy in white above it carries the glint, so the letters themselves never change.
+	var shine := _title_label(title_text, Color.WHITE)
+	shine.name = "TitleShine"
+	_title_shine = ShaderMaterial.new()
+	_title_shine.shader = load(GLINT_SHADER)
+	_title_shine.set_shader_parameter("box_size", shine.size)
+	_title_shine.set_shader_parameter("progress", -0.5)
+	shine.material = _title_shine
+	_home.add_child(shine)
+	_sparkle = Control.new()
+	_sparkle.name = "Sparkle"
+	_sparkle.position = Vector2(470.0, 70.0)
+	_sparkle.scale = Vector2.ZERO
+	_sparkle.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_sparkle.draw.connect(_draw_sparkle)
+	_home.add_child(_sparkle)
+	var tagline := _label(tr("DEFEND THE HUMAN BODY"), 18, COLOR_BORDER)
+	tagline.position = Vector2(0, 196)
+	tagline.size = Vector2(SCREEN.x, 26)
+	tagline.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_home.add_child(tagline)
+	_build_arena()
+	_add_hero(TOWER_SHEET, Vector2(36.0 + HERO_SIZE / 2.0, HERO_CENTER_Y), "tower", false, TOWER_FPS, 0.0)
+	_add_hero(ENEMY_SHEET, Vector2(SCREEN.x - 36.0 - HERO_SIZE / 2.0, HERO_CENTER_Y), "enemy", true, ENEMY_FPS, HERO_HOP_SECONDS / 2.0)
+	for delay in [0.0, 1.2]:
+		var orb := ColorRect.new()
+		orb.color = COLOR_GOLD
+		orb.size = Vector2(12, 12)
+		orb.modulate.a = 0.0
+		orb.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		orb.set_meta("delay", delay)
+		_home.add_child(orb)
+		_orbs.append(orb)
+	var bolt := _label(tr("VS"), 32, COLOR_GOLD)
+	bolt.name = "Versus"
+	bolt.position = Vector2(0, HERO_CENTER_Y - 20)
+	bolt.size = Vector2(SCREEN.x, 40)
+	bolt.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_home.add_child(bolt)
+	var new_game := _button(tr("NEW GAME"), Vector2(600, 76), 22)
+	new_game.name = "NewGameButton"
+	new_game.position = Vector2(60, 900)
+	new_game.add_theme_color_override("font_color", COLOR_GOLD)
+	new_game.pressed.connect(_show_levels.bind(true))
+	_home.add_child(new_game)
+	_continue_button = _button(tr("CONTINUE"), Vector2(600, 76), 22)
+	_continue_button.name = "ContinueButton"
+	_continue_button.position = Vector2(60, 988)
+	_continue_button.pressed.connect(func() -> void: _start(Session.next_to_play()))
+	_home.add_child(_continue_button)
+	var tutorial := _button(tr("HOW TO PLAY"), Vector2(600, 76), 22)
+	tutorial.name = "TutorialButton"
+	tutorial.position = Vector2(60, 1076)
+	tutorial.pressed.connect(_open_tutorial.bind(0))
+	_home.add_child(tutorial)
+	var settings := _button(tr("SETTINGS"), Vector2(600, 76), 22)
+	settings.name = "SettingsButton"
+	settings.position = Vector2(60, 1164)
+	settings.pressed.connect(_open_settings)
+	_home.add_child(settings)
+	var version := _label("V%s" % ProjectSettings.get_setting("application/config/version", "0"), 10, COLOR_DIM)
+	version.name = "VersionLabel"
+	version.position = Vector2(0, 1252)
+	version.size = Vector2(SCREEN.x, 16)
+	version.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_home.add_child(version)
+	_update_continue()
+
+
+func _title_label(text: String, color: Color) -> Label:
+	var label := _label(text, 60, color)
+	label.add_theme_constant_override("line_spacing", 12)
+	label.add_theme_color_override("font_shadow_color", Color("1a1020"))
+	label.add_theme_constant_override("shadow_offset_x", 6)
+	label.add_theme_constant_override("shadow_offset_y", 6)
+	label.position = Vector2(0, 44)
+	label.size = Vector2(SCREEN.x, 144)
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	return label
+
+
+## The band behind the fighters: two pink rules, a dark red fill and a vein to stand above.
+func _build_arena() -> void:
+	var fill := ColorRect.new()
+	fill.color = Color("4f2a3a")
+	fill.position = Vector2(0, 244)
+	fill.size = Vector2(SCREEN.x, 632)
+	fill.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_home.add_child(fill)
+	var vein := ColorRect.new()
+	vein.color = Color("7a2535")
+	vein.position = Vector2(0, 684)
+	vein.size = Vector2(SCREEN.x, 92)
+	vein.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_home.add_child(vein)
+	for y in [244.0, 873.0]:
+		var rule := ColorRect.new()
+		rule.color = COLOR_BORDER
+		rule.position = Vector2(0, y)
+		rule.size = Vector2(SCREEN.x, 3)
+		rule.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_home.add_child(rule)
+
+
+func _build_levels_page() -> void:
+	var heading := _label(tr("NEW GAME"), 40, COLOR_GOLD)
+	heading.position = Vector2(0, 50)
+	heading.size = Vector2(SCREEN.x, 52)
+	heading.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_levels_page.add_child(heading)
+	_scroll = ScrollContainer.new()
+	_scroll.position = Vector2(40, 140)
+	_scroll.size = Vector2(640, 960)
+	_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
+	_levels_page.add_child(_scroll)
+	_list = VBoxContainer.new()
+	_list.add_theme_constant_override("separation", 14)
+	_scroll.add_child(_list)
+	var back := _button(tr("BACK"), Vector2(600, 76), 22)
+	back.name = "LevelsBackButton"
+	back.position = Vector2(60, 1150)
+	back.pressed.connect(_show_levels.bind(false))
+	_levels_page.add_child(back)
+
+
+## Switches between the start page and the list of levels.
+func _show_levels(show: bool) -> void:
+	_home.visible = not show
+	_levels_page.visible = show
+	if show:
+		call_deferred("_scroll_to", Session.next_to_play())
+
+
+## CONTINUE only works once a level was won (or every level was opened with the code).
+func _update_continue() -> void:
+	if _continue_button != null:
+		_continue_button.disabled = Session.best_health.is_empty() and not Session.all_levels_open
+		_continue_button.modulate.a = 0.45 if _continue_button.disabled else 1.0
+
+
+func _process(delta: float) -> void:
+	_animate(delta)
+
+
+## Advanced every frame (and by hand in tests): sprite frames, the hop of both fighters, the shots and the title glint.
+func _animate(delta: float) -> void:
+	if _home == null or not _home.visible:
+		return
+	_clock += delta
+	for hero in _heroes:
+		var phase := fposmod(_clock + float(hero["offset"]), HERO_HOP_SECONDS) / HERO_HOP_SECONDS
+		var icon: TextureRect = hero["icon"]
+		icon.position.y = float(hero["base_y"]) - HERO_HOP * pow(sin(PI * phase), 2.0)
+		var atlas: AtlasTexture = icon.texture
+		atlas.region = Rect2(32.0 * (int(_clock * float(hero["fps"])) % SHEET_FRAMES), 0.0, 32.0, 32.0)
+	for orb in _orbs:
+		var t := fposmod(_clock - float(orb.get_meta("delay")), 2.4) / 2.4
+		orb.position = Vector2(lerpf(300.0, 412.0, t), 580.0)
+		orb.modulate.a = 1.0 - t
+	_glint_clock += delta
+	if _glint_clock >= GLINT_EVERY:
+		_glint_clock -= GLINT_EVERY
+		_start_glint()
+
+
+## A band of light crosses the title, a star flashes and a chime rings.
+func _start_glint() -> void:
+	GameAudio.play_sfx(GameAudio.config.splash_sound)
+	var sweep := create_tween()
+	sweep.tween_method(func(value: float) -> void: _title_shine.set_shader_parameter("progress", value), -0.3, 1.3, GLINT_SECONDS)
+	sweep.tween_callback(func() -> void: _title_shine.set_shader_parameter("progress", -0.5))
+	var star := create_tween().set_parallel()
+	star.tween_property(_sparkle, "scale", Vector2.ONE, GLINT_SECONDS * 0.4).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	star.tween_property(_sparkle, "rotation", 0.8, GLINT_SECONDS * 1.4)
+	star.chain().tween_property(_sparkle, "scale", Vector2.ZERO, GLINT_SECONDS * 0.6)
+	star.chain().tween_property(_sparkle, "rotation", 0.0, 0.0)
+
+
+## A four-pointed star: two thin diamonds crossed, with a bright centre.
+func _draw_sparkle() -> void:
+	var long := 40.0
+	var thin := 6.0
+	var white := Color(1, 1, 0.9)
+	_sparkle.draw_colored_polygon(PackedVector2Array([Vector2(0, -long), Vector2(thin, 0), Vector2(0, long), Vector2(-thin, 0)]), white)
+	_sparkle.draw_colored_polygon(PackedVector2Array([Vector2(-long, 0), Vector2(0, thin), Vector2(long, 0), Vector2(0, -thin)]), white)
+	_sparkle.draw_circle(Vector2.ZERO, 8.0, Color(1, 1, 1, 0.9))
+
+
 func _scroll_to(number: int) -> void:
 	_scroll.scroll_vertical = maxi(0, int((number - 2) * (CARD_SIZE.y + 14.0)))
 
 
-func _add_hero(path: String, at: Vector2, kind: String, flip := false) -> void:
+func _add_hero(sheet: String, at: Vector2, kind: String, flip: bool, fps: float, offset: float) -> void:
+	var atlas := AtlasTexture.new()
+	atlas.atlas = load(sheet)
+	atlas.region = Rect2(0, 0, 32, 32)
 	var icon := TextureRect.new()
-	icon.texture = load(path)
+	icon.texture = atlas
 	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	icon.stretch_mode = TextureRect.STRETCH_SCALE
-	icon.size = Vector2(128, 128)
+	icon.size = Vector2(HERO_SIZE, HERO_SIZE)
 	icon.position = at - icon.size / 2.0
 	icon.flip_h = flip
 	icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
@@ -166,7 +355,8 @@ func _add_hero(path: String, at: Vector2, kind: String, flip := false) -> void:
 	icon.gui_input.connect(func(event: InputEvent) -> void:
 		if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 			tap_hero(kind))
-	add_child(icon)
+	_home.add_child(icon)
+	_heroes.append({"icon": icon, "base_y": icon.position.y, "fps": fps, "offset": offset})
 
 
 ## Counts taps on the fighters; the last taps matching `SECRET_CODE` open every level until the game is closed.
@@ -180,6 +370,7 @@ func tap_hero(kind: String) -> void:
 
 
 func _refresh() -> void:
+	_update_continue()
 	for child in _list.get_children():
 		_list.remove_child(child)
 		child.queue_free()

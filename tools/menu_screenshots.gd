@@ -9,6 +9,7 @@ func _ready() -> void:
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--out="):
 			_out = arg.trim_prefix("--out=")
+	Localization.apply("en")
 	var splash: Control = load("res://game/splash.tscn").instantiate()
 	add_child(splash)
 	await get_tree().create_timer(1.55).timeout
@@ -18,7 +19,15 @@ func _ready() -> void:
 	splash.queue_free()
 	var menu: Control = load("res://game/menu.tscn").instantiate()
 	add_child(menu)
+	menu._close_changelog()
 	await _shot("menu_1_start")
+	menu._animate(1.6)
+	menu._start_glint()
+	await get_tree().create_timer(0.4).timeout
+	await _shot("menu_1b_glint")
+	menu._show_levels(true)
+	await _shot("menu_1c_levels")
+	menu._show_levels(false)
 	menu._open_tutorial(1)
 	await _shot("menu_3_tutorial")
 	menu._open_tutorial(5)
