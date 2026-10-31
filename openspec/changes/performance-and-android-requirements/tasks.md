@@ -6,3 +6,4 @@
 - [x] 1.4 HUD scroll bar redraws at 10 Hz
 - [x] 1.5 Document requirements and performance rules in docs/development.md
 - [x] 1.6 Add tests, update docs, run the test runner (0 failures)
+- [x] Approved by the designer on 2026-10-31

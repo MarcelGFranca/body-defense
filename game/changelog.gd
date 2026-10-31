@@ -5,6 +5,12 @@ extends RefCounted
 
 const ENTRIES := [
 	{
+		"version": "0.35.0",
+		"items": [
+			"The game runs on Android 7.0 or newer, capped at 60 frames per second and lighter on the battery.",
+		],
+	},
+	{
 		"version": "0.34.0",
 		"items": [
 			"The tissue moves like a living organ, the path beats like a heart, and infection turns it red.",
