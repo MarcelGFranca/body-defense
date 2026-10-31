@@ -5,6 +5,12 @@ extends RefCounted
 
 const ENTRIES := [
 	{
+		"version": "0.44.0",
+		"items": [
+			"The first wave of every level now starts after 10 seconds.",
+		],
+	},
+	{
 		"version": "0.43.0",
 		"items": [
 			"After an update the game shows only what is new in the latest version.",
