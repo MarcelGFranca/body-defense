@@ -5,6 +5,12 @@ extends RefCounted
 
 const ENTRIES := [
 	{
+		"version": "0.40.0",
+		"items": [
+			"Pinch with two fingers to zoom the map in and out.",
+		],
+	},
+	{
 		"version": "0.39.0",
 		"items": [
 			"The code is organised in one game folder, with no change to how the game plays.",
