@@ -865,7 +865,8 @@ func _show_result(won: bool) -> void:
 	elif Session.has_next(level.data.number):
 		_show_overlay(tr("VICTORY!"), [[tr("NEXT LEVEL"), _next_level], [tr("RESTART"), _restart], [tr("MENU"), _to_menu]])
 	else:
-		_show_overlay(tr("BODY SAVED!"), [[tr("RESTART"), _restart], [tr("MENU"), _to_menu]])
+		# The last boss is down: the ending plays, then the menu opens.
+		Session.play_ending()
 
 
 func _clear_overlay() -> void:

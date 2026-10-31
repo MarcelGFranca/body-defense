@@ -1536,22 +1536,38 @@ func test_splash() -> void:
 
 
 func test_intro() -> void:
-	var intro: LevelIntro = load("res://game/intro.tscn").instantiate()
-	get_tree().root.add_child(intro)
+	for story in LevelIntro.STORIES:
+		Session.intro_story = story
+		var intro: LevelIntro = load("res://game/intro.tscn").instantiate()
+		get_tree().root.add_child(intro)
+		await get_tree().process_frame
+		var info: Dictionary = LevelIntro.STORIES[story]
+		check(intro.find_child("SkipButton", true, false) != null and (intro.find_child("SkipButton", true, false) as Button).text == "SKIP", "story %d has a SKIP button in English" % story)
+		var sound := load("res://assets/audio/common/%s.wav" % info["sound"]) as AudioStreamWAV
+		check(sound != null and absf(sound.get_length() - float(info["dur"])) < 0.1, "the sound of story %d is as long as the story" % story)
+		check(float(info["tz"]) < float(info["tt"]) and float(info["tt"]) + 4.0 < float(info["dur"]), "story %d zooms before the organ and leaves time to read the title" % story)
+		var invaders: Array = info["inv"]
+		for id: String in invaders:
+			check(intro._tex(id) != null, "story %d invader %s has a sprite" % [story, id])
+		var ended := [false]
+		intro.finished.connect(func() -> void: ended[0] = true)
+		intro.set_process(false)
+		# Draw frames across the whole story so a bad call in any scene shows up as a script error.
+		var seconds := 0.0
+		while seconds < float(info["dur"]) - 0.3:
+			intro.step(0.25)
+			seconds += 0.25
+			await get_tree().process_frame
+		check(not ended[0], "story %d is still playing near its end" % story)
+		intro.step(1.0)
+		check(ended[0] and intro.done, "story %d ends by itself" % story)
+		free_node(intro)
+	Session.intro_story = 1
+	var first: LevelIntro = load("res://game/intro.tscn").instantiate()
+	get_tree().root.add_child(first)
 	await get_tree().process_frame
-	check(intro.find_child("SkipButton", true, false) != null and (intro.find_child("SkipButton", true, false) as Button).text == "SKIP", "the intro has a SKIP button in English")
-	var sound := load(LevelIntro.SOUND) as AudioStreamWAV
-	check(sound != null and absf(sound.get_length() - LevelIntro.DURATION) < 0.1, "the intro sound is as long as the intro")
-	check(intro.talking("A", 0.35) > 0.0 and intro.talking("B", 1.0) == 0.0 and intro.talking("B", 2.0) > 0.0, "the two people take turns talking")
-	var ended := [false]
-	intro.finished.connect(func() -> void: ended[0] = true)
-	for i in 660:
-		intro.step(1.0 / 60.0)
-	check(not ended[0] and intro.clock > 11.0, "the intro plays for about 11 seconds")
-	for i in 40:
-		intro.step(1.0 / 60.0)
-	check(ended[0] and intro.done, "the intro ends by itself")
-	free_node(intro)
+	check(first.talking("A", 0.35) > 0.0 and first.talking("B", 1.0) == 0.0 and first.talking("B", 2.0) > 0.0, "the two people take turns talking")
+	free_node(first)
 	var second: LevelIntro = load("res://game/intro.tscn").instantiate()
 	get_tree().root.add_child(second)
 	await get_tree().process_frame
@@ -1560,6 +1576,7 @@ func test_intro() -> void:
 	second.find_child("SkipButton", true, false).pressed.emit()
 	check(skipped[0] and second.done, "SKIP ends the intro at once")
 	free_node(second)
+	check(IntroStories.RED.size() == 2 and LevelIntro.STORIES.size() == 11, "there is a story for each of the ten levels and one for the ending")
 	done("test_intro")
 
 
@@ -1796,8 +1813,11 @@ func test_menu_and_results() -> void:
 	level.tower_tapped.emit(1)
 	check(hud.find_child("MoveButton", true, false) == null, "a macrophage card has no move button")
 	hud._dismiss_all()
+	Session.ending_changes_scene = false
+	Session.intro_story = 1
 	hud._show_result(true)
-	check(hud._overlay.find_children("*", "Button", true, false).size() == 2, "the last level has no next-level button after a win")
+	Session.ending_changes_scene = true
+	check(Session.intro_story == LevelIntro.ENDING, "winning the last level plays the ending")
 	hud._show_result(false)
 	check(hud._overlay.find_children("*", "Button", true, false).size() == 2, "a defeat offers retry and menu")
 	free_node(hud)

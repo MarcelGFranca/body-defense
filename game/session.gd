@@ -12,6 +12,10 @@ const DIFFICULTY_PATH_FORMAT := "res://data/difficulties/%s.tres"
 const LEVEL_SCENE := "res://game/main.tscn"
 const MENU_SCENE := "res://game/menu.tscn"
 const INTRO_SCENE := "res://game/intro.tscn"
+## Which story the intro scene plays: the level number (1 to 10) or LevelIntro.ENDING.
+var intro_story := 1
+## Tests turn this off so that playing the ending does not replace the test scene.
+var ending_changes_scene := true
 
 var current_level := 1
 ## Level number -> the most body health left after winning it.
@@ -161,11 +165,21 @@ func start_level(number: int) -> void:
 	current_level = clampi(number, 1, LEVEL_COUNT)
 	get_tree().paused = false
 	Engine.time_scale = 1.0
-	# Level 1 opens with its story (skippable); the bots skip it.
-	if current_level == 1 and "--autoplay" not in OS.get_cmdline_user_args():
+	# Every level opens with its story (skippable); the bots skip it.
+	if "--autoplay" not in OS.get_cmdline_user_args():
+		intro_story = current_level
 		get_tree().change_scene_to_file(INTRO_SCENE)
 		return
 	get_tree().change_scene_to_file(LEVEL_SCENE)
+
+
+## The ending, after the last boss: plays the story and returns to the menu.
+func play_ending() -> void:
+	get_tree().paused = false
+	Engine.time_scale = 1.0
+	intro_story = LevelIntro.ENDING
+	if ending_changes_scene:
+		get_tree().change_scene_to_file(INTRO_SCENE)
 
 
 func open_menu() -> void:
