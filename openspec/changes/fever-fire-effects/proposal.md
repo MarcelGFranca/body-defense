@@ -8,6 +8,7 @@ Burning enemies looked the same as healthy ones, and the hypothalamus only sent 
 - Burning enemies show the flames while the fire lasts
 - The hypothalamus sends a red wave with flames along its front in 1.1 s
 - Add tools/hypothalamus_screenshots
+- The hypothalamus attacks once per second (animation, sound, wave) while enemies in range burn, and each attack refreshes the burn to its full time
 
 ## Capabilities
 
