@@ -30,7 +30,7 @@ The designer tests each task on the phone and approves it one by one. An approve
 | 24 | Tower is built only when its amino acids arrive | `tower-built-when-amino-arrives` | **approved 2026-10-30** (v0.26.0) |
 | 25 | C. difficile death and return animation | `revive-animation` | **approved 2026-10-30** (v0.28.0) |
 | 26 | Herpes shows its immunity with an armour shell (spins in, breaks with a flash) | `herpes-dormant-look` | **approved 2026-10-31** (v0.42.0) |
-| 27 | Changelog after an update shows only the newest version | `changelog-latest-only` | to test |
+| 27 | Changelog after an update shows only the newest version | `changelog-latest-only` | **approved 2026-10-31** (v0.43.0) |
 | 28 | First wave of every level at 10 s (playtested: same win rates) | `first-wave-at-10s` | to test |
 | 29 | NEXT WAVE notice on the screen when a wave starts | `next-wave-banner` | to test |
 | 30 | Language choice inside Settings | `language-in-settings` | to test |
