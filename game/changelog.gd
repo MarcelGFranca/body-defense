@@ -5,6 +5,12 @@ extends RefCounted
 
 const ENTRIES := [
 	{
+		"version": "0.49.0",
+		"items": [
+			"Maps that are shorter than the room are centred, with the same space above and below.",
+		],
+	},
+	{
 		"version": "0.48.0",
 		"items": [
 			"Every enemy now has an angry face.",
