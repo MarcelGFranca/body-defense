@@ -16,7 +16,7 @@ The designer tests each task on the phone and approves it one by one. An approve
 | 10 | Tutorial | `tutorial` | **approved 2026-10-30** (v0.31.0) |
 | 11 | Start screen scroll | `fix-menu-list-scroll` | **approved 2026-10-31** (v0.32.0) |
 | 12 | Zoom (pinch only, fills the screen) | `map-zoom` | adjusted, to test |
-| 13 | Next-wave enemy cards | `next-wave-enemy-cards` | to test |
+| 13 | Next-wave enemy cards | `next-wave-enemy-cards` | **approved 2026-10-31** (v0.33.0) |
 | 14 | Living tissue and infection | `living-tissue-and-infection` | to test |
 | 15 | Android minimum and performance | `performance-and-android-requirements` | to test |
 | 16 | Animation audit and hit colours | `animation-audit` | to test |

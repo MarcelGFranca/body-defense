@@ -5,6 +5,12 @@ extends RefCounted
 
 const ENTRIES := [
 	{
+		"version": "0.33.0",
+		"items": [
+			"Tap an enemy in the next-wave preview or on the level page to see its card.",
+		],
+	},
+	{
 		"version": "0.32.0",
 		"items": [
 			"The level list on the start screen scrolls with a drag, even over a level card.",
