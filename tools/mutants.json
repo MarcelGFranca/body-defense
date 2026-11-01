@@ -1,0 +1,862 @@
+[
+ {
+  "id": "damage-armor",
+  "file": "game/damage_calculator.gd",
+  "old": "value *= 1.0 - clampf(target.armor_percent, 0.0, 100.0) / 100.0",
+  "new": "value *= 1.0",
+  "area": "test_damage_calculator",
+  "before": "KILLED",
+  "after": "KILLED",
+  "equivalent": ""
+ },
+ {
+  "id": "damage-floor",
+  "file": "game/damage_calculator.gd",
+  "old": "floori(value + 0.0001)",
+  "new": "roundi(value)",
+  "area": "test_damage_calculator",
+  "before": "KILLED",
+  "after": "KILLED",
+  "equivalent": ""
+ },
+ {
+  "id": "damage-override",
+  "file": "game/damage_calculator.gd",
+  "old": "if target.damage_factor_overrides.has(damage_type):",
+  "new": "if false:",
+  "area": "test_damage_calculator",
+  "before": "KILLED",
+  "after": "KILLED",
+  "equivalent": ""
+ },
+ {
+  "id": "damage-mark",
+  "file": "game/damage_calculator.gd",
+  "old": "value *= 1.0 + mark_bonus",
+  "new": "value *= 1.0",
+  "area": "test_damage_calculator",
+  "before": "KILLED",
+  "after": "KILLED",
+  "equivalent": ""
+ },
+ {
+  "id": "damage-armor-all-types",
+  "file": "game/damage_calculator.gd",
+  "old": "if damage_type == PHYSICAL:",
+  "new": "if true:",
+  "area": "test_damage_calculator",
+  "before": "KILLED",
+  "after": "KILLED",
+  "equivalent": ""
+ },
+ {
+  "id": "damage-min-zero",
+  "file": "game/damage_calculator.gd",
+  "old": "return maxi(0, floori",
+  "new": "return (floori",
+  "area": "test_damage_calculator",
+  "before": "SURVIVED",
+  "after": "SURVIVED",
+  "equivalent": "no damage factor is negative, so the floor at 0 never acts (defensive code)"
+ },
+ {
+  "id": "eco-spend-boundary",
+  "file": "game/economy.gd",
+  "old": "balance(currency) < amount:",
+  "new": "balance(currency) <= amount:",
+  "area": "test_economy",
+  "before": "SURVIVED",
+  "after": "KILLED",
+  "equivalent": ""
+ },
+ {
+  "id": "eco-spend-subtract",
+  "file": "game/economy.gd",
+  "old": "_balances[currency] = balance(currency) - amount",
+  "new": "_balances[currency] = balance(currency) - 0",
+  "area": "test_economy",
+  "before": "KILLED",
+  "after": "KILLED",
+  "equivalent": ""
+ },
+ {
+  "id": "eco-refund-round",
+  "file": "game/economy.gd",
+  "old": "floori(total_spent * config.refund_fraction + 0.0001)",
+  "new": "ceili(total_spent * config.refund_fraction + 0.0001)",
+  "area": "test_economy",
+  "before": "KILLED",
+  "after": "KILLED",
+  "equivalent": ""
+ },
+ {
+  "id": "eco-add",
+  "file": "game/economy.gd",
+  "old": "_balances[currency] = balance(currency) + amount",
+  "new": "_balances[currency] = balance(currency) + amount + 1",
+  "area": "test_economy",
+  "before": "KILLED",
+  "after": "KILLED",
+  "equivalent": ""
+ },
+ {
+  "id": "eco-add-zero",
+  "file": "game/economy.gd",
+  "old": "if amount <= 0:\n\t\treturn\n\t_balances",
+  "new": "if amount < 0:\n\t\treturn\n\t_balances",
+  "area": "test_economy",
+  "before": "SURVIVED",
+  "after": "SURVIVED",
+  "equivalent": "adding 0 only changes whether a signal fires"
+ },
+ {
+  "id": "wave-boundary",
+  "file": "game/wave_scheduler.gd",
+  "old": "clock >= _waves[i].start_time * time_scale:",
+  "new": "clock > _waves[i].start_time * time_scale:",
+  "area": "test_wave_scheduler",
+  "before": "SURVIVED",
+  "after": "KILLED",
+  "equivalent": ""
+ },
+ {
+  "id": "wave-timescale",
+  "file": "game/wave_scheduler.gd",
+  "old": "clock >= _waves[i].start_time * time_scale:",
+  "new": "clock >= _waves[i].start_time:",
+  "area": "test_wave_scheduler",
+  "before": "SURVIVED",
+  "after": "KILLED",
+  "equivalent": ""
+ },
+ {
+  "id": "wave-shorten",
+  "file": "game/wave_scheduler.gd",
+  "old": "clock = maxf(clock, ",
+  "new": "clock = minf(clock, ",
+  "area": "test_wave_scheduler",
+  "before": "KILLED",
+  "after": "KILLED",
+  "equivalent": ""
+ },
+ {
+  "id": "wave-count",
+  "file": "game/wave_scheduler.gd",
+  "old": "for i in int(entry[\"count\"]):",
+  "new": "for i in int(entry[\"count\"]) - 1:",
+  "area": "test_wave_scheduler",
+  "before": "KILLED",
+  "after": "KILLED",
+  "equivalent": ""
+ },
+ {
+  "id": "status-boss-slow",
+  "file": "game/enemy_status.gd",
+  "old": "percent *= 0.5",
+  "new": "percent *= 1.0",
+  "area": "test_status_effects",
+  "before": "KILLED",
+  "after": "KILLED",
+  "equivalent": ""
+ },
+ {
+  "id": "status-boss-root",
+  "file": "game/enemy_status.gd",
+  "old": "seconds *= 0.5",
+  "new": "seconds *= 1.0",
+  "area": "test_status_effects",
+  "before": "KILLED",
+  "after": "KILLED",
+  "equivalent": ""
+ },
+ {
+  "id": "status-slow-stack",
+  "file": "game/enemy_status.gd",
+  "old": "best = maxf(best, float(_slow_percents[source]))",
+  "new": "best += float(_slow_percents[source])",
+  "area": "test_status_effects",
+  "before": "KILLED",
+  "after": "KILLED",
+  "equivalent": ""
+ },
+ {
+  "id": "status-linger",
+  "file": "game/enemy_status.gd",
+  "old": "const SLOW_LINGER := 1.5",
+  "new": "const SLOW_LINGER := 0.0",
+  "area": "test_status_effects",
+  "before": "KILLED",
+  "after": "KILLED",
+  "equivalent": ""
+ },
+ {
+  "id": "status-dot-tick",
+  "file": "game/enemy_status.gd",
+  "old": "_dot_next_tick += 1.0",
+  "new": "_dot_next_tick += 2.0",
+  "area": "test_status_effects",
+  "before": "KILLED",
+  "after": "KILLED",
+  "equivalent": ""
+ },
+ {
+  "id": "status-immune",
+  "file": "game/enemy_status.gd",
+  "old": "if _data.role == SLOW_IMMUNE_ROLE:",
+  "new": "if false:",
+  "area": "test_status_effects",
+  "before": "KILLED",
+  "after": "KILLED",
+  "equivalent": ""
+ },
+ {
+  "id": "status-speed",
+  "file": "game/enemy_status.gd",
+  "old": "return 1.0 - slow_percent() / 100.0",
+  "new": "return 1.0 - slow_percent() / 200.0",
+  "area": "test_status_effects",
+  "before": "KILLED",
+  "after": "KILLED",
+  "equivalent": ""
+ },
+ {
+  "id": "status-mark-expiry",
+  "file": "game/enemy_status.gd",
+  "old": "return _mark_bonus if time < _mark_until else 0.0",
+  "new": "return _mark_bonus",
+  "area": "test_status_effects",
+  "before": "KILLED",
+  "after": "KILLED",
+  "equivalent": ""
+ },
+ {
+  "id": "level-difficulty-health",
+  "file": "game/level.gd",
+  "old": "roundi(data.body_health * difficulty.body_health)",
+  "new": "roundi(data.body_health)",
+  "area": "test_difficulty",
+  "before": "KILLED",
+  "after": "KILLED",
+  "equivalent": ""
+ },
+ {
+  "id": "level-leak-damage",
+  "file": "game/level.gd",
+  "old": "body_health = maxi(0, body_health - enemy.body_damage)",
+  "new": "body_health = maxi(0, body_health - 1)",
+  "area": "test_level_simulation",
+  "before": "SURVIVED",
+  "after": "KILLED",
+  "equivalent": ""
+ },
+ {
+  "id": "level-defeat-boundary",
+  "file": "game/level.gd",
+  "old": "if body_health <= 0:",
+  "new": "if body_health < 0:",
+  "area": "test_level_simulation",
+  "before": "KILLED",
+  "after": "KILLED",
+  "equivalent": ""
+ },
+ {
+  "id": "level-victory-needs-clear",
+  "file": "game/level.gd",
+  "old": "scheduler.spawning_done() and enemies.is_empty()",
+  "new": "scheduler.spawning_done()",
+  "area": "test_level_simulation",
+  "before": "SURVIVED",
+  "after": "KILLED",
+  "equivalent": ""
+ },
+ {
+  "id": "level-sell-refund",
+  "file": "game/level.gd",
+  "old": "Economy.add(refund)",
+  "new": "pass",
+  "area": "test_level_simulation",
+  "before": "KILLED",
+  "after": "KILLED",
+  "equivalent": ""
+ },
+ {
+  "id": "level-slot-bounds",
+  "file": "game/level.gd",
+  "old": "or slot < 0 or slot >= data.slots.size():",
+  "new": "or slot < 0:",
+  "area": "test_level_simulation",
+  "before": "SURVIVED",
+  "after": "KILLED",
+  "equivalent": ""
+ },
+ {
+  "id": "level-tower-offered",
+  "file": "game/level.gd",
+  "old": "if not data.tower_ids.has(tower_id):",
+  "new": "if false:",
+  "area": "test_level_simulation",
+  "before": "KILLED",
+  "after": "KILLED",
+  "equivalent": ""
+ },
+ {
+  "id": "level-mobile-only",
+  "file": "game/level.gd",
+  "old": "if tower.data.mobility != \"mobile\":",
+  "new": "if false:",
+  "area": "test_new_towers",
+  "before": "KILLED",
+  "after": "KILLED",
+  "equivalent": ""
+ },
+ {
+  "id": "level-in-range-revive",
+  "file": "game/level.gd",
+  "old": "if not enemy.finished and not enemy.is_reviving() and enemy",
+  "new": "if not enemy.finished and enemy",
+  "area": "test_enemy_traits",
+  "before": "KILLED",
+  "after": "KILLED",
+  "equivalent": ""
+ },
+ {
+  "id": "level-first-in-range",
+  "file": "game/level.gd",
+  "old": "enemy.progress > first.progress",
+  "new": "enemy.progress < first.progress",
+  "area": "test_performance_helpers",
+  "before": "KILLED",
+  "after": "KILLED",
+  "equivalent": ""
+ },
+ {
+  "id": "level-range-radius",
+  "file": "game/level.gd",
+  "old": "var limit := radius * radius\n\tfor enemy in enemies:\n\t\tif not",
+  "new": "var limit := radius\n\tfor enemy in enemies:\n\t\tif not",
+  "area": "test_level_simulation",
+  "before": "KILLED",
+  "after": "KILLED",
+  "equivalent": ""
+ },
+ {
+  "id": "level-build-cost",
+  "file": "game/level.gd",
+  "old": "if not Economy.try_spend(tower_data.cost):",
+  "new": "if false:",
+  "area": "test_level_simulation",
+  "before": "KILLED",
+  "after": "KILLED",
+  "equivalent": ""
+ },
+ {
+  "id": "level-build-running",
+  "file": "game/level.gd",
+  "old": "if state != \"running\" or towers.has(slot) or slot < 0",
+  "new": "if towers.has(slot) or slot < 0",
+  "area": "test_level_simulation",
+  "before": "SURVIVED",
+  "after": "KILLED",
+  "equivalent": ""
+ },
+ {
+  "id": "session-unlock",
+  "file": "game/session.gd",
+  "old": "or is_completed(number - 1)",
+  "new": "or is_completed(number)",
+  "area": "test_session",
+  "before": "KILLED",
+  "after": "KILLED",
+  "equivalent": ""
+ },
+ {
+  "id": "session-best",
+  "file": "game/session.gd",
+  "old": "maxi(int(best_health.get(number, 0)), body_health)",
+  "new": "body_health",
+  "area": "test_session",
+  "before": "KILLED",
+  "after": "KILLED",
+  "equivalent": ""
+ },
+ {
+  "id": "session-has-next",
+  "file": "game/session.gd",
+  "old": "return number < LEVEL_COUNT",
+  "new": "return number <= LEVEL_COUNT",
+  "area": "test_session",
+  "before": "KILLED",
+  "after": "KILLED",
+  "equivalent": ""
+ },
+ {
+  "id": "session-next",
+  "file": "game/session.gd",
+  "old": "if not is_completed(number):",
+  "new": "if is_completed(number):",
+  "area": "test_session",
+  "before": "KILLED",
+  "after": "KILLED",
+  "equivalent": ""
+ },
+ {
+  "id": "validator-health",
+  "file": "game/data_validator.gd",
+  "old": "if e.health <= 0.0:",
+  "new": "if e.health < 0.0:",
+  "area": "test_validator_catches_problems",
+  "before": "KILLED",
+  "after": "KILLED",
+  "equivalent": ""
+ },
+ {
+  "id": "validator-type",
+  "file": "game/data_validator.gd",
+  "old": "if e.type != \"virus\" and e.type != \"bacterium\":",
+  "new": "if false:",
+  "area": "test_validator_catches_problems",
+  "before": "SURVIVED",
+  "after": "KILLED",
+  "equivalent": ""
+ },
+ {
+  "id": "stats-first-leak",
+  "file": "game/game_stats.gd",
+  "old": "if first_leak_time < 0.0:",
+  "new": "if true:",
+  "area": "test_stats",
+  "before": "SURVIVED",
+  "after": "KILLED",
+  "equivalent": ""
+ },
+ {
+  "id": "stats-spent",
+  "file": "game/game_stats.gd",
+  "old": "amino_spent += cost",
+  "new": "amino_spent += 0",
+  "area": "test_stats",
+  "before": "KILLED",
+  "after": "KILLED",
+  "equivalent": ""
+ },
+ {
+  "id": "stats-kills",
+  "file": "game/game_stats.gd",
+  "old": "entry[\"kills\"] += 1",
+  "new": "entry[\"kills\"] += 2",
+  "area": "test_stats",
+  "before": "SURVIVED",
+  "after": "KILLED",
+  "equivalent": ""
+ },
+ {
+  "id": "enemy-split-threshold",
+  "file": "game/enemy.gd",
+  "old": "health <= max_health * 0.5",
+  "new": "health <= max_health * 0.4",
+  "area": "test_enemy_traits",
+  "before": "KILLED",
+  "after": "KILLED",
+  "equivalent": ""
+ },
+ {
+  "id": "level-kill-reward",
+  "file": "game/level.gd",
+  "old": "Economy.add(enemy.reward)",
+  "new": "pass",
+  "area": "test_level_simulation",
+  "before": "KILLED",
+  "after": "KILLED",
+  "equivalent": ""
+ },
+ {
+  "id": "enemy-revive-once",
+  "file": "game/enemy.gd",
+  "old": "if has_trait(\"revive\") and not _revived:",
+  "new": "if has_trait(\"revive\"):",
+  "area": "test_revive",
+  "before": "KILLED",
+  "after": "KILLED",
+  "equivalent": ""
+ },
+ {
+  "id": "enemy-resist-factor",
+  "file": "game/enemy.gd",
+  "old": "param(\"factor\", 0.5)",
+  "new": "param(\"factor\", 1.0)",
+  "area": "test_enemy_traits",
+  "before": "SURVIVED",
+  "after": "SURVIVED",
+  "equivalent": "the data value (0.5) equals the code fallback, so the fallback never acts"
+ },
+ {
+  "id": "enemy-resist-at",
+  "file": "game/enemy.gd",
+  "old": "progress < _length * param(\"at\", 0.4)",
+  "new": "progress > _length * param(\"at\", 0.4)",
+  "area": "test_enemy_traits",
+  "before": "KILLED",
+  "after": "KILLED",
+  "equivalent": ""
+ },
+ {
+  "id": "enemy-no-damage-while-reviving",
+  "file": "game/enemy.gd",
+  "old": "if finished or is_dormant() or _reviving:",
+  "new": "if finished or is_dormant():",
+  "area": "test_revive",
+  "before": "KILLED",
+  "after": "KILLED",
+  "equivalent": ""
+ },
+ {
+  "id": "enemy-minion-count",
+  "file": "game/level.gd",
+  "old": "\"count\", 2)):",
+  "new": "\"count\", 1)):",
+  "area": "test_enemy_traits",
+  "before": "SURVIVED",
+  "after": "SURVIVED",
+  "equivalent": "the data value (2) equals the code fallback, so the fallback never acts"
+ },
+ {
+  "id": "enemy-stats-overkill",
+  "file": "game/enemy.gd",
+  "old": "minf(float(dealt), maxf(health, 0.0))",
+  "new": "float(dealt)",
+  "area": "test_stats",
+  "before": "SURVIVED",
+  "after": "KILLED",
+  "equivalent": ""
+ },
+ {
+  "id": "tower-interval",
+  "file": "game/tower.gd",
+  "old": "target.take_damage(data.attack_damage, data.damage_type, data.id)\n\t_cooldown = data.attack_interval",
+  "new": "target.take_damage(data.attack_damage, data.damage_type, data.id)\n\t_cooldown = 0.0",
+  "area": "test_level_simulation",
+  "before": "KILLED",
+  "after": "KILLED",
+  "equivalent": ""
+ },
+ {
+  "id": "tower-damage",
+  "file": "game/tower.gd",
+  "old": "target.take_damage(data.attack_damage, data.damage_type, data.id)\n\t_cooldown",
+  "new": "target.take_damage(data.attack_damage + 1, data.damage_type, data.id)\n\t_cooldown",
+  "area": "test_level_simulation",
+  "before": "KILLED",
+  "after": "KILLED",
+  "equivalent": ""
+ },
+ {
+  "id": "tower-aura-all",
+  "file": "game/tower.gd",
+  "old": "for enemy: Enemy in targets:\n\t\tenemy.take_damage(data.attack_damage, data.damage_type, data.id)\n\t_cooldown = data.attack_interval\n\t_pulse_age",
+  "new": "for enemy: Enemy in targets.slice(0, 1):\n\t\tenemy.take_damage(data.attack_damage, data.damage_type, data.id)\n\t_cooldown = data.attack_interval\n\t_pulse_age",
+  "area": "test_level_simulation",
+  "before": "KILLED",
+  "after": "KILLED",
+  "equivalent": ""
+ },
+ {
+  "id": "tower-range",
+  "file": "game/tower.gd",
+  "old": "_level.first_enemy_in_range(position, data.range_px)",
+  "new": "_level.first_enemy_in_range(position, data.range_px * 2.0)",
+  "area": "test_level_simulation",
+  "before": "KILLED",
+  "after": "KILLED",
+  "equivalent": ""
+ },
+ {
+  "id": "level-speed-value",
+  "file": "game/level.gd",
+  "old": "speed = 2 if speed == 1 else 1",
+  "new": "speed = 3 if speed == 1 else 1",
+  "area": "test_speed_and_pause",
+  "before": "KILLED",
+  "after": "KILLED",
+  "equivalent": ""
+ },
+ {
+  "id": "level-speed-timescale",
+  "file": "game/level.gd",
+  "old": "Engine.time_scale = float(speed)",
+  "new": "pass",
+  "area": "test_speed_and_pause",
+  "before": "KILLED",
+  "after": "KILLED",
+  "equivalent": ""
+ },
+ {
+  "id": "level-step-state",
+  "file": "game/level.gd",
+  "old": "if state != \"running\":\n\t\treturn\n\tscheduler.tick(delta)",
+  "new": "if false:\n\t\treturn\n\tscheduler.tick(delta)",
+  "area": "test_level_simulation",
+  "before": "SURVIVED",
+  "after": "KILLED",
+  "equivalent": ""
+ },
+ {
+  "id": "level-empty-wait",
+  "file": "game/level.gd",
+  "old": "scheduler.shorten_wait(EMPTY_FIELD_WAIT)",
+  "new": "pass",
+  "area": "test_wave_scheduler",
+  "before": "KILLED",
+  "after": "KILLED",
+  "equivalent": ""
+ },
+ {
+  "id": "level-call-wave-state",
+  "file": "game/level.gd",
+  "old": "return state == \"running\" and scheduler.call_next_wave()",
+  "new": "return scheduler.call_next_wave()",
+  "area": "test_level_simulation",
+  "before": "SURVIVED",
+  "after": "KILLED",
+  "equivalent": ""
+ },
+ {
+  "id": "level-scroll-clamp",
+  "file": "game/level.gd",
+  "old": "scroll = position.clamp(limits.position, limits.end)",
+  "new": "scroll = position",
+  "area": "test_scrolling",
+  "before": "KILLED",
+  "after": "KILLED",
+  "equivalent": ""
+ },
+ {
+  "id": "level-sell-state",
+  "file": "game/level.gd",
+  "old": "if state != \"running\" or not towers.has(slot):\n\t\treturn 0",
+  "new": "if not towers.has(slot):\n\t\treturn 0",
+  "area": "test_level_simulation",
+  "before": "SURVIVED",
+  "after": "KILLED",
+  "equivalent": ""
+ },
+ {
+  "id": "level-move-occupied",
+  "file": "game/level.gd",
+  "old": "if state != \"running\" or not towers.has(from_slot) or towers.has(to_slot):",
+  "new": "if state != \"running\" or not towers.has(from_slot):",
+  "area": "test_new_towers",
+  "before": "KILLED",
+  "after": "KILLED",
+  "equivalent": ""
+ },
+ {
+  "id": "level-move-bounds",
+  "file": "game/level.gd",
+  "old": "if to_slot < 0 or to_slot >= data.slots.size():",
+  "new": "if to_slot < 0:",
+  "area": "test_new_towers",
+  "before": "SURVIVED",
+  "after": "KILLED",
+  "equivalent": ""
+ },
+ {
+  "id": "session-changelog",
+  "file": "game/session.gd",
+  "old": "return last_seen_version != current_version()",
+  "new": "return last_seen_version == current_version()",
+  "area": "test_changelog",
+  "before": "KILLED",
+  "after": "KILLED",
+  "equivalent": ""
+ },
+ {
+  "id": "level-zoom-min",
+  "file": "game/level.gd",
+  "old": "func zoom_min() -> float:",
+  "new": "func zoom_min() -> float:\n\treturn 0.01",
+  "area": "test_scrolling",
+  "before": "SURVIVED",
+  "after": "KILLED",
+  "equivalent": ""
+ },
+ {
+  "id": "level-map-center",
+  "file": "game/level.gd",
+  "old": "high.x = low.x",
+  "new": "high.x = high.x",
+  "area": "test_map_centering",
+  "before": "SURVIVED",
+  "after": "KILLED",
+  "equivalent": ""
+ },
+ {
+  "id": "level-victory-health",
+  "file": "game/level.gd",
+  "old": "state == \"running\" and body_health > 0 and scheduler",
+  "new": "state == \"running\" and scheduler",
+  "area": "test_level_simulation",
+  "before": "SURVIVED",
+  "after": "SURVIVED",
+  "equivalent": "a lost level has state lost, so the health test is redundant"
+ },
+ {
+  "id": "split-health",
+  "file": "game/level.gd",
+  "old": "ceilf(enemy.health / copies)",
+  "new": "enemy.health",
+  "area": "test_enemy_traits",
+  "before": "KILLED",
+  "after": "KILLED",
+  "equivalent": ""
+ },
+ {
+  "id": "split-reward",
+  "file": "game/level.gd",
+  "old": "\"reward\": maxi(1, roundi(float(enemy.reward) / copies))",
+  "new": "\"reward\": enemy.reward",
+  "area": "test_enemy_traits",
+  "before": "KILLED",
+  "after": "KILLED",
+  "equivalent": ""
+ },
+ {
+  "id": "split-damage",
+  "file": "game/level.gd",
+  "old": "\"damage\": maxi(1, ceili(float(enemy.body_damage) / copies))",
+  "new": "\"damage\": enemy.body_damage",
+  "area": "test_enemy_traits",
+  "before": "SURVIVED",
+  "after": "KILLED",
+  "equivalent": ""
+ },
+ {
+  "id": "audio-repeat-guard",
+  "file": "game/game_audio.gd",
+  "old": "< MIN_REPEAT_MSEC:",
+  "new": "> MIN_REPEAT_MSEC:",
+  "area": "test_audio",
+  "before": "KILLED",
+  "after": "KILLED",
+  "equivalent": ""
+ },
+ {
+  "id": "audio-silence-at-zero",
+  "file": "game/game_audio.gd",
+  "old": "if volume > 0.0 else -80.0",
+  "new": "if volume > 0.0 else 0.0",
+  "area": "test_audio",
+  "before": "SURVIVED",
+  "after": "KILLED",
+  "equivalent": ""
+ },
+ {
+  "id": "audio-mute-sfx",
+  "file": "game/game_audio.gd",
+  "old": "return -80.0 if muted else _scaled_db(config.sfx_volume_db, sfx_volume)",
+  "new": "return _scaled_db(config.sfx_volume_db, sfx_volume)",
+  "area": "test_audio",
+  "before": "SURVIVED",
+  "after": "KILLED",
+  "equivalent": ""
+ },
+ {
+  "id": "audio-clamp",
+  "file": "game/game_audio.gd",
+  "old": "music_volume = clampf(value, 0.0, 1.0)",
+  "new": "music_volume = value",
+  "area": "test_audio",
+  "before": "SURVIVED",
+  "after": "KILLED",
+  "equivalent": ""
+ },
+ {
+  "id": "audio-empty-path",
+  "file": "game/game_audio.gd",
+  "old": "if path == \"\":\n\t\treturn false\n\tvar now",
+  "new": "if false:\n\t\treturn false\n\tvar now",
+  "area": "test_audio",
+  "before": "SURVIVED",
+  "after": "SURVIVED",
+  "equivalent": "an empty path ends in the same false, only a warning is added"
+ },
+ {
+  "id": "hud-health-order",
+  "file": "game/hud.gd",
+  "old": "\"%d/%d\" % [_shown_health, _shown_max_health]",
+  "new": "\"%d/%d\" % [_shown_max_health, _shown_health]",
+  "area": "test_hud",
+  "before": "SURVIVED",
+  "after": "KILLED",
+  "equivalent": ""
+ },
+ {
+  "id": "hud-wave-number",
+  "file": "game/hud.gd",
+  "old": "[started, level.scheduler.wave_count()]",
+  "new": "[started + 1, level.scheduler.wave_count()]",
+  "area": "test_hud",
+  "before": "KILLED",
+  "after": "KILLED",
+  "equivalent": ""
+ },
+ {
+  "id": "hud-countdown-round",
+  "file": "game/hud.gd",
+  "old": "ceili(scheduler.time_to_next_wave())",
+  "new": "floori(scheduler.time_to_next_wave())",
+  "area": "test_hud",
+  "before": "KILLED",
+  "after": "KILLED",
+  "equivalent": ""
+ },
+ {
+  "id": "hud-call-visible",
+  "file": "game/hud.gd",
+  "old": "next_index != -1 and level.state == \"running\"",
+  "new": "next_index != -1",
+  "area": "test_hud",
+  "before": "SURVIVED",
+  "after": "KILLED",
+  "equivalent": ""
+ },
+ {
+  "id": "hud-language-reset",
+  "file": "game/hud.gd",
+  "old": "\t\t_shown_amino = -1\n\t\t_shown_started = -1",
+  "new": "\t\t_shown_started = -1",
+  "area": "test_hud",
+  "before": "SURVIVED",
+  "after": "SURVIVED",
+  "equivalent": "the amino acid text does not depend on the language"
+ },
+ {
+  "id": "loc-fallback",
+  "file": "game/localization.gd",
+  "old": "code if is_supported(code) else \"en\"",
+  "new": "code",
+  "area": "test_localization",
+  "before": "SURVIVED",
+  "after": "KILLED",
+  "equivalent": ""
+ },
+ {
+  "id": "loc-os-pt",
+  "file": "game/localization.gd",
+  "old": "return \"pt_BR\"",
+  "new": "return \"pt\"",
+  "area": "test_localization",
+  "before": "SURVIVED",
+  "after": "KILLED",
+  "equivalent": ""
+ },
+ {
+  "id": "session-unsupported-language",
+  "file": "game/session.gd",
+  "old": "if not Localization.is_supported(code):\n\t\treturn",
+  "new": "if false:\n\t\treturn",
+  "area": "test_session",
+  "before": "SURVIVED",
+  "after": "KILLED",
+  "equivalent": ""
+ }
+]

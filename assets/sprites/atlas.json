@@ -1,0 +1,742 @@
+{
+	"width": 2048,
+	"height": 510,
+	"frame": 32,
+	"sheets": {
+		"enemies/clostridioides-difficile/attack": {
+			"x": 0,
+			"y": 0,
+			"frames": 8,
+			"fps": 10.0,
+			"loop": false
+		},
+		"enemies/clostridioides-difficile/death": {
+			"x": 258,
+			"y": 0,
+			"frames": 8,
+			"fps": 8.0,
+			"loop": false
+		},
+		"enemies/clostridioides-difficile/hit_mucus": {
+			"x": 516,
+			"y": 0,
+			"frames": 8,
+			"fps": 8.0,
+			"loop": false
+		},
+		"enemies/clostridioides-difficile/hit_physical": {
+			"x": 774,
+			"y": 0,
+			"frames": 8,
+			"fps": 10.0,
+			"loop": false
+		},
+		"enemies/clostridioides-difficile/immune_antiviral": {
+			"x": 1032,
+			"y": 0,
+			"frames": 8,
+			"fps": 10.0,
+			"loop": false
+		},
+		"enemies/clostridioides-difficile/walk": {
+			"x": 1290,
+			"y": 0,
+			"frames": 8,
+			"fps": 9.0,
+			"loop": true
+		},
+		"enemies/e-coli/attack": {
+			"x": 1548,
+			"y": 0,
+			"frames": 8,
+			"fps": 10.0,
+			"loop": false
+		},
+		"enemies/e-coli/death": {
+			"x": 0,
+			"y": 34,
+			"frames": 8,
+			"fps": 8.0,
+			"loop": false
+		},
+		"enemies/e-coli/hit_mucus": {
+			"x": 258,
+			"y": 34,
+			"frames": 8,
+			"fps": 8.0,
+			"loop": false
+		},
+		"enemies/e-coli/hit_physical": {
+			"x": 516,
+			"y": 34,
+			"frames": 8,
+			"fps": 10.0,
+			"loop": false
+		},
+		"enemies/e-coli/immune_antiviral": {
+			"x": 774,
+			"y": 34,
+			"frames": 8,
+			"fps": 10.0,
+			"loop": false
+		},
+		"enemies/e-coli/walk": {
+			"x": 1032,
+			"y": 34,
+			"frames": 8,
+			"fps": 9.0,
+			"loop": true
+		},
+		"enemies/helicobacter-pylori/attack": {
+			"x": 1290,
+			"y": 34,
+			"frames": 8,
+			"fps": 10.0,
+			"loop": false
+		},
+		"enemies/helicobacter-pylori/death": {
+			"x": 1548,
+			"y": 34,
+			"frames": 8,
+			"fps": 8.0,
+			"loop": false
+		},
+		"enemies/helicobacter-pylori/hit_mucus": {
+			"x": 0,
+			"y": 68,
+			"frames": 8,
+			"fps": 8.0,
+			"loop": false
+		},
+		"enemies/helicobacter-pylori/hit_physical": {
+			"x": 258,
+			"y": 68,
+			"frames": 8,
+			"fps": 10.0,
+			"loop": false
+		},
+		"enemies/helicobacter-pylori/immune_antiviral": {
+			"x": 516,
+			"y": 68,
+			"frames": 8,
+			"fps": 10.0,
+			"loop": false
+		},
+		"enemies/helicobacter-pylori/walk": {
+			"x": 774,
+			"y": 68,
+			"frames": 8,
+			"fps": 9.0,
+			"loop": true
+		},
+		"enemies/herpes-simplex/attack": {
+			"x": 1032,
+			"y": 68,
+			"frames": 8,
+			"fps": 10.0,
+			"loop": false
+		},
+		"enemies/herpes-simplex/death": {
+			"x": 1290,
+			"y": 68,
+			"frames": 8,
+			"fps": 8.0,
+			"loop": false
+		},
+		"enemies/herpes-simplex/hit_antiviral": {
+			"x": 1548,
+			"y": 68,
+			"frames": 8,
+			"fps": 10.0,
+			"loop": false
+		},
+		"enemies/herpes-simplex/hit_mucus": {
+			"x": 0,
+			"y": 102,
+			"frames": 8,
+			"fps": 8.0,
+			"loop": false
+		},
+		"enemies/herpes-simplex/hit_physical": {
+			"x": 258,
+			"y": 102,
+			"frames": 8,
+			"fps": 10.0,
+			"loop": false
+		},
+		"enemies/herpes-simplex/walk": {
+			"x": 516,
+			"y": 102,
+			"frames": 8,
+			"fps": 9.0,
+			"loop": true
+		},
+		"enemies/hiv/attack": {
+			"x": 774,
+			"y": 102,
+			"frames": 8,
+			"fps": 9.0,
+			"loop": false
+		},
+		"enemies/hiv/death": {
+			"x": 1032,
+			"y": 102,
+			"frames": 8,
+			"fps": 8.0,
+			"loop": false
+		},
+		"enemies/hiv/hit_antiviral": {
+			"x": 1290,
+			"y": 102,
+			"frames": 8,
+			"fps": 9.0,
+			"loop": false
+		},
+		"enemies/hiv/hit_mucus": {
+			"x": 1548,
+			"y": 102,
+			"frames": 8,
+			"fps": 8.0,
+			"loop": false
+		},
+		"enemies/hiv/hit_physical": {
+			"x": 0,
+			"y": 136,
+			"frames": 8,
+			"fps": 9.0,
+			"loop": false
+		},
+		"enemies/hiv/walk": {
+			"x": 258,
+			"y": 136,
+			"frames": 8,
+			"fps": 7.0,
+			"loop": true
+		},
+		"enemies/hpv/attack": {
+			"x": 516,
+			"y": 136,
+			"frames": 8,
+			"fps": 10.0,
+			"loop": false
+		},
+		"enemies/hpv/death": {
+			"x": 774,
+			"y": 136,
+			"frames": 8,
+			"fps": 8.0,
+			"loop": false
+		},
+		"enemies/hpv/hit_antiviral": {
+			"x": 1032,
+			"y": 136,
+			"frames": 8,
+			"fps": 10.0,
+			"loop": false
+		},
+		"enemies/hpv/hit_mucus": {
+			"x": 1290,
+			"y": 136,
+			"frames": 8,
+			"fps": 8.0,
+			"loop": false
+		},
+		"enemies/hpv/hit_physical": {
+			"x": 1548,
+			"y": 136,
+			"frames": 8,
+			"fps": 10.0,
+			"loop": false
+		},
+		"enemies/hpv/walk": {
+			"x": 0,
+			"y": 170,
+			"frames": 8,
+			"fps": 8.0,
+			"loop": true
+		},
+		"enemies/influenza/attack": {
+			"x": 258,
+			"y": 170,
+			"frames": 8,
+			"fps": 12.0,
+			"loop": false
+		},
+		"enemies/influenza/death": {
+			"x": 516,
+			"y": 170,
+			"frames": 8,
+			"fps": 8.0,
+			"loop": false
+		},
+		"enemies/influenza/hit_antiviral": {
+			"x": 774,
+			"y": 170,
+			"frames": 8,
+			"fps": 12.0,
+			"loop": false
+		},
+		"enemies/influenza/hit_mucus": {
+			"x": 1032,
+			"y": 170,
+			"frames": 8,
+			"fps": 8.0,
+			"loop": false
+		},
+		"enemies/influenza/hit_physical": {
+			"x": 1290,
+			"y": 170,
+			"frames": 8,
+			"fps": 12.0,
+			"loop": false
+		},
+		"enemies/influenza/walk": {
+			"x": 1548,
+			"y": 170,
+			"frames": 8,
+			"fps": 14.0,
+			"loop": true
+		},
+		"enemies/mycobacterium-tuberculosis/attack": {
+			"x": 0,
+			"y": 204,
+			"frames": 8,
+			"fps": 8.0,
+			"loop": false
+		},
+		"enemies/mycobacterium-tuberculosis/death": {
+			"x": 258,
+			"y": 204,
+			"frames": 8,
+			"fps": 8.0,
+			"loop": false
+		},
+		"enemies/mycobacterium-tuberculosis/hit_mucus": {
+			"x": 516,
+			"y": 204,
+			"frames": 8,
+			"fps": 8.0,
+			"loop": false
+		},
+		"enemies/mycobacterium-tuberculosis/hit_physical": {
+			"x": 774,
+			"y": 204,
+			"frames": 8,
+			"fps": 8.0,
+			"loop": false
+		},
+		"enemies/mycobacterium-tuberculosis/immune_antiviral": {
+			"x": 1032,
+			"y": 204,
+			"frames": 8,
+			"fps": 8.0,
+			"loop": false
+		},
+		"enemies/mycobacterium-tuberculosis/walk": {
+			"x": 1290,
+			"y": 204,
+			"frames": 8,
+			"fps": 6.0,
+			"loop": true
+		},
+		"enemies/neisseria-meningitidis/attack": {
+			"x": 1548,
+			"y": 204,
+			"frames": 8,
+			"fps": 10.0,
+			"loop": false
+		},
+		"enemies/neisseria-meningitidis/death": {
+			"x": 0,
+			"y": 238,
+			"frames": 8,
+			"fps": 8.0,
+			"loop": false
+		},
+		"enemies/neisseria-meningitidis/hit_mucus": {
+			"x": 258,
+			"y": 238,
+			"frames": 8,
+			"fps": 8.0,
+			"loop": false
+		},
+		"enemies/neisseria-meningitidis/hit_physical": {
+			"x": 516,
+			"y": 238,
+			"frames": 8,
+			"fps": 10.0,
+			"loop": false
+		},
+		"enemies/neisseria-meningitidis/immune_antiviral": {
+			"x": 774,
+			"y": 238,
+			"frames": 8,
+			"fps": 10.0,
+			"loop": false
+		},
+		"enemies/neisseria-meningitidis/walk": {
+			"x": 1032,
+			"y": 238,
+			"frames": 8,
+			"fps": 8.0,
+			"loop": true
+		},
+		"enemies/rhinovirus/attack": {
+			"x": 1290,
+			"y": 238,
+			"frames": 8,
+			"fps": 10.0,
+			"loop": false
+		},
+		"enemies/rhinovirus/death": {
+			"x": 1548,
+			"y": 238,
+			"frames": 8,
+			"fps": 8.0,
+			"loop": false
+		},
+		"enemies/rhinovirus/hit_antiviral": {
+			"x": 0,
+			"y": 272,
+			"frames": 8,
+			"fps": 10.0,
+			"loop": false
+		},
+		"enemies/rhinovirus/hit_mucus": {
+			"x": 258,
+			"y": 272,
+			"frames": 8,
+			"fps": 8.0,
+			"loop": false
+		},
+		"enemies/rhinovirus/hit_physical": {
+			"x": 516,
+			"y": 272,
+			"frames": 8,
+			"fps": 10.0,
+			"loop": false
+		},
+		"enemies/rhinovirus/walk": {
+			"x": 774,
+			"y": 272,
+			"frames": 8,
+			"fps": 10.0,
+			"loop": true
+		},
+		"enemies/sars-cov-2/attack": {
+			"x": 1032,
+			"y": 272,
+			"frames": 8,
+			"fps": 12.0,
+			"loop": false
+		},
+		"enemies/sars-cov-2/death": {
+			"x": 1290,
+			"y": 272,
+			"frames": 8,
+			"fps": 8.0,
+			"loop": false
+		},
+		"enemies/sars-cov-2/hit_antiviral": {
+			"x": 1548,
+			"y": 272,
+			"frames": 8,
+			"fps": 12.0,
+			"loop": false
+		},
+		"enemies/sars-cov-2/hit_mucus": {
+			"x": 0,
+			"y": 306,
+			"frames": 8,
+			"fps": 8.0,
+			"loop": false
+		},
+		"enemies/sars-cov-2/hit_physical": {
+			"x": 258,
+			"y": 306,
+			"frames": 8,
+			"fps": 12.0,
+			"loop": false
+		},
+		"enemies/sars-cov-2/walk": {
+			"x": 516,
+			"y": 306,
+			"frames": 8,
+			"fps": 14.0,
+			"loop": true
+		},
+		"enemies/staphylococcus-aureus/attack": {
+			"x": 774,
+			"y": 306,
+			"frames": 8,
+			"fps": 10.0,
+			"loop": false
+		},
+		"enemies/staphylococcus-aureus/death": {
+			"x": 1032,
+			"y": 306,
+			"frames": 8,
+			"fps": 8.0,
+			"loop": false
+		},
+		"enemies/staphylococcus-aureus/hit_mucus": {
+			"x": 1290,
+			"y": 306,
+			"frames": 8,
+			"fps": 8.0,
+			"loop": false
+		},
+		"enemies/staphylococcus-aureus/hit_physical": {
+			"x": 1548,
+			"y": 306,
+			"frames": 8,
+			"fps": 10.0,
+			"loop": false
+		},
+		"enemies/staphylococcus-aureus/immune_antiviral": {
+			"x": 0,
+			"y": 340,
+			"frames": 8,
+			"fps": 10.0,
+			"loop": false
+		},
+		"enemies/staphylococcus-aureus/walk": {
+			"x": 258,
+			"y": 340,
+			"frames": 8,
+			"fps": 8.0,
+			"loop": true
+		},
+		"enemies/streptococcus-pyogenes-segment/attack": {
+			"x": 516,
+			"y": 340,
+			"frames": 8,
+			"fps": 10.0,
+			"loop": false
+		},
+		"enemies/streptococcus-pyogenes-segment/death": {
+			"x": 774,
+			"y": 340,
+			"frames": 8,
+			"fps": 8.0,
+			"loop": false
+		},
+		"enemies/streptococcus-pyogenes-segment/hit_mucus": {
+			"x": 1032,
+			"y": 340,
+			"frames": 8,
+			"fps": 8.0,
+			"loop": false
+		},
+		"enemies/streptococcus-pyogenes-segment/hit_physical": {
+			"x": 1290,
+			"y": 340,
+			"frames": 8,
+			"fps": 10.0,
+			"loop": false
+		},
+		"enemies/streptococcus-pyogenes-segment/immune_antiviral": {
+			"x": 1548,
+			"y": 340,
+			"frames": 8,
+			"fps": 10.0,
+			"loop": false
+		},
+		"enemies/streptococcus-pyogenes-segment/walk": {
+			"x": 0,
+			"y": 374,
+			"frames": 8,
+			"fps": 8.0,
+			"loop": true
+		},
+		"enemies/streptococcus-pyogenes/attack": {
+			"x": 258,
+			"y": 374,
+			"frames": 8,
+			"fps": 10.0,
+			"loop": false
+		},
+		"enemies/streptococcus-pyogenes/death": {
+			"x": 516,
+			"y": 374,
+			"frames": 8,
+			"fps": 8.0,
+			"loop": false
+		},
+		"enemies/streptococcus-pyogenes/hit_mucus": {
+			"x": 774,
+			"y": 374,
+			"frames": 8,
+			"fps": 8.0,
+			"loop": false
+		},
+		"enemies/streptococcus-pyogenes/hit_physical": {
+			"x": 1032,
+			"y": 374,
+			"frames": 8,
+			"fps": 10.0,
+			"loop": false
+		},
+		"enemies/streptococcus-pyogenes/immune_antiviral": {
+			"x": 1290,
+			"y": 374,
+			"frames": 8,
+			"fps": 10.0,
+			"loop": false
+		},
+		"enemies/streptococcus-pyogenes/walk": {
+			"x": 1548,
+			"y": 374,
+			"frames": 8,
+			"fps": 8.0,
+			"loop": true
+		},
+		"towers/b-lymphocyte/attack": {
+			"x": 0,
+			"y": 408,
+			"frames": 8,
+			"fps": 12.0,
+			"loop": false
+		},
+		"towers/b-lymphocyte/idle": {
+			"x": 258,
+			"y": 408,
+			"frames": 8,
+			"fps": 6.0,
+			"loop": true
+		},
+		"towers/bone-marrow/attack": {
+			"x": 516,
+			"y": 408,
+			"frames": 8,
+			"fps": 12.0,
+			"loop": false
+		},
+		"towers/bone-marrow/idle": {
+			"x": 774,
+			"y": 408,
+			"frames": 8,
+			"fps": 6.0,
+			"loop": true
+		},
+		"towers/hypothalamus/attack": {
+			"x": 1032,
+			"y": 408,
+			"frames": 8,
+			"fps": 12.0,
+			"loop": false
+		},
+		"towers/hypothalamus/idle": {
+			"x": 1290,
+			"y": 408,
+			"frames": 8,
+			"fps": 6.0,
+			"loop": true
+		},
+		"towers/interferon/attack": {
+			"x": 1548,
+			"y": 408,
+			"frames": 8,
+			"fps": 12.0,
+			"loop": false
+		},
+		"towers/interferon/idle": {
+			"x": 0,
+			"y": 442,
+			"frames": 8,
+			"fps": 6.0,
+			"loop": true
+		},
+		"towers/lysozyme/attack": {
+			"x": 258,
+			"y": 442,
+			"frames": 8,
+			"fps": 12.0,
+			"loop": false
+		},
+		"towers/lysozyme/idle": {
+			"x": 516,
+			"y": 442,
+			"frames": 8,
+			"fps": 6.0,
+			"loop": true
+		},
+		"towers/macrophage/attack": {
+			"x": 774,
+			"y": 442,
+			"frames": 8,
+			"fps": 12.0,
+			"loop": false
+		},
+		"towers/macrophage/idle": {
+			"x": 1032,
+			"y": 442,
+			"frames": 8,
+			"fps": 6.0,
+			"loop": true
+		},
+		"towers/mucus-cell/attack": {
+			"x": 1290,
+			"y": 442,
+			"frames": 8,
+			"fps": 12.0,
+			"loop": false
+		},
+		"towers/mucus-cell/idle": {
+			"x": 1548,
+			"y": 442,
+			"frames": 8,
+			"fps": 6.0,
+			"loop": true
+		},
+		"towers/neutrophil/attack": {
+			"x": 0,
+			"y": 476,
+			"frames": 8,
+			"fps": 12.0,
+			"loop": false
+		},
+		"towers/neutrophil/idle": {
+			"x": 258,
+			"y": 476,
+			"frames": 8,
+			"fps": 6.0,
+			"loop": true
+		},
+		"towers/platelet/attack": {
+			"x": 516,
+			"y": 476,
+			"frames": 8,
+			"fps": 12.0,
+			"loop": false
+		},
+		"towers/platelet/idle": {
+			"x": 774,
+			"y": 476,
+			"frames": 8,
+			"fps": 6.0,
+			"loop": true
+		},
+		"towers/t-lymphocyte/attack": {
+			"x": 1032,
+			"y": 476,
+			"frames": 8,
+			"fps": 12.0,
+			"loop": false
+		},
+		"towers/t-lymphocyte/charge": {
+			"x": 1290,
+			"y": 476,
+			"frames": 8,
+			"fps": 8.0,
+			"loop": false
+		},
+		"towers/t-lymphocyte/idle": {
+			"x": 1548,
+			"y": 476,
+			"frames": 8,
+			"fps": 6.0,
+			"loop": true
+		}
+	}
+}

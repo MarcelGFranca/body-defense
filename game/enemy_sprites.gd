@@ -1,8 +1,7 @@
-## Builds `SpriteFrames` for an enemy from its generated sprite sheets, or from a placeholder.
+## Builds `SpriteFrames` for an enemy from the sprite atlas, or from a placeholder when it has no animations.
 class_name EnemySprites
 extends RefCounted
 
-const FRAME_SIZE := 32
 const PLACEHOLDERS := {
 	"virus": "res://assets/placeholders/virus.png",
 	"bacterium": "res://assets/placeholders/bacterium.png",
@@ -12,17 +11,20 @@ static var _cache: Dictionary = {}
 
 
 static func frames_for(data: EnemyData) -> SpriteFrames:
-	if _cache.has(data.id):
-		return _cache[data.id]
-	var frames := SpriteFrames.new()
-	frames.remove_animation("default")
-	if data.sprite_dir != "" and _add_sheets(frames, data):
-		_cache[data.id] = frames
-		return frames
-	frames.add_animation("walk")
-	frames.set_animation_loop("walk", true)
-	frames.add_frame("walk", load(PLACEHOLDERS[data.type]))
-	_cache[data.id] = frames
+	# The cache is keyed by the sprite folder: a chain segment has the id of its enemy but art of its own.
+	var key := data.sprite_dir if data.sprite_dir != "" else data.id
+	if _cache.has(key):
+		return _cache[key]
+	var frames: SpriteFrames = null
+	if data.sprite_dir != "":
+		frames = SpriteAtlas.frames_for("enemies", data.sprite_dir.get_file())
+	if frames == null:
+		frames = SpriteFrames.new()
+		frames.remove_animation("default")
+		frames.add_animation("walk")
+		frames.set_animation_loop("walk", true)
+		frames.add_frame("walk", load(PLACEHOLDERS[data.type]))
+	_cache[key] = frames
 	return frames
 
 
@@ -33,22 +35,3 @@ static func icon_for(data: EnemyData) -> Texture2D:
 		if ResourceLoader.exists(path):
 			return load(path)
 	return load(PLACEHOLDERS[data.type])
-
-
-static func _add_sheets(frames: SpriteFrames, data: EnemyData) -> bool:
-	var meta_path := "%s/animations/%s_animations.json" % [data.sprite_dir, data.id]
-	if not FileAccess.file_exists(meta_path):
-		return false
-	var meta: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(meta_path))
-	for anim_name in meta["animations"]:
-		var info: Dictionary = meta["animations"][anim_name]
-		var sheet: Texture2D = load("%s/animations/%s_%s_sheet.png" % [data.sprite_dir, data.id, anim_name])
-		frames.add_animation(anim_name)
-		frames.set_animation_speed(anim_name, float(info["fps"]))
-		frames.set_animation_loop(anim_name, bool(info["loop"]))
-		for i in int(info["frames"]):
-			var frame := AtlasTexture.new()
-			frame.atlas = sheet
-			frame.region = Rect2(i * FRAME_SIZE, 0, FRAME_SIZE, FRAME_SIZE)
-			frames.add_frame(anim_name, frame)
-	return true

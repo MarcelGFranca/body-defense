@@ -57,6 +57,12 @@ var _card_data: EnemyData
 var _card_lines: Label
 var _card_title: Label
 var _preview_index := -2
+## What the live labels show now, so `_refresh_values` and `_refresh_wave_info` touch a label only when its number changes.
+var _shown_health := -1
+var _shown_max_health := -1
+var _shown_amino := -1
+var _shown_started := -1
+var _shown_countdown := -2
 var _slot_for_menu := -1
 ## True while a long press on a build card showed its attributes: the release must not build. Cleared by the next press.
 var _card_held := false
@@ -149,6 +155,15 @@ func _ready() -> void:
 	level.defeat.connect(_show_result.bind(false))
 	level.speed_changed.connect(func(value: int) -> void: _speed_button.text = "%dX" % value)
 	_refresh_values()
+
+
+func _notification(what: int) -> void:
+	# A new language changes the words around the numbers: build every text again.
+	if what == NOTIFICATION_TRANSLATION_CHANGED:
+		_shown_health = -1
+		_shown_amino = -1
+		_shown_started = -1
+		_shown_countdown = -2
 
 
 func _process(delta: float) -> void:
@@ -342,20 +357,30 @@ func _button(text: String, button_size: Vector2, font_size: int) -> Button:
 
 # --- live values ------------------------------------------------------------
 
+## The texts are rebuilt only when a number changes: formatting and translating three strings every frame is work for nothing.
 func _refresh_values() -> void:
-	_health_label.text = "%d/%d" % [level.body_health, level.max_body_health]
-	_amino_label.text = str(shown_amino_acids())
-	_wave_label.text = tr("WAVE %d/%d") % [level.scheduler.started_count(), level.scheduler.wave_count()]
+	if level.body_health != _shown_health or level.max_body_health != _shown_max_health:
+		_shown_health = level.body_health
+		_shown_max_health = level.max_body_health
+		_health_label.text = "%d/%d" % [_shown_health, _shown_max_health]
+	var amino := shown_amino_acids()
+	if amino != _shown_amino:
+		_shown_amino = amino
+		_amino_label.text = str(amino)
+	var started := level.scheduler.started_count()
+	if started != _shown_started:
+		_shown_started = started
+		_wave_label.text = tr("WAVE %d/%d") % [started, level.scheduler.wave_count()]
 
 
 func _refresh_wave_info() -> void:
 	var scheduler := level.scheduler
 	var next_index := scheduler.next_wave_index()
 	_call_button.visible = next_index != -1 and level.state == "running"
-	if next_index == -1:
-		_countdown_label.text = tr("ALL WAVES STARTED")
-	else:
-		_countdown_label.text = tr("NEXT WAVE IN %dS") % ceili(scheduler.time_to_next_wave())
+	var seconds := -1 if next_index == -1 else ceili(scheduler.time_to_next_wave())
+	if seconds != _shown_countdown:
+		_shown_countdown = seconds
+		_countdown_label.text = tr("ALL WAVES STARTED") if seconds == -1 else tr("NEXT WAVE IN %dS") % seconds
 	if next_index != _preview_index:
 		_preview_index = next_index
 		_rebuild_preview(next_index)

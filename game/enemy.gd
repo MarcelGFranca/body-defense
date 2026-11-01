@@ -9,7 +9,6 @@ signal split(enemy: Enemy)
 
 const HIT_COOLDOWN := 1.4
 const SLOW_ANIMATION_COOLDOWN := 3.0
-const BAR_SIZE := Vector2(20, 3)
 ## Colour flashed on the sprite when a type without its own hit animation hurts it.
 const HIT_TINTS := {
 	"thermal": Color(1.0, 0.6, 0.35),
@@ -72,12 +71,15 @@ var _blocked_by: BlockerUnit
 var _unit_attack_playing := false
 var _dye: ShaderMaterial
 var _flames: BurnFlames
+## The trait of the roster entry when the level allows it, otherwise an empty string.
+var _active_trait := ""
 
 
 ## `options` may hold "health", "reward", "damage", "scale", "progress", "copy" and "level".
 func setup(enemy_data: EnemyData, curve: Curve2D, table: DamageTable, options: Dictionary = {}) -> void:
 	data = enemy_data
 	level = options.get("level", null)
+	_active_trait = data.trait_id if level == null or level.trait_enabled(data.trait_id) else ""
 	# Health and reward come from the roster, scaled by the difficulty, unless they were worked out from
 	# an enemy that was already scaled (the copies of a split).
 	var difficulty: DifficultyData = level.difficulty if level != null else null
@@ -107,8 +109,9 @@ func setup(enemy_data: EnemyData, curve: Curve2D, table: DamageTable, options: D
 
 
 ## True when the trait is on for this enemy: it belongs to the roster entry and the level allows it.
+## Read every frame by several checks, so the answer is worked out once, in `setup`.
 func has_trait(trait_id: String) -> bool:
-	return data.trait_id == trait_id and (level == null or level.trait_enabled(trait_id))
+	return _active_trait == trait_id
 
 
 func param(key: String, fallback: float) -> float:
@@ -182,7 +185,7 @@ func _draw_shell() -> void:
 		var r := lerpf(34.0, radius, ease)
 		var spin := (1.0 - ease) * PI
 		var alpha := clampf(t * 2.0, 0.0, 1.0)
-		_draw_plates(plates, r, spin, 1.0, alpha)
+		_draw_plates(plates, r, spin, alpha)
 		if t < 1.0:
 			draw_arc(Vector2.ZERO, lerpf(40.0, radius, ease), 0.0, TAU, 32, Color(1, 1, 1, (1.0 - t) * 0.6), 2.0)
 		else:
@@ -190,26 +193,34 @@ func _draw_shell() -> void:
 			draw_arc(Vector2.ZERO, radius + 4.0, 0.0, TAU, 32, Color(0.7, 0.85, 1.0, 0.18 + 0.18 * pulse), 2.0)
 	elif _shell_burst > 0.0:
 		var k := 1.0 - _shell_burst / SHELL_OUT
-		_draw_plates(plates, radius + k * 26.0, k * 1.2, 1.0 - k, 1.0 - k)
+		_draw_plates(plates, radius + k * 26.0, k * 1.2, 1.0 - k)
 		var glow := Color(1.0, 0.95, 0.7)
 		for ring in 3:
 			var kr := clampf(k * 1.3 - ring * 0.15, 0.0, 1.0)
 			if kr > 0.0:
 				draw_arc(Vector2.ZERO, radius + kr * 34.0, 0.0, TAU, 40, Color(glow.r, glow.g, glow.b, (1.0 - kr) * 0.9), 3.0 - ring * 0.8)
-		draw_circle(Vector2.ZERO, radius * (1.0 - k * 0.3), Color(1.0, 0.97, 0.8, (1.0 - k) * 0.55))
+		CanvasShapes.disc(self, Vector2.ZERO, radius * (1.0 - k * 0.3), Color(1.0, 0.97, 0.8, (1.0 - k) * 0.55))
 		for i in 12:
 			var dir := Vector2.from_angle(TAU * i / 12.0 + 0.2)
 			draw_line(dir * (radius + k * 10.0), dir * (radius + 6.0 + k * 30.0), Color(1, 1, 0.85, (1.0 - k)), 2.0)
 
 
-## A ring of steel-grey segments with rivets, turned by spin and faded by alpha.
-func _draw_plates(plates: int, radius: float, spin: float, _scale: float, alpha: float) -> void:
+## A ring of steel-grey segments with rivets, turned by spin and faded by alpha. The plates, their edges and the rivets
+## are each drawn in one batch.
+func _draw_plates(plates: int, radius: float, spin: float, alpha: float) -> void:
+	var bodies := PackedVector2Array()
+	var edges := PackedVector2Array()
+	var rivets: Array[Vector2] = []
 	for i in plates:
 		var a0 := TAU * i / plates + 0.06 + spin
 		var a1 := TAU * (i + 1) / plates - 0.06 + spin
-		draw_arc(Vector2.ZERO, radius, a0, a1, 6, Color(0.66, 0.72, 0.8, 0.95 * alpha), 5.0)
-		draw_arc(Vector2.ZERO, radius + 2.0, a0, a1, 6, Color(0.9, 0.94, 1.0, 0.9 * alpha), 1.5)
-		draw_circle(Vector2.from_angle((a0 + a1) / 2.0) * radius, 1.6, Color(0.35, 0.4, 0.5, alpha))
+		bodies.append_array(CanvasShapes.arc_segments(Vector2.ZERO, radius, a0, a1, 6))
+		edges.append_array(CanvasShapes.arc_segments(Vector2.ZERO, radius + 2.0, a0, a1, 6))
+		rivets.append(Vector2.from_angle((a0 + a1) / 2.0) * radius)
+	draw_multiline(bodies, Color(0.66, 0.72, 0.8, 0.95 * alpha), 5.0)
+	draw_multiline(edges, Color(0.9, 0.94, 1.0, 0.9 * alpha), 1.5)
+	for at in rivets:
+		CanvasShapes.disc(self, at, 1.6, Color(0.35, 0.4, 0.5, alpha))
 
 
 ## A marked enemy is dyed with the color of the lymphocyte that marked it, until the mark ends.
@@ -297,7 +308,6 @@ func take_damage(amount: float, damage_type: String, source: String = "") -> int
 		level.stats.record_damage(source if source != "" else "other", minf(float(dealt), maxf(health, 0.0)))
 	health -= dealt
 	_damage_taken[damage_type] = float(_damage_taken.get(damage_type, 0.0)) + dealt
-	queue_redraw()
 	if health <= 0.0:
 		_die()
 	elif _should_split():
@@ -385,7 +395,6 @@ func _revive() -> void:
 	_revive_clock = 0.0
 	_damage_taken.clear()
 	health = 0.0
-	queue_redraw()
 	GameAudio.play_sfx(data.sound_death)
 	if _on_done.is_valid() and _sprite.animation_finished.is_connected(_on_done):
 		_sprite.animation_finished.disconnect(_on_done)
@@ -412,7 +421,6 @@ func _step_revive(delta: float) -> void:
 		health = ceilf(max_health * param("health", 0.25))
 		_sprite.modulate = Color.WHITE
 		_sprite.play("walk")
-		queue_redraw()
 		return
 	if not _getting_up:
 		_getting_up = true
@@ -479,10 +487,3 @@ func _draw() -> void:
 		draw_arc(Vector2.ZERO, param("radius", 70.0), 0.0, TAU, 48, Color(0.9, 0.3, 0.3, 0.35), 1.0)
 	if _shell_on or _shell_burst > 0.0:
 		_draw_shell()
-	if health >= max_health:
-		return
-	var origin := Vector2(-BAR_SIZE.x / 2.0, -22.0)
-	draw_rect(Rect2(origin - Vector2(1, 1), BAR_SIZE + Vector2(2, 2)), Color("2b1b3a"))
-	var fraction := clampf(health / max_health, 0.0, 1.0)
-	var color := Color("6ad4a0") if fraction > 0.5 else Color("f4d35e") if fraction > 0.25 else Color("e84a5f")
-	draw_rect(Rect2(origin, Vector2(BAR_SIZE.x * fraction, BAR_SIZE.y)), color)

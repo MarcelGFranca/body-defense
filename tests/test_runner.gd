@@ -11,13 +11,23 @@ var _table: DamageTable
 var _level_data: LevelData
 
 
+## A run takes about 10 s. If a section waits for something that never comes, the run fails instead of hanging.
+const WATCHDOG_SECONDS := 180.0
+
+
 func _ready() -> void:
+	get_tree().create_timer(WATCHDOG_SECONDS, true, false, true).timeout.connect(_on_watchdog)
 	await get_tree().process_frame
 	_enemies = DataLoader.load_all("res://data/enemies")
 	_towers = DataLoader.load_all("res://data/towers")
 	_table = load("res://data/damage_table.tres")
 	_level_data = load("res://data/levels/level_1.tres")
 	_run()
+
+
+func _on_watchdog() -> void:
+	printerr("FAIL: the tests did not finish in %d s (a section is waiting for something that never happens)" % int(WATCHDOG_SECONDS))
+	get_tree().quit(1)
 
 
 func _run() -> void:
@@ -38,9 +48,12 @@ func _run() -> void:
 	test_map_centering()
 	await test_revive()
 	await test_hud()
+	await test_presentation_limits()
 	await test_audio()
 	test_difficulty()
 	test_stats()
+	test_rule_limits()
+	test_performance_helpers()
 	test_campaign_data()
 	test_enemy_traits()
 	await test_new_towers()
@@ -55,8 +68,9 @@ func _run() -> void:
 	test_campaign_simulation()
 	for section in ["test_enemy_roster", "test_tower_roster", "test_level_data", "test_validator_catches_problems",
 			"test_damage_calculator", "test_status_effects", "test_wave_scheduler", "test_economy",
-			"test_level_simulation", "test_scrolling", "test_speed_and_pause", "test_hud", "test_audio",
-			"test_difficulty", "test_stats", "test_campaign_data", "test_enemy_traits", "test_new_towers", "test_session", "test_menu_and_results",
+			"test_level_simulation", "test_scrolling", "test_speed_and_pause", "test_hud", "test_presentation_limits", "test_audio",
+			"test_difficulty", "test_stats", "test_rule_limits", "test_map_centering", "test_heartbeat", "test_revive",
+			"test_icon_safe_zone", "test_performance_helpers", "test_campaign_data", "test_enemy_traits", "test_new_towers", "test_session", "test_menu_and_results",
 			"test_splash", "test_intro", "test_localization", "test_changelog", "test_changelog_menu", "test_campaign_simulation"]:
 		if not _done.has(section):
 			_failures += 1
@@ -730,7 +744,12 @@ func test_map_centering() -> void:
 	check(approx(-limits.position.y - Level.SAFE_TOP, (room - 300.0) / 2.0) and approx(limits.size.y, 0.0), "a map shorter than the room between the bars is centred: the same space above and below")
 	short.map_size = Vector2(360, 900)
 	check(limits.size.y == 0.0 and level.scroll_limits().size.y > 0.0, "a map taller than the room between the bars scrolls")
+	# A map narrower than the view stays centred sideways: no room to scroll, the same space on both sides.
+	short.map_size = Vector2(300, 900)
+	var sideways := level.scroll_limits()
+	check(approx(sideways.size.x, 0.0) and sideways.position.x < 0.0, "a map narrower than the view is centred sideways")
 	free_node(level)
+	done("test_map_centering")
 
 
 func test_heartbeat() -> void:
@@ -741,6 +760,7 @@ func test_heartbeat() -> void:
 		if absf(MapView.heartbeat((i + 1) * 0.083) - MapView.heartbeat(i * 0.083)) > 0.4:
 			smooth = false
 	check(smooth, "the beat changes gently from frame to frame")
+	done("test_heartbeat")
 
 
 func test_revive() -> void:
@@ -764,6 +784,7 @@ func test_revive() -> void:
 	spore.take_damage(max_health, "physical")
 	check(spore.finished, "the second death is final")
 	free_node(level)
+	done("test_revive")
 
 
 func test_hud() -> void:
@@ -940,6 +961,54 @@ func test_hud() -> void:
 
 
 # --- audio ------------------------------------------------------------------
+
+## The same idea as `test_rule_limits` for what the player sees and hears: values that differ from their
+## neighbours (13/20, not 20/20), a finished game, a language that does not exist.
+func test_presentation_limits() -> void:
+	var level := new_level()
+	level.body_health = 13
+	var hud := Hud.new(level)
+	get_tree().root.add_child(hud)
+	await get_tree().process_frame
+	check(hud._health_label.text == "13/20", "the top bar shows the current health before the maximum")
+	check(hud._call_button.visible, "the call button shows while a wave is waiting")
+	level.state = "lost"
+	hud._refresh_wave_info()
+	check(not hud._call_button.visible, "the call button hides when the level is over")
+	level.state = "running"
+	var english := hud._wave_label.text
+	TranslationServer.set_locale("pt_BR")
+	hud.notification(Node.NOTIFICATION_TRANSLATION_CHANGED)
+	hud._refresh_values()
+	check(hud._wave_label.text != english, "the wave label is written again when the language changes")
+	check(hud._amino_label.text == str(hud.shown_amino_acids()), "the amino acid label is written again when the language changes")
+	TranslationServer.set_locale("en")
+	free_node(hud)
+	free_node(level)
+	# Language: an unknown code is refused, the phone locales map to the nearest language.
+	var language := Session.language
+	Session.set_language("xx")
+	check(Session.language == language, "an unsupported language is refused")
+	Localization.apply("xx")
+	check(TranslationServer.get_locale() == "en", "an unsupported language falls back to English")
+	Localization.apply("en")
+	check(Localization.match_locale("pt_PT") == "pt_BR" and Localization.match_locale("zh_TW") == "zh_CN", "Portuguese and Chinese phones map to the supported variant")
+	check(Localization.match_locale("sw") == "en" and Localization.match_locale("ja_JP") == "ja", "an unknown phone language becomes English, a known one keeps its base")
+	# Audio: volumes stay between silence and full, mute silences effects, zero volume is silent.
+	GameAudio.set_music_volume(5.0)
+	check(GameAudio.music_volume == 1.0, "the music volume stops at full")
+	GameAudio.set_music_volume(-1.0)
+	check(GameAudio.music_volume == 0.0, "the music volume stops at silence")
+	GameAudio.set_music_volume(1.0)
+	GameAudio.set_sfx_volume(0.0)
+	check(GameAudio.sfx_volume_db() == -80.0, "a zero effects volume is silent")
+	GameAudio.set_sfx_volume(1.0)
+	GameAudio.set_muted(true)
+	check(GameAudio.sfx_volume_db() == -80.0, "muting silences the effects")
+	GameAudio.set_muted(false)
+	check(GameAudio.sfx_volume_db() > -80.0, "unmuting brings the effects back")
+	done("test_presentation_limits")
+
 
 func test_audio() -> void:
 	GameAudio.record = true
@@ -1514,6 +1583,7 @@ func test_icon_safe_zone() -> void:
 			if layer.get_pixel(x, y).a > 0.0:
 				farthest = maxf(farthest, Vector2(x, y).distance_to(centre))
 	check(farthest <= 144.0, "the icon picture stays inside the safe zone (farthest pixel %.0f px of 144)" % farthest)
+	done("test_icon_safe_zone")
 
 
 func test_splash() -> void:
@@ -1923,7 +1993,7 @@ func test_stats() -> void:
 	level.build_tower(2, "macrophage")
 	var target := spawn_at(level, "rhinovirus", 850.0)
 	level.step(0.05)
-	check(level.stats.damage_by_source.get("macrophage", 0.0) == 14.0 or level.stats.damage_by_source.get("macrophage", 0.0) == 20.0,
+	check(level.stats.damage_by_source.get("macrophage", 0.0) == minf(14.0, target.max_health),
 		"the stats count the damage of a tower, without the overkill")
 	level.step(1.05)
 	check(level.stats.kills.get("rhinovirus", 0) == 1 and level.stats.kills_by_source.get("macrophage", 0) == 1, "the stats count the kill and who made it")
@@ -1934,3 +2004,136 @@ func test_stats() -> void:
 	check(target.finished and runner.finished, "both enemies are done")
 	free_node(level)
 	done("test_stats")
+
+
+## The rules at their limits. A mutation run (design/test-audit.md) showed that the tests passed when these were broken:
+## the exact balance, the exact start time, a finished game, a slot that does not exist, a leak of a heavy enemy.
+func test_rule_limits() -> void:
+	# Economy: spending the whole balance works, one more does not.
+	Economy.reset(50)
+	check(Economy.try_spend(50) and Economy.balance() == 0, "the whole balance can be spent")
+	check(not Economy.try_spend(1) and Economy.balance() == 0, "nothing can be spent from an empty balance")
+	# Scheduler: a wave starts exactly at its time, later when the difficulty stretches time.
+	var scheduler := WaveScheduler.new(_level_data.waves)
+	scheduler.tick(_level_data.waves[0].start_time)
+	check(scheduler.started_count() == 1, "a wave starts exactly at its start time")
+	var slow_scheduler := WaveScheduler.new(_level_data.waves, 2.0)
+	slow_scheduler.tick(_level_data.waves[0].start_time)
+	check(slow_scheduler.started_count() == 0, "a time scale of 2 delays the first wave")
+	slow_scheduler.tick(_level_data.waves[0].start_time)
+	check(slow_scheduler.started_count() == 1, "a time scale of 2 starts the first wave at twice its time")
+	# Validator: a type that is neither virus nor bacterium is reported.
+	var odd := _enemies.duplicate()
+	var fungus: EnemyData = _enemies["hpv"].duplicate()
+	fungus.type = "fungus"
+	odd["hpv"] = fungus
+	var type_errors := DataValidator.validate_enemies(odd)
+	check(type_errors.any(func(e: String) -> bool: return e.begins_with("hpv: type")), "validation names an enemy of an unknown type")
+	# Stats: the first leak time is kept, every kill counts in its wave.
+	var stats := GameStats.new()
+	stats.record_leak("hpv", 0, 5.0)
+	stats.record_leak("hpv", 0, 9.0)
+	check(stats.first_leak_time == 5.0 and stats.waves[0]["leaks"] == 2, "the first leak time stays the first, both leaks count")
+	stats.record_kill("hpv", "macrophage", 1, 12.0)
+	stats.record_kill("hpv", "macrophage", 1, 13.0)
+	check(stats.waves[1]["kills"] == 2 and stats.kills["hpv"] == 2, "every kill counts once in its wave")
+	var level := new_level()
+	# A heavy enemy that gets out costs its whole body damage.
+	var boss := spawn_at(level, "hiv", 100.0)
+	var health := level.body_health
+	level._on_enemy_reached_exit(boss)
+	check(level.body_health == health - boss.body_damage and boss.body_damage > 1, "a leak costs the body damage of that enemy")
+	free_node(level)
+	# Slots that do not exist cannot be built on or moved to, and a failed build costs nothing.
+	level = level_with_tower("t-lymphocyte")
+	var balance := Economy.balance()
+	check(not level.build_tower(99, "macrophage") and not level.build_tower(-1, "macrophage") and Economy.balance() == balance, "a slot that does not exist cannot be built on")
+	check(not level.move_tower(2, 99) and level.towers.has(2), "a tower cannot move to a slot that does not exist")
+	# After the game ended nothing can be built, sold, called or advanced.
+	level.state = "lost"
+	var clock := level.scheduler.clock
+	level.step(1.0)
+	check(level.scheduler.clock == clock, "a finished game does not advance")
+	check(not level.build_tower(3, "macrophage") and level.sell_tower(2) == 0 and level.towers.has(2) and not level.call_next_wave(),
+		"a finished game cannot build, sell or call a wave")
+	free_node(level)
+	# Victory needs the field clear: the last wave released is not enough while its enemies are alive.
+	level = new_level()
+	level.body_health = 100000
+	level.max_body_health = 100000
+	for i in 20000:
+		level.step(0.05)
+		if level.scheduler.spawning_done():
+			break
+	check(level.scheduler.spawning_done() and not level.enemies.is_empty() and level.state == "running", "the level is not won while enemies are still alive")
+	for enemy: Enemy in level.enemies.duplicate():
+		enemy.take_damage(100000.0, "immunological")
+	level.step(0.05)
+	check(level.enemies.is_empty() and level.state == "won", "the level is won once the last enemy is gone")
+	free_node(level)
+	# The stats count only the health that was taken away, not the overkill.
+	level = new_level()
+	var weak := spawn_at(level, "rhinovirus", 100.0)
+	weak.health = 5.0
+	weak.take_damage(1000.0, "immunological", "probe")
+	check(level.stats.damage_by_source.get("probe", 0.0) == 5.0, "the stats count the 5 health that was left, not the overkill")
+	free_node(level)
+	# A split copy takes its share of the body damage, and zooming out stops where the map fits.
+	level = campaign_level(7)
+	var meningitis := spawn_at(level, "neisseria-meningitidis", 200.0)
+	var damage := meningitis.body_damage
+	meningitis.take_damage(160.0, "physical")
+	for copy: Enemy in level.enemies:
+		check(copy.body_damage == ceili(float(damage) / 2.0), "a copy of a split carries half of the body damage")
+	free_node(level)
+	level = new_level()
+	var room := Level.VIEW_SIZE.y - Level.SAFE_TOP - Level.SAFE_BOTTOM
+	check(level.zoom_min() * level.data.map_size.y <= room + 1.0 and level.zoom_min() * level.data.map_size.y > room - 1.0, "zooming out stops where the whole map fits between the bars")
+	free_node(level)
+	done("test_rule_limits")
+
+
+## The helpers that keep the frame cheap: target queries, the sprite atlas, batched shapes.
+func test_performance_helpers() -> void:
+	var level := new_level()
+	var near := spawn_at(level, "rhinovirus", 100.0)
+	var far := spawn_at(level, "rhinovirus", 300.0)
+	var center := near.position
+	var found := level.enemies_in_range(center, 5.0)
+	check(found.size() == 1 and found[0] == near, "enemies_in_range finds only the enemies inside the circle")
+	check(level.enemies_in_range(center, 5000.0).size() == 2, "a huge circle holds every enemy")
+	check(level.first_enemy_in_range(center, 5000.0) == far, "first_enemy_in_range returns the enemy furthest along the path")
+	check(level.first_enemy_in_range(center, 5.0) == near, "first_enemy_in_range respects the radius")
+	check(level.first_enemy_in_range(Vector2(-5000, -5000), 10.0) == null, "first_enemy_in_range returns null when nobody is in range")
+	check(level.first_enemy_in_range(center, 5000.0) == level.enemies_in_range(center, 5000.0).reduce(
+		func(best: Enemy, e: Enemy) -> Enemy: return e if e.progress > best.progress else best), "both queries agree on the first enemy")
+	# A calm enemy allocates no tick list.
+	check(near.status.advance(0.1).is_empty(), "no damage-over-time ticks without a burn")
+	# The atlas holds every sheet exactly as the generators wrote it.
+	var atlas := Image.load_from_file(ProjectSettings.globalize_path(SpriteAtlas.TEXTURE_PATH))
+	var index: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(SpriteAtlas.INDEX_PATH))
+	var mismatches := 0
+	for key: String in index["sheets"]:
+		var entry: Dictionary = index["sheets"][key]
+		var parts := key.split("/")
+		var sheet := Image.load_from_file(ProjectSettings.globalize_path("res://assets/%s/%s/animations/%s_%s_sheet.png" % [parts[0], parts[1], parts[1], parts[2]]))
+		sheet.convert(Image.FORMAT_RGBA8)
+		var region := atlas.get_region(Rect2i(int(entry["x"]), int(entry["y"]), sheet.get_width(), sheet.get_height()))
+		if region.get_data() != sheet.get_data() or sheet.get_width() != int(entry["frames"]) * int(index["frame"]):
+			mismatches += 1
+	check(index["sheets"].size() >= 100 and mismatches == 0, "the sprite atlas matches every sheet (run tools/pack_sprites.py if not)")
+	var rhino := EnemySprites.frames_for(level.enemy_catalog["rhinovirus"])
+	check(rhino.has_animation("walk") and rhino.get_frame_count("walk") == 8 and rhino.get_frame_texture("walk", 0) is AtlasTexture, "enemy frames come from the atlas")
+	check(TowerSprites.frames_for("macrophage").has_animation("attack"), "tower frames come from the atlas")
+	var segment_data: EnemyData = level.enemy_catalog["streptococcus-pyogenes"].duplicate()
+	segment_data.sprite_dir = String(segment_data.trait_params["segment_sprite"])
+	check(EnemySprites.frames_for(segment_data) != EnemySprites.frames_for(level.enemy_catalog["streptococcus-pyogenes"]), "a chain segment has its own sprite frames")
+	# The health bars of all enemies are drawn by one overlay, none by the enemies.
+	var bars := 0
+	for child in level._camera.get_viewport().get_children():
+		if child is EnemyBars:
+			bars += 1
+	check(bars == 1, "the level has one health bar overlay")
+	check(CanvasShapes.arc_segments(Vector2.ZERO, 10.0, 0.0, PI, 4).size() == 8, "an arc of 4 pieces gives 4 line segments")
+	free_node(level)
+	done("test_performance_helpers")

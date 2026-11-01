@@ -34,6 +34,6 @@ func step(delta: float) -> void:
 
 
 func _draw() -> void:
-	draw_circle(Vector2.ZERO, 5.0, Color("a89430"))
-	draw_circle(Vector2.ZERO, 4.0, Color("d6c448"))
-	draw_circle(Vector2(-1.5, -1.5), 1.5, Color("f5eb8c"))
+	CanvasShapes.disc(self, Vector2.ZERO, 5.0, Color("a89430"))
+	CanvasShapes.disc(self, Vector2.ZERO, 4.0, Color("d6c448"))
+	CanvasShapes.disc(self, Vector2(-1.5, -1.5), 1.5, Color("f5eb8c"))

@@ -50,8 +50,8 @@ func _draw() -> void:
 		draw_line(Vector2.ZERO, _target, CORE, width * 0.45)
 	var burst := _age / EXPLOSION_SECONDS
 	var radius := _width * (0.4 + 1.8 * burst)
-	draw_circle(_target, radius, Color(FLASH, 0.85 * (1.0 - burst)))
-	draw_circle(_target, radius * 0.55, Color(CORE, 1.0 - burst))
+	CanvasShapes.disc(self, _target, radius, Color(FLASH, 0.85 * (1.0 - burst)))
+	CanvasShapes.disc(self, _target, radius * 0.55, Color(CORE, 1.0 - burst))
 	draw_arc(_target, radius * 1.3, 0.0, TAU, 32, Color(OUTER, 1.0 - burst), 3.0)
 	for i in SPARKS:
 		var angle := TAU * i / SPARKS + 0.3

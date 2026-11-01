@@ -14,6 +14,8 @@ const BEAT_SECONDS := 2.6
 const BEAT_PIXELS := 6.0
 ## The tissue goes on this far past the edges of the map, so zooming out never shows an empty border.
 const MARGIN := Vector2(320.0, 240.0)
+const ENTRANCE_COLOR := Color("f4d35e")
+const EXIT_COLOR := Color("6ad4a0")
 const PUS_COLOR := Color(0.85, 0.85, 0.35)
 const INFECTION_TINT := Color(0.75, 0.08, 0.1)
 
@@ -61,13 +63,16 @@ func _draw() -> void:
 	_draw_dashes(points)
 	var entrance := points[0]
 	var exit_point := points[points.size() - 1]
-	draw_colored_polygon(PackedVector2Array([entrance + Vector2(-14, 4), entrance + Vector2(14, 4), entrance + Vector2(0, 20)]), Color("f4d35e"))
-	draw_colored_polygon(PackedVector2Array([exit_point + Vector2(-16, -26), exit_point + Vector2(16, -26), exit_point + Vector2(0, -8)]), Color("6ad4a0"))
+	draw_primitive(PackedVector2Array([entrance + Vector2(-14, 4), entrance + Vector2(14, 4), entrance + Vector2(0, 20)]), PackedColorArray([ENTRANCE_COLOR, ENTRANCE_COLOR, ENTRANCE_COLOR]), PackedVector2Array())
+	draw_primitive(PackedVector2Array([exit_point + Vector2(-16, -26), exit_point + Vector2(16, -26), exit_point + Vector2(0, -8)]), PackedColorArray([EXIT_COLOR, EXIT_COLOR, EXIT_COLOR]), PackedVector2Array())
+	# All the fills first and then all the edges: two batches however many slots are free.
+	var free_slots: Array[Vector2] = []
 	for i in _level.data.slots.size():
-		if _level.towers.has(i):
-			continue
-		var center := _level.data.slots[i]
-		draw_circle(center, 17.0, SLOT_FILL)
+		if not _level.towers.has(i):
+			free_slots.append(_level.data.slots[i])
+	for center in free_slots:
+		CanvasShapes.disc(self, center, 17.0, SLOT_FILL)
+	for center in free_slots:
 		draw_arc(center, 17.0, 0.0, TAU, 24, SLOT_EDGE, 2.0)
 
 
@@ -142,7 +147,7 @@ func _draw_decor() -> void:
 				var from: Vector2 = item["at"] + Vector2(0.0, sway.y)
 				draw_line(from + Vector2(-MARGIN.x, 0.0), from + Vector2(map_width + MARGIN.x, float(item["radius"]) + sway.x), tissue, item["width"])
 			_:
-				draw_circle(item["at"] + sway, float(item["radius"]) * swell, tissue)
+				CanvasShapes.disc(self, item["at"] + sway, float(item["radius"]) * swell, tissue)
 
 
 ## Red tint over the tissue, and pus oozing from spots, more of both as enemies get through.
@@ -152,14 +157,19 @@ func _draw_infection(map_size: Vector2) -> void:
 		return
 	draw_rect(Rect2(-MARGIN, map_size + MARGIN * 2.0), Color(INFECTION_TINT, 0.32 * level_of_infection))
 	var visible_spots := ceili(level_of_infection * PUS_SPOTS)
+	var radii: Array[float] = []
+	# The drips (lines) first, then the blobs and their highlights (discs): two batches instead of 3 per spot.
 	for i in visible_spots:
 		var spot: Dictionary = _pus[i]
 		var at: Vector2 = spot["at"]
 		var radius: float = spot["radius"] * (0.85 + 0.15 * sin(_time * 1.3 + float(spot["phase"]) * TAU))
+		radii.append(radius)
 		var drip := fposmod(_time * 0.12 + float(spot["phase"]), 1.0)
 		draw_line(at, at + Vector2(0.0, radius * (1.0 + 4.0 * drip)), Color(PUS_COLOR, 0.45 * (1.0 - drip)), 4.0)
-		draw_circle(at, radius, Color(PUS_COLOR, 0.5))
-		draw_circle(at + Vector2(-radius * 0.25, -radius * 0.25), radius * 0.4, Color(1, 1, 0.8, 0.45))
+	for i in visible_spots:
+		CanvasShapes.disc(self, _pus[i]["at"], radii[i], Color(PUS_COLOR, 0.5))
+	for i in visible_spots:
+		CanvasShapes.disc(self, _pus[i]["at"] + Vector2(-radii[i] * 0.25, -radii[i] * 0.25), radii[i] * 0.4, Color(1, 1, 0.8, 0.45))
 
 
 func _draw_dashes(points: PackedVector2Array) -> void:

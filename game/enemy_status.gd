@@ -7,10 +7,16 @@ const MARK_FADE_SECONDS := 0.6
 const BOSS_ROLE := "boss"
 const SLOW_IMMUNE_ROLE := "slow-immune"
 
+## Returned by `advance` when no damage-over-time tick is due, so a calm frame allocates nothing.
+const NO_TICKS: Array = []
+
 var time := 0.0
 
 var _data: EnemyData
-var _slows: Dictionary = {}  # source -> {"percent": float, "until": float}
+## Slows by source. Two flat dictionaries instead of one dictionary of dictionaries: a tower renews its slow on
+## every enemy every frame, and this way renewing allocates nothing.
+var _slow_percents: Dictionary = {}  # source -> percent
+var _slow_untils: Dictionary = {}  # source -> time when the slow ends
 var _root_until := 0.0
 var _root_ready_at: Dictionary = {}  # source -> time when it may root again
 var _dot_active := false
@@ -31,6 +37,8 @@ func _init(enemy_data: EnemyData) -> void:
 ## Moves the clock forward and returns the damage-over-time ticks that are due.
 func advance(delta: float) -> Array:
 	time += delta
+	if not _dot_active:
+		return NO_TICKS
 	var ticks: Array = []
 	while _dot_active and time >= _dot_next_tick and _dot_next_tick <= _dot_until + 0.000001:
 		ticks.append({"damage": _dot_damage, "type": _dot_type, "source": _dot_source})
@@ -47,16 +55,16 @@ func apply_slow(source: String, percent: float) -> bool:
 	if _data.role == BOSS_ROLE:
 		percent *= 0.5
 	var was_slowed := is_slowed()
-	_slows[source] = {"percent": percent, "until": time + SLOW_LINGER}
+	_slow_percents[source] = percent
+	_slow_untils[source] = time + SLOW_LINGER
 	return not was_slowed
 
 
 func slow_percent() -> float:
 	var best := 0.0
-	for source in _slows.keys():
-		var slow: Dictionary = _slows[source]
-		if time < float(slow["until"]):
-			best = maxf(best, float(slow["percent"]))
+	for source in _slow_percents:
+		if time < float(_slow_untils[source]):
+			best = maxf(best, float(_slow_percents[source]))
 	return best
 
 

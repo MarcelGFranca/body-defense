@@ -215,8 +215,28 @@ func add_puddle(at: Vector2, radius: float, slow_percent: float, seconds: float)
 	return puddle
 
 
+## The enemies that can be targeted inside a circle: not finished, not lying down while they revive.
+## Compares squared distances and builds no closure, because every tower asks this every frame.
 func enemies_in_range(center: Vector2, radius: float) -> Array:
-	return enemies.filter(func(e: Enemy) -> bool: return not e.finished and not e.is_reviving() and e.position.distance_to(center) <= radius)
+	var found: Array = []
+	var limit := radius * radius
+	for enemy in enemies:
+		if not enemy.finished and not enemy.is_reviving() and enemy.position.distance_squared_to(center) <= limit:
+			found.append(enemy)
+	return found
+
+
+## The targetable enemy inside a circle that is furthest along the path (the first of the queue), or null.
+## The same answer as the first by `progress` of `enemies_in_range`, without building the list.
+func first_enemy_in_range(center: Vector2, radius: float) -> Enemy:
+	var first: Enemy = null
+	var limit := radius * radius
+	for enemy in enemies:
+		if enemy.finished or enemy.is_reviving() or enemy.position.distance_squared_to(center) > limit:
+			continue
+		if first == null or enemy.progress > first.progress:
+			first = enemy
+	return first
 
 
 ## Slot of the built tower under a point given in screen pixels, or -1.
@@ -382,6 +402,9 @@ func _build_view() -> void:
 	viewport.add_child(_enemy_layer)
 	_air_layer = Node2D.new()
 	viewport.add_child(_air_layer)
+	var bars := EnemyBars.new()
+	bars.setup(self)
+	viewport.add_child(bars)
 
 
 func _spawn_enemy(enemy_id: String) -> void:

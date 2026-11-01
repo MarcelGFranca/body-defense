@@ -23,12 +23,14 @@ main.tscn (game/main.gd)  -- builds Level + Hud for that level and the chosen di
 
 | File | Job |
 |---|---|
-| `level.gd` (`Level`) | One level: map, enemies, towers, waves, win/lose, difficulty, stats |
+| `level.gd` (`Level`) | One level: map, enemies, towers, waves, win/lose, difficulty, stats; `enemies_in_range` and `first_enemy_in_range` are the allocation-free target queries |
 | `map_view.gd` | Draws background, path, entrance, exit and empty slots |
 | `wave_scheduler.gd` | Starts waves and spawns enemies on time; scales times by difficulty; early call |
 | `enemy.gd` | Movement along the path, health, traits, rewards, damage taken |
 | `enemy_status.gd` | Slow, root, damage over time, mark (and its dye, see `assets/shaders/mark_tint.gdshader`), resistances on one enemy |
-| `enemy_sprites.gd`, `tower_sprites.gd` | Load sprites and animations |
+| `enemy_sprites.gd`, `tower_sprites.gd`, `sprite_atlas.gd` | Build `SpriteFrames` from the one sprite atlas (`assets/sprites/atlas.png`, packed by `tools/pack_sprites.py`); enemies are keyed by sprite folder |
+| `enemy_bars.gd` | One overlay that draws every hurt enemy's health bar (rectangles batch only when nothing is drawn between them) |
+| `canvas_shapes.gd` | `disc` (tinted rectangle of a disc texture, batches) and `arc_segments` (for armour plates); why rings stay `draw_arc`: `design/performance.md` |
 | `tower_beam.gd` | The thick beam and the explosion of a charging tower (T lymphocyte) |
 | `root_tendrils.gd` | Tendrils drawn by a platelet on the enemies it holds |
 | `tower.gd` | All tower behaviours (single target, aura, slow puddle, root, DOT, marker, summoner) |

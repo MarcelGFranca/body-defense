@@ -36,6 +36,8 @@ var selected := false:
 		queue_redraw()
 
 var _level: Level
+## Name this tower goes by in the slows and roots it puts on enemies (made once: it is used every frame).
+var _source_key := ""
 var _cooldown := 0.0
 var _disabled_for := 0.0
 var _flash := 0.0
@@ -62,6 +64,7 @@ func setup(tower_data: TowerData, slot: int, level: Level) -> void:
 	slot_index = slot
 	spent = data.cost
 	_level = level
+	_source_key = str(get_instance_id())
 	var frames := TowerSprites.frames_for(data.id)
 	var art_path := "res://assets/towers/%s.png" % data.id
 	if frames != null:
@@ -211,11 +214,7 @@ func _enemies() -> Array:
 
 ## The enemy in range that is furthest along the path: the first one of the queue.
 func _first_enemy() -> Enemy:
-	var first: Enemy = null
-	for enemy: Enemy in _enemies():
-		if first == null or enemy.progress > first.progress:
-			first = enemy
-	return first
+	return _level.first_enemy_in_range(position, data.range_px)
 
 
 func _step_single_target(delta: float) -> void:
@@ -271,13 +270,13 @@ func _step_slow_puddle(delta: float) -> void:
 func _slow_unaffected_enemies_excluded() -> void:
 	for enemy: Enemy in _enemies():
 		if DamageCalculator.factor_for(data.damage_type, enemy.data, _level.damage_table) > 0.0:
-			enemy.status.apply_slow(str(get_instance_id()), data.slow_percent)
+			enemy.status.apply_slow(_source_key, data.slow_percent)
 
 
 func _step_slow_aura(delta: float) -> void:
 	var targets := _enemies()
 	for enemy: Enemy in targets:
-		if enemy.status.apply_slow(str(get_instance_id()), data.slow_percent):
+		if enemy.status.apply_slow(_source_key, data.slow_percent):
 			enemy.notify_slowed()
 	_cooldown -= delta
 	if not targets.is_empty() and _cooldown <= 0.0:
@@ -312,7 +311,7 @@ func _step_root_aura() -> void:
 	for enemy: Enemy in targets:
 		if free <= 0:
 			break
-		if enemy.status.apply_root(str(get_instance_id()), data.root_seconds, data.root_cooldown):
+		if enemy.status.apply_root(_source_key, data.root_seconds, data.root_cooldown):
 			free -= 1
 			_holds.append({"enemy": enemy, "age": 0.0})
 			if not sent:
@@ -389,8 +388,8 @@ func _draw_mist() -> void:
 		var color := Color(data.mist_color, (1.0 - phase) * 0.42 * strength)
 		for i in PUFFS:
 			var angle := TAU * i / PUFFS + wave * 0.7 + sin(_pulse * 0.6 + wave) * 0.25
-			draw_circle(Vector2(cos(angle), sin(angle)) * radius * 0.85, 6.0 + 11.0 * phase, color)
-	draw_circle(Vector2.ZERO, data.range_px * (0.55 + 0.08 * sin(_pulse * 2.6)), Color(data.mist_color, 0.14 * strength))
+			CanvasShapes.disc(self, Vector2(cos(angle), sin(angle)) * radius * 0.85, 6.0 + 11.0 * phase, color)
+	CanvasShapes.disc(self, Vector2.ZERO, data.range_px * (0.55 + 0.08 * sin(_pulse * 2.6)), Color(data.mist_color, 0.14 * strength))
 
 
 func _pulse_seconds() -> float:
@@ -402,7 +401,7 @@ func _draw_fever_wave() -> void:
 	var fraction := _pulse_age / FEVER_WAVE_SECONDS
 	var fade := 1.0 - fraction
 	var radius := data.range_px * (1.0 - pow(fade, 2.0))
-	draw_circle(Vector2.ZERO, radius, Color(1.0, 0.15, 0.05, 0.16 * fade))
+	CanvasShapes.disc(self, Vector2.ZERO, radius, Color(1.0, 0.15, 0.05, 0.16 * fade))
 	draw_arc(Vector2.ZERO, radius * 0.8, 0.0, TAU, 48, Color(1.0, 0.3, 0.1, 0.5 * fade), 4.0)
 	draw_arc(Vector2.ZERO, radius, 0.0, TAU, 64, Color(0.95, 0.12, 0.1, 0.9 * fade), 7.0)
 	for i in FEVER_FLAMES:
@@ -415,11 +414,11 @@ func _draw() -> void:
 	if data.mist_color.a > 0.0 and _mist_level > 0.0:
 		_draw_mist()
 	if _missing_art:
-		draw_circle(Vector2.ZERO, 12.0, Color("b9a7d6"))
+		CanvasShapes.disc(self, Vector2.ZERO, 12.0, Color("b9a7d6"))
 	var is_aura := data.behavior.ends_with("_aura")
 	if is_aura and data.mist_color.a == 0.0:
 		var alpha := 0.10 + 0.05 * sin(_pulse * 3.0)
-		draw_circle(Vector2.ZERO, data.range_px, Color(0.8, 0.9, 1.0, alpha))
+		CanvasShapes.disc(self, Vector2.ZERO, data.range_px, Color(0.8, 0.9, 1.0, alpha))
 		draw_arc(Vector2.ZERO, data.range_px, 0.0, TAU, 48, Color(1, 1, 1, 0.25), 1.0)
 	elif is_aura:
 		draw_arc(Vector2.ZERO, data.range_px, 0.0, TAU, 48, Color(1, 1, 1, 0.18), 1.0)
@@ -436,4 +435,4 @@ func _draw() -> void:
 	if _flash > 0.0 and _beam == null:
 		draw_line(Vector2.ZERO, _flash_target, Color("ffb3c7"), 3.0)
 	if _disabled_for > 0.0 or _settling > 0.0:
-		draw_circle(Vector2.ZERO, 14.0, Color(0, 0, 0, 0.45))
+		CanvasShapes.disc(self, Vector2.ZERO, 14.0, Color(0, 0, 0, 0.45))

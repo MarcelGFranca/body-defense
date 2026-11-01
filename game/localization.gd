@@ -36,7 +36,11 @@ static func apply(code: String) -> void:
 
 ## The language of the phone when the game supports it, otherwise English.
 static func from_os() -> String:
-	var locale := OS.get_locale()
+	return match_locale(OS.get_locale())
+
+
+## The supported language that best fits a phone locale such as "pt_PT" or "zh_TW", or English.
+static func match_locale(locale: String) -> String:
 	if is_supported(locale):
 		return locale
 	match locale.substr(0, 2):
